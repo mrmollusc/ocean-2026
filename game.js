@@ -57,33 +57,32 @@
         { x: 800, y: 880, w: 1600, h: 40 },
         { x: 20, y: 450, w: 40, h: 900},
         { x: 1580, y: 450, w: 40, h: 900}
-
         ],
         doors: [
-          { x: 20, y: 450, w: 50, h: 300, target_room: 'room_3', target_x: 300, target_y: 450}
+          { x: 20, y: 450, w: 50, h: 120, target_room: 'room_3', target_x: 1480, target_y: 450},
+          { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_2', target_x: 120, target_y: 450}
         ]
       },
       room_2: {
         walls: [
-          { x: window.innerWidth / 2, y: window.innerHeight - 40, w: window.innerWidth, h: 40 },
-          { x: window.innerWidth / 2, y: 40, w: window.innerWidth, h: 40 },
-          { x: 40, y: window.innerHeight / 2, w: 40, h: window.innerHeight },
-          { x: window.innerWidth - 40, y: window.innerHeight / 2, w: 40, h: window.innerHeight },
-          { x: window.innerWidth / 2, y: window.innerHeight / 2, w: 200, h: 200 }
+        { x: 800, y: 20, w: 1600, h: 40 },
+        { x: 800, y: 880, w: 1600, h: 40 },
+        { x: 20, y: 450, w: 40, h: 900},
+        { x: 1580, y: 450, w: 40, h: 900}
         ],
         doors: [
-          { x: 40, y: window.innerHeight / 2, w: 80, h: 200, target_room: 'room_1', target_x: window.innerWidth - 180, target_y: window.innerHeight / 2 }
+          { x: 20, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 1480, target_y: 450}
         ]
       },
       room_3: {
         walls: [
-          { x: window.innerWidth / 2, y: window.innerHeight - 40, w: window.innerWidth, h: 40 },
-          { x: window.innerWidth / 2, y: 40, w: window.innerWidth, h: 40 },
-          { x: 40, y: window.innerHeight / 2, w: 40, h: window.innerHeight },
-          { x: window.innerWidth - 40, y: window.innerHeight / 2, w: 40, h: window.innerHeight }
+        { x: 800, y: 20, w: 1600, h: 40 },
+        { x: 800, y: 880, w: 1600, h: 40 },
+        { x: 20, y: 450, w: 40, h: 900},
+        { x: 1580, y: 450, w: 40, h: 900}
         ],
         doors: [
-          { x: window.innerWidth - 40, y: window.innerHeight / 2, w: 80, h: 200, target_room: 'room_1', target_x: 180, target_y: window.innerHeight / 2 }
+          { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 120, target_y: 450}
         ]
     }
     };
