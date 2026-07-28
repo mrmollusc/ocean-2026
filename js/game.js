@@ -7,7 +7,8 @@
     max_speed: 10,
     canDash: true,
     isDashing: false,
-    health: 100
+    health: 100,
+    iframe: false
   };
 
 
@@ -26,6 +27,10 @@
 
   //player healthbar sprite
     let healthbar_graphic;
+    let healthbar_bg_graphic
+  //trash graphic
+    let trash = [];
+    let trash_graphic = [];
 
   //box graphic
     let boxGraphic;
@@ -42,28 +47,47 @@
     const ralseiTexture = await PIXI.Assets.load("ralsei.webp");
 
   //room manager
-    let currentRoom = 'room_1';
-    let activeWalls = [];          
-    let activeWallGraphics = [];  
-    let activeDoors = [];    
-    let activeDoorGraphics = [];       
+    let current_room = 'room_1';
+
+    let walls = [];          
+    let wall_graphics = [];  
+
+    let doors = [];    
+    let door_graphics = [];      
     
+    let trashes = [];
+    let trash_graphics = [];
+
+    let room_label = new PIXI.Text({
+      text: 'room_1',
+      style: { fontSize: 20, fill: 0xffffff }
+    });
+    room_label.zIndex = 11;
+    room_label.position.set(1420, 20);
+    app.stage.addChild(room_label);
+
     let canTransition = true; 
     const roomData = {
+
     //btw room x and y pos measured from their center
       room_1: {
+        label: 'room 1',
         walls: [
         { x: 800, y: 20, w: 1600, h: 40 },
         { x: 800, y: 880, w: 1600, h: 40 },
         { x: 20, y: 450, w: 40, h: 900},
         { x: 1580, y: 450, w: 40, h: 900}
         ],
+        trashes: [
+          { x: 800, y: 450, w: 180, h: 180}
+        ],
         doors: [
-          { x: 20, y: 450, w: 50, h: 120, target_room: 'room_3', target_x: 1480, target_y: 450},
-          { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_2', target_x: 120, target_y: 450}
+          { x: 20, y: 450, w: 50, h: 120, target_room: 'room_3', target_x: 1420, target_y: 450},
+          { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_2', target_x: 180, target_y: 450}
         ]
       },
       room_2: {
+        label: 'room 2',
         walls: [
         { x: 800, y: 20, w: 1600, h: 40 },
         { x: 800, y: 880, w: 1600, h: 40 },
@@ -71,10 +95,11 @@
         { x: 1580, y: 450, w: 40, h: 900}
         ],
         doors: [
-          { x: 20, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 1480, target_y: 450}
+          { x: 20, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 1420, target_y: 450}
         ]
       },
       room_3: {
+        label: 'room 3',
         walls: [
         { x: 800, y: 20, w: 1600, h: 40 },
         { x: 800, y: 880, w: 1600, h: 40 },
@@ -82,26 +107,31 @@
         { x: 1580, y: 450, w: 40, h: 900}
         ],
         doors: [
-          { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 120, target_y: 450}
+          { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 180, target_y: 450}
         ]
     }
     };
 
-  //room spawn
-    function loadRoom(roomKey, spawnX, spawnY) {
-      currentRoom = roomKey;
+  //everything loader
+    function load_rooms(roomKey, spawnX, spawnY) {
+      current_room = roomKey;
       canTransition = false;
       canDash = false;
 
-      activeWallGraphics.forEach(g => app.stage.removeChild(g));
-      activeWalls.forEach(w => Composite.remove(engine.world, w));
-      activeWallGraphics = [];
-      activeWalls = [];
+      wall_graphics.forEach(g => app.stage.removeChild(g));
+      walls.forEach(w => Composite.remove(engine.world, w));
+      wall_graphics = [];
+      walls = [];
 
-      activeDoorGraphics.forEach(g => app.stage.removeChild(g));
-      activeDoors.forEach(d => Composite.remove(engine.world, d));
-      activeDoorGraphics = [];
-      activeDoors = [];
+      door_graphics.forEach(g => app.stage.removeChild(g));
+      doors.forEach(d => Composite.remove(engine.world, d));
+      door_graphics = [];
+      doors = [];
+
+      trash_graphics.forEach(g => app.stage.removeChild(g));
+      trashes.forEach(t => Composite.remove(engine.world, t));
+      trash_graphics = [];
+      trashes = [];
 
       Body.setPosition(box, { x: spawnX, y: spawnY });
       Body.setVelocity(box, { x: 0, y: 0 });
@@ -118,8 +148,8 @@
         wallGraphic.position.set(wall.x, wall.y);
         app.stage.addChild(wallGraphic);
 
-        activeWalls.push(wallBody);
-        activeWallGraphics.push(wallGraphic);
+        walls.push(wallBody);
+        wall_graphics.push(wallGraphic);
         Composite.add(engine.world, wallBody);
       });
 
@@ -137,10 +167,14 @@
         doorGraphic.position.set(door.x, door.y);
         app.stage.addChild(doorGraphic);
 
-        activeDoors.push(doorBody);
-        activeDoorGraphics.push(doorGraphic);
+        doors.push(doorBody);
+        door_graphics.push(doorGraphic);
         Composite.add(engine.world, doorBody);
       });
+
+      room_label.text = '';
+      room_label.text = data.label;
+      load_trash(roomKey)
 
       setTimeout(() => {
         canTransition = true;
@@ -148,19 +182,47 @@
       }, 300);
     }
 
+    function load_trash(roomKey) {
+    const data = roomData[roomKey];
+    if (!data.trashes) return; 
+
+    data.trashes.forEach(trashObj => {
+      // 1. Create the physics body
+      const trash_body = Bodies.rectangle(trashObj.x, trashObj.y, trashObj.w, trashObj.h, { isStatic: true });
+      
+      // 2. Create the visual container
+      const trash_graphic = new PIXI.Graphics()
+        .rect(-trashObj.w / 2, -trashObj.h / 2, trashObj.w, trashObj.h)
+        .fill(0xAAAA00);
+      
+      trash_graphic.position.set(trashObj.x, trashObj.y);
+      app.stage.addChild(trash_graphic);
+
+      // 3. Push to your tracking arrays defined at the top of your script
+      trashes.push(trash_body);
+      trash_graphics.push(trash_graphic);
+      Composite.add(engine.world, trash_body);
+    });
+  }
+
   //healthbar sprite
     async function healthbar_sprite() {
       healthbar_graphic = new PIXI.Graphics();
-      healthbar_graphic.rect(50,50,player.health*5,10).fill(0xff0000);
+      healthbar_graphic.rect(50,50,player.health*5,10).fill(0x3000F0);
       healthbar_graphic.zIndex = 10;
-      app.stage.addChild(healthbar_graphic)
+      app.stage.addChild(healthbar_graphic);
+
+      healthbar_bg_graphic = new PIXI.Graphics();
+      healthbar_bg_graphic.rect(50,50,500,10).fill(0xFF0000);
+      healthbar_bg_graphic.zIndex = 9;
+      app.stage.addChild(healthbar_bg_graphic);
     }
     await healthbar_sprite();
 
   //healthbar updater
     function healthbar_updater() {
       healthbar_graphic.clear();
-      healthbar_graphic.rect(50,50,player.health*5,10).fill(0xff0000);
+      healthbar_graphic.rect(50,50,player.health*5,10).fill(0x3000F0);
       healthbar_graphic.zIndex = 10;
     }
 
@@ -174,7 +236,7 @@
       app.stage.addChild(boxGraphic);
       
       Composite.add(engine.world, [box]);
-      loadRoom('room_1', 200, window.innerHeight / 2);
+      load_rooms('room_1', 200, window.innerHeight / 2);
     }
     await createPlayerSprite();
 
@@ -186,7 +248,7 @@
     label.position.set(20, 20);
     app.stage.addChild(label);
 
-    function checkSensorCollision(playerBody, sensorBody) {
+    function check_collision(playerBody, sensorBody) {
     const boundsA = playerBody.bounds;
     const boundsB = sensorBody.bounds;
 
@@ -241,6 +303,16 @@
       //healthbar update
       healthbar_updater();
 
+      trashes.forEach(trash_body => {
+        if (player.iframe == false && check_collision(box, trash_body)) {
+          player.health -= 1;
+          player.iframe = true;
+          setTimeout(() => {
+            player.iframe = false;
+          }, delta*60);
+          
+        }
+      });
 
 
 
@@ -253,9 +325,8 @@
 
 
 
-
-      for (let i = 0; i < activeWalls.length; i++) {
-        activeWallGraphics[i].position.set(activeWalls[i].position.x, activeWalls[i].position.y);
+      for (let i = 0; i < walls.length; i++) {
+        wall_graphics[i].position.set(walls[i].position.x, walls[i].position.y);
       }
 
       if (canTransition) {
@@ -267,10 +338,11 @@
         };
 
         if (canTransition) {
-        for (let doorBody of activeDoors) {
-          if (checkSensorCollision(box, doorBody)) {
-            activeDoors = []; 
-            loadRoom(doorBody.target_room, doorBody.target_x, doorBody.target_y);
+        for (let doorBody of doors) {
+          if (check_collision(box, doorBody)) {
+            doors = []; 
+            load_rooms(doorBody.target_room, doorBody.target_x, doorBody.target_y);
+            load_trash();
             break;
           }
         }
