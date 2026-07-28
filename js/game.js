@@ -12,6 +12,16 @@
   };
 
 
+  // all the world/camera stuff
+  const MAP_WIDTH = 4000;
+  const MAP_HEIGHT = 4000;
+  const LERP_FACTOR = 0.1;
+
+  const world = new PIXI.Container();
+  app.stage.addChild(world);
+
+
+  
   (async () => {
     await app.init({
       width: 1600,
@@ -26,8 +36,8 @@
     engine.gravity.y = 0;
 
   //player healthbar sprite
-    let healthbar_graphic;
-    let healthbar_bg_graphic
+    let healthbar_graphic = new PIXI.Graphics();
+    let healthbar_bg_graphic = new PIXI.Graphics();
   //trash graphic
     let trash = [];
     let trash_graphic = [];
@@ -206,24 +216,19 @@
   }
 
   //healthbar sprite
-    async function healthbar_sprite() {
-      healthbar_graphic = new PIXI.Graphics();
-      healthbar_graphic.rect(50,50,player.health*5,10).fill(0x3000F0);
-      healthbar_graphic.zIndex = 10;
-      app.stage.addChild(healthbar_graphic);
+    healthbar_graphic.zIndex = 10;
+    app.stage.addChild(healthbar_graphic);
 
-      healthbar_bg_graphic = new PIXI.Graphics();
-      healthbar_bg_graphic.rect(50,50,500,10).fill(0xFF0000);
-      healthbar_bg_graphic.zIndex = 9;
-      app.stage.addChild(healthbar_bg_graphic);
-    }
-    await healthbar_sprite();
+    
+    healthbar_bg_graphic.rect(50,50,500,10).fill(0xFF0000);
+    healthbar_bg_graphic.zIndex = 9;
+    app.stage.addChild(healthbar_bg_graphic);
+    
 
   //healthbar updater
-    function healthbar_updater() {
+    function update_healthbar() {
       healthbar_graphic.clear();
       healthbar_graphic.rect(50,50,player.health*5,10).fill(0x3000F0);
-      healthbar_graphic.zIndex = 10;
     }
 
 
@@ -301,7 +306,7 @@
       boxGraphic.rotation = box.angle;
 
       //healthbar update
-      healthbar_updater();
+      update_healthbar();
 
       trashes.forEach(trash_body => {
         if (player.iframe == false && check_collision(box, trash_body)) {
