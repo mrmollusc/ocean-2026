@@ -5,8 +5,8 @@
   const player = {
     acceleration: 2,
     max_speed: 10,
-    canDash: true,
-    isDashing: false,
+    can_dash: true,
+    is_dashing: false,
     health: 100,
     iframe: false
   };
@@ -282,15 +282,30 @@
       let v1x = box.velocity.x;
       let v1y = box.velocity.y;
 
-      //slow
-      if (keys['ShiftLeft'] || keys['ShiftRight']) {
-        player.max_speed = 5;
-      } 
-      else {
-        player.max_speed = 10;
-      }
+      //dash mechanic
+      if(keys['Space']) {
+        if(player.can_dash){
 
-      //dash
+          if(player.is_dashing) return;
+
+          player.max_speed = 50
+          player.acceleration = 50
+          player.can_dash = false;
+          player.is_dashing = true;
+          console.log('hi')
+
+          setTimeout(() => {
+          console.log('finished')
+          player.is_dashing = false;
+          player.max_speed = 10;
+          player.acceleration = 2;
+          }, 100);
+
+          setTimeout(() => {
+            player.can_dash = true;
+          },2000)  
+        }
+      } 
       
       //WASD
       if (keys['KeyD']) v1x = Math.min(v1x + player.acceleration, player.max_speed);
@@ -308,16 +323,20 @@
       //healthbar update
       update_healthbar();
 
+      //register damage and activate iframes
       trashes.forEach(trash_body => {
         if (player.iframe == false && check_collision(box, trash_body)) {
           player.health -= 1;
           player.iframe = true;
           setTimeout(() => {
             player.iframe = false;
-          }, delta*60);
-          
+          }, delta*60);   
         }
       });
+
+      
+      
+
 
 
 
