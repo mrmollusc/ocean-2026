@@ -73,7 +73,12 @@
       antialias: true,
     });
 
-    document.getElementById("game").appendChild(app.canvas);
+    world = new PIXI.Container();
+    app.stage.addChild(world);
+    
+  
+
+  document.getElementById("game").appendChild(app.canvas);
 
     const engine = Engine.create();
     engine.gravity.y = 0;
@@ -221,7 +226,7 @@
           .fill(0x333333);
         
         wallGraphic.position.set(wall.x, wall.y);
-        app.stage.addChild(wallGraphic);
+        world.addChild(wallGraphic);
 
         walls.push(wallBody);
         wall_graphics.push(wallGraphic);
@@ -240,7 +245,7 @@
           .fill({ color: 0xFF0000, alpha: 0.2 }); 
         
         doorGraphic.position.set(door.x, door.y);
-        app.stage.addChild(doorGraphic);
+        world.addChild(doorGraphic);
 
         doors.push(doorBody);
         door_graphics.push(doorGraphic);
@@ -271,7 +276,7 @@
         .fill(0xAAAA00);
       
       trash_graphic.position.set(trashObj.x, trashObj.y);
-      app.stage.addChild(trash_graphic);
+      world.addChild(trash_graphic);
 
       // 3. Push to your tracking arrays defined at the top of your script
       trashes.push(trash_body);
@@ -300,11 +305,11 @@
   //player sprite
     async function createPlayerSprite() {
       boxGraphic = new PIXI.Sprite(ralseiTexture);
-      boxGraphic.width = 160;
-      boxGraphic.height = 160;
-      boxGraphic.anchor.set(0.5); 
-      app.stage.addChild(boxGraphic);
-      
+      boxGraphic.width = PLAYER_WIDTH;
+      boxGraphic.height = PLAYER_HEIGHT;
+      boxGraphic.anchor.set(0.5);
+      world.addChild(boxGraphic);
+
       Composite.add(engine.world, [box]);
       load_rooms('room_1', 200, window.innerHeight / 2);
     }
@@ -353,20 +358,20 @@
 
           if(player.is_dashing) return;
 
-          player.max_speed = 50;
-          player.acceleration = 50;
+          player.max_speed = DASH_SPEED;
+          player.acceleration = DASH_ACCEL;
           player.can_dash = false;
           player.is_dashing = true;
 
           setTimeout(() => {
-          player.max_speed = 10;
-          player.acceleration = 2;
+          player.max_speed = PLAYER_MAX_SPEED;
+          player.acceleration = PLAYER_ACCEL;
           player.is_dashing = false;
-          }, 100);
+          }, DASH_DURATION);
 
           setTimeout(() => {
             player.can_dash = true;
-          }, 2000)  
+          }, DASH_COOLDOWN)  
         }
       } 
       
@@ -389,12 +394,28 @@
       //register damage and activate iframes
       trashes.forEach(trash_body => {
         if (player.iframe == false && check_collision(box, trash_body)) {
-          player.health -= 1;
+          player.health -= TRASH_DAMAGE;
           player.iframe = true;
           setTimeout(() => {
             player.iframe = false;
-          }, delta*60);   
+          }, PLAYER_IFRAME_DURATION);   
         }
+      
+      /////////////////////////////////////////
+      //CAMERA FOLLOW SYSTEM
+      /////////////////////////////////////////
+      const halfW = app.screen.width / 2;
+      const halfH = app.screen.height / 2;
+
+      const targetX = Math.max(halfW, Math.min(MAP_WIDTH - halfW, box.position.x));
+      const targetY = Math.max(halfH, Math.min(MAP_HEIGHT - halfH, box.position.y));
+
+      world.pivot.x += (targetX - world.pivot.x) * LERP_FACTOR;
+      world.pivot.y += (targetY - world.pivot.y) * LERP_FACTOR;
+
+      world.x = halfW;
+      world.y = halfH;
+      
       });
 
       
