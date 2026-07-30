@@ -3,12 +3,17 @@
   //general stuff i think
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   const player = {
+    chapter: 1,
+    dealt_nuts: false,
+
     acceleration: 2,
     max_speed: 10,
+    health: 100,
+    iframe: false,
+
     can_dash: true,
     is_dashing: false,
-    health: 100,
-    iframe: false
+    
   };
 
 
@@ -77,16 +82,16 @@
     app.stage.addChild(room_label);
 
     let canTransition = true; 
-    const roomData = {
+    const room_data = {
 
     //btw room x and y pos measured from their center
       room_1: {
         label: 'room 1',
         walls: [
-        { x: 800, y: 20, w: 1600, h: 40 },
-        { x: 800, y: 880, w: 1600, h: 40 },
-        { x: 20, y: 450, w: 40, h: 900},
-        { x: 1580, y: 450, w: 40, h: 900}
+          { x: 800, y: 20, w: 1600, h: 40 },
+          { x: 800, y: 880, w: 1600, h: 40 },
+          { x: 20, y: 450, w: 40, h: 900},
+          { x: 1580, y: 450, w: 40, h: 900}
         ],
         trashes: [
           { x: 800, y: 450, w: 180, h: 180}
@@ -99,25 +104,47 @@
       room_2: {
         label: 'room 2',
         walls: [
-        { x: 800, y: 20, w: 1600, h: 40 },
-        { x: 800, y: 880, w: 1600, h: 40 },
-        { x: 20, y: 450, w: 40, h: 900},
-        { x: 1580, y: 450, w: 40, h: 900}
+          { x: 800, y: 20, w: 1600, h: 40 },
+          { x: 800, y: 880, w: 1600, h: 40 },
+          { x: 20, y: 450, w: 40, h: 900},
+          { x: 1580, y: 450, w: 40, h: 900}
+        ],
+        trashes: [
+          {}
         ],
         doors: [
-          { x: 20, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 1420, target_y: 450}
+          { x: 20, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 1420, target_y: 450},
+          { x: 800, y: 880, w: 120, h: 50, target_room: 'room_4', target_x: 800, target_y: 180}
         ]
       },
       room_3: {
         label: 'room 3',
         walls: [
-        { x: 800, y: 20, w: 1600, h: 40 },
-        { x: 800, y: 880, w: 1600, h: 40 },
-        { x: 20, y: 450, w: 40, h: 900},
-        { x: 1580, y: 450, w: 40, h: 900}
+          { x: 800, y: 20, w: 1600, h: 40 },
+          { x: 800, y: 880, w: 1600, h: 40 },
+          { x: 20, y: 450, w: 40, h: 900},
+          { x: 1580, y: 450, w: 40, h: 900}
+        ],
+        trashes: [
+          {}
         ],
         doors: [
           { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 180, target_y: 450}
+        ]
+    },
+    room_4: {
+        label: 'room 4',
+        walls: [
+          { x: 800, y: 20, w: 1600, h: 40 },
+          { x: 800, y: 880, w: 1600, h: 40 },
+          { x: 20, y: 450, w: 40, h: 900},
+          { x: 1580, y: 450, w: 40, h: 900}
+        ],
+        trashes: [
+          {}
+        ],
+        doors: [
+          { x: 800, y: 20, w: 120, h: 50, target_room: 'room_2', target_x: 800, target_y: 720}
         ]
     }
     };
@@ -146,7 +173,7 @@
       Body.setPosition(box, { x: spawnX, y: spawnY });
       Body.setVelocity(box, { x: 0, y: 0 });
 
-      const data = roomData[roomKey];
+      const data = room_data[roomKey];
 
       data.walls.forEach(wall => {
         const wallBody = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, { isStatic: true });
@@ -193,7 +220,7 @@
     }
 
     function load_trash(roomKey) {
-    const data = roomData[roomKey];
+    const data = room_data[roomKey];
     if (!data.trashes) return; 
 
     data.trashes.forEach(trashObj => {
@@ -288,22 +315,20 @@
 
           if(player.is_dashing) return;
 
-          player.max_speed = 50
-          player.acceleration = 50
+          player.max_speed = 50;
+          player.acceleration = 50;
           player.can_dash = false;
           player.is_dashing = true;
-          console.log('hi')
 
           setTimeout(() => {
-          console.log('finished')
-          player.is_dashing = false;
           player.max_speed = 10;
           player.acceleration = 2;
+          player.is_dashing = false;
           }, 100);
 
           setTimeout(() => {
             player.can_dash = true;
-          },2000)  
+          }, 2000)  
         }
       } 
       
