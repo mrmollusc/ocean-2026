@@ -201,17 +201,17 @@
       canTransition = false;
       canDash = false;
 
-      wall_graphics.forEach(g => app.stage.removeChild(g));
+      wall_graphics.forEach(g => world.removeChild(g));
       walls.forEach(w => Composite.remove(engine.world, w));
       wall_graphics = [];
       walls = [];
 
-      door_graphics.forEach(g => app.stage.removeChild(g));
+      door_graphics.forEach(g => world.removeChild(g));
       doors.forEach(d => Composite.remove(engine.world, d));
       door_graphics = [];
       doors = [];
 
-      trash_graphics.forEach(g => app.stage.removeChild(g));
+      trash_graphics.forEach(g => world.removeChild(g));
       trashes.forEach(t => Composite.remove(engine.world, t));
       trash_graphics = [];
       trashes = [];
