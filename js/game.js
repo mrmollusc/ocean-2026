@@ -18,7 +18,7 @@
 
   //player health and damage
   const PLAYER_MAX_HEALTH = 100;
-  const PLAYER_IFRAME_DURATION = 0;
+  const PLAYER_IFRAME_DURATION = 200;
 
   //trash damage
   const TRASH_DAMAGE = 1;
