@@ -20,6 +20,9 @@
   const PLAYER_MAX_HEALTH = 100;
   const PLAYER_IFRAME_DURATION = 0;
 
+  //trash damage
+  const TRASH_DAMAGE = 1;
+
   //dash mechanic
   const DASH_SPEED = 50;
   const DASH_ACCEL = 50;
@@ -450,7 +453,6 @@
           if (check_collision(box, doorBody)) {
             doors = []; 
             load_rooms(doorBody.target_room, doorBody.target_x, doorBody.target_y);
-            load_trash();
             break;
           }
         }
