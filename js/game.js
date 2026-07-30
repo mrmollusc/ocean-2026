@@ -1,37 +1,75 @@
+  ///////////////////////////////////////////
+  //constants
+  ///////////////////////////////////////////
+  
+  //camera and world stuff
+  const MAP_WIDTH = 4000;
+  const MAP_HEIGHT = 4000;
+  const LERP_FACTOR = 0.1;
+  
+  //Player movement and physics
+  const PLAYER_ACCEL = 2;
+  const PLAYER_MAX_SPEED = 10;
+  const PLAYER_SLOW_SPEED = 5;
+
+  //player body size
+  const PLAYER_WIDTH = 160;
+  const PLAYER_HEIGHT = 160;
+
+  //player health and damage
+  const PLAYER_MAX_HEALTH = 100;
+  const PLAYER_IFRAME_DURATION = 0;
+
+  //dash mechanic
+  const DASH_SPEED = 50;
+  const DASH_ACCEL = 50;
+  const DASH_DURATION = 100;
+  const DASH_COOLDOWN = 2000;
+
+  //room transition
+  const ROOM_TRANSITION_DELAY = 300;
+
+  //app settings
+  const APP_WIDTH = 1600;
+  const APP_HEIGHT = 900;
+  const APP_BG_COLOR = 0x111111;
+  
+  ///////////////////////////////////////
+  //INITIAL SETUP
+  ////////////////////////////////////////
+  
   const { Engine, Bodies, Composite, Body } = Matter;
   const app = new PIXI.Application();
-  //general stuff i think
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  
+  ///////////////////////////////////////////
+  //PLAYER DATA
+  ////////////////////////////////////////////
+  
   const player = {
     chapter: 1,
     dealt_nuts: false,
 
-    acceleration: 2,
-    max_speed: 10,
-    health: 100,
+    acceleration: PLAYER_ACCEL,
+    max_speed: PLAYER_MAX_SPEED,
+    
+    health: PLAYER_MAX_HEALTH,
     iframe: false,
 
     can_dash: true,
     is_dashing: false,
-    
   };
-
-
-  // all the world/camera stuff
-  const MAP_WIDTH = 4000;
-  const MAP_HEIGHT = 4000;
-  const LERP_FACTOR = 0.1;
-
-  const world = new PIXI.Container();
-  app.stage.addChild(world);
-
-
   
+  ////////////////////////////////////////
+  //PIXI INIT + WORLD CONTAINER
+  ////////////////////////////////////////
+  let world;
+
   (async () => {
     await app.init({
-      width: 1600,
-      height: 900,
-      backgroundColor: 0x111111,
+      width: APP_WIDTH,
+      height: APP_HEIGHT,
+      backgroundColor: APP_BG_COLOR,
       antialias: true,
     });
 
