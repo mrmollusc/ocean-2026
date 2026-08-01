@@ -21,13 +21,13 @@
   const PLAYER_IFRAME_DURATION = 100;
 
   //trash damage
-  const TRASH_DAMAGE = 1;
+  const TRASH_DAMAGE = 5;
 
   //dash mechanic
   const DASH_SPEED = 50;
-  const DASH_ACCEL = 50;
-  const DASH_DURATION = 100;
-  const DASH_COOLDOWN = 2000;
+  const DASH_ACCEL = 10;
+  const DASH_DURATION = 150;
+  const DASH_COOLDOWN = 1500;
 
   //room transition
   const ROOM_TRANSITION_DELAY = 300;
@@ -43,7 +43,6 @@
   
   const { Engine, Bodies, Composite, Body } = Matter;
   const app = new PIXI.Application();
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   
   ///////////////////////////////////////////
   //PLAYER DATA
@@ -78,20 +77,19 @@
 
     world = new PIXI.Container();
     app.stage.addChild(world);
-    
-  
 
   document.getElementById("game").appendChild(app.canvas);
 
     const engine = Engine.create();
     engine.gravity.y = 0;
 
+  //TEXTURES
+    const ralsei_texture = await PIXI.Assets.load("ralsei.webp");
+    const heart_texture = await PIXI.Assets.load("heart.png");
+
   //player healthbar sprite
     let healthbar_graphic = new PIXI.Graphics();
     let healthbar_bg_graphic = new PIXI.Graphics();
-  //trash graphic
-    let trash = [];
-    let trash_graphic = [];
 
   //box graphic
     let boxGraphic;
@@ -104,8 +102,6 @@
       inertia: Infinity
     });
 
-  //box number 1
-    const ralseiTexture = await PIXI.Assets.load("ralsei.webp");
 
   //room manager
     let current_room = 'room_1';
@@ -118,6 +114,9 @@
     
     let trashes = [];
     let trash_graphics = [];
+
+    let hearts = [];
+    let heart_graphics = [];
 
     let room_label = new PIXI.Text({
       text: 'room_1',
@@ -145,7 +144,8 @@
         doors: [
           { x: 20, y: 450, w: 50, h: 120, target_room: 'room_3', target_x: 1420, target_y: 450},
           { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_2', target_x: 180, target_y: 450}
-        ]
+        ],
+        hearts: [{x: 50, y:50}]
       },
       room_2: {
         label: 'room 2',
@@ -161,7 +161,8 @@
         doors: [
           { x: 20, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 1420, target_y: 450},
           { x: 800, y: 880, w: 120, h: 50, target_room: 'room_4', target_x: 800, target_y: 180}
-        ]
+        ],
+        hearts: [{x: 50, y:50}]
       },
       room_3: {
         label: 'room 3',
@@ -176,7 +177,8 @@
         ],
         doors: [
           { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 180, target_y: 450}
-        ]
+        ],
+        hearts: [{x: 50, y:50}]
     },
     room_4: {
         label: 'room 4',
@@ -191,7 +193,8 @@
         ],
         doors: [
           { x: 800, y: 20, w: 120, h: 50, target_room: 'room_2', target_x: 800, target_y: 720}
-        ]
+        ],
+        hearts: [{x: 50, y:50}]
     }
     };
 
@@ -216,8 +219,11 @@
       trash_graphics = [];
       trashes = [];
 
+
       Body.setPosition(box, { x: spawnX, y: spawnY });
       Body.setVelocity(box, { x: 0, y: 0 });
+
+      Matter.Engine.clear(engine); 
 
       const data = room_data[roomKey];
 
@@ -255,9 +261,36 @@
         Composite.add(engine.world, doorBody);
       });
 
+      data.trashes.forEach(trash_obj => {
+      const trash_body = Bodies.rectangle(trash_obj.x, trash_obj.y, trash_obj.w, trash_obj.h, { isStatic: true });
+      
+      const trash_graphic = new PIXI.Graphics()
+        .rect(-trash_obj.w / 2, -trash_obj.h / 2, trash_obj.w, trash_obj.h)
+        .fill(0xAAAA00);
+      
+      trash_graphic.position.set(trash_obj.x, trash_obj.y);
+      world.addChild(trash_graphic);
+
+      trashes.push(trash_body);
+      trash_graphics.push(trash_graphic);
+      Composite.add(engine.world, trash_body);
+    });
+
+      data.hearts.forEach(heart_obj => {
+      
+      const heart_graphic = new PIXI.Sprite(heart_texture);
+      
+      heart_graphic.position.set(heart_obj.x, heart_obj.y);
+      world.addChild(heart_graphic);
+
+      heart_graphics.push(heart_graphic);
+    });
+
+    //end of loading objects
+
       room_label.text = '';
       room_label.text = data.label;
-      load_trash(roomKey)
+
 
       setTimeout(() => {
         canTransition = true;
@@ -265,33 +298,9 @@
       }, 300);
     }
 
-    function load_trash(roomKey) {
-    const data = room_data[roomKey];
-    if (!data.trashes) return; 
-
-    data.trashes.forEach(trashObj => {
-      // 1. Create the physics body
-      const trash_body = Bodies.rectangle(trashObj.x, trashObj.y, trashObj.w, trashObj.h, { isStatic: true });
-      
-      // 2. Create the visual container
-      const trash_graphic = new PIXI.Graphics()
-        .rect(-trashObj.w / 2, -trashObj.h / 2, trashObj.w, trashObj.h)
-        .fill(0xAAAA00);
-      
-      trash_graphic.position.set(trashObj.x, trashObj.y);
-      world.addChild(trash_graphic);
-
-      // 3. Push to your tracking arrays defined at the top of your script
-      trashes.push(trash_body);
-      trash_graphics.push(trash_graphic);
-      Composite.add(engine.world, trash_body);
-    });
-  }
-
   //healthbar sprite
     healthbar_graphic.zIndex = 10;
     app.stage.addChild(healthbar_graphic);
-
     
     healthbar_bg_graphic.rect(50,50,500,10).fill(0xFF0000);
     healthbar_bg_graphic.zIndex = 9;
@@ -307,7 +316,7 @@
 
   //player sprite
     async function createPlayerSprite() {
-      boxGraphic = new PIXI.Sprite(ralseiTexture);
+      boxGraphic = new PIXI.Sprite(ralsei_texture);
       boxGraphic.width = PLAYER_WIDTH;
       boxGraphic.height = PLAYER_HEIGHT;
       boxGraphic.anchor.set(0.5);
@@ -318,13 +327,9 @@
     }
     await createPlayerSprite();
 
-  //text
-    const label = new PIXI.Text({
-      text: "PixiJS v8 + Matter.js Room Engine Active (WASD to move)",
-      style: { fontSize: 20, fill: 0xffffff }
-    });
-    label.position.set(20, 20);
-    app.stage.addChild(label);
+
+
+    //collisiion checker
 
     function check_collision(playerBody, sensorBody) {
     const boundsA = playerBody.bounds;
@@ -459,4 +464,4 @@
       }
       }
     });
-  })();
+  })(); 
