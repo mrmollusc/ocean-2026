@@ -7,8 +7,16 @@
  }
  if(typeof module === 'object' && module && module.exports) {
   module.exports = data;
- }})("UR TEST WORLD",
+ }})("room_1",
 { "compressionlevel":-1,
+ "editorsettings":
+    {
+     "export":
+        {
+         "format":"js",
+         "target":"UR TEST WORLD.js"
+        }
+    },
  "height":3,
  "infinite":false,
  "layers":[
@@ -111,7 +119,7 @@
         {
          "data":[0, 0, 0,
             0, 0, 0,
-            13, 15, 0],
+            13, 15, 16],
          "height":3,
          "id":5,
          "name":"parallax",
@@ -131,8 +139,103 @@
  "tileheight":16,
  "tilesets":[
         {
+         "columns":4,
          "firstgid":1,
-         "source":"spritesheet test.tsx"
+         "image":"OneDrive\/Documents\/spritesheet test.png",
+         "imageheight":64,
+         "imagewidth":64,
+         "margin":0,
+         "name":"spritesheet test",
+         "spacing":0,
+         "tilecount":16,
+         "tileheight":16,
+         "tiles":[
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":12
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":13
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":14
+                        },
+                    
+                        {
+                         "duration":100,
+                         "tileid":15
+                        }],
+                 "id":12
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":13
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":14
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":15
+                        },
+                    
+                        {
+                         "duration":100,
+                         "tileid":12
+                        }],
+                 "id":13
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":14
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":15
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":12
+                        },
+                    
+                        {
+                         "duration":100,
+                         "tileid":13
+                        }],
+                 "id":14
+                },
+            
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":15
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":12
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":13
+                        },
+                    
+                        {
+                         "duration":100,
+                         "tileid":14
+                        }],
+                 "id":15
+                }],
+         "tilewidth":16
         }],
  "tilewidth":16,
  "type":"map",

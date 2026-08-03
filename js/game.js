@@ -1,10 +1,11 @@
   ///////////////////////////////////////////
   //constants
   ///////////////////////////////////////////
-  
   //camera and world stuff
-  const MAP_WIDTH = 4000;
-  const MAP_HEIGHT = 4000;
+  const MAP_WIDTH_MIN = 0;
+  const MAP_HEIGHT_MIN = 0;
+  const MAP_WIDTH_MAX = 4000;
+  const MAP_HEIGHT_MAX = 4000;
   const LERP_FACTOR = 0.1;
   
   //Player movement and physics
@@ -36,6 +37,15 @@
   const APP_WIDTH = 1600;
   const APP_HEIGHT = 900;
   const APP_BG_COLOR = 0x111111;
+
+  //map
+  const mapData = window.TileMaps["room_1"]; 
+
+  //map height, width, tile data
+  const { width: mapWidth, height: mapHeight, tilewidth: tileWidth, tileheight: tileHeight} = mapData;
+
+  console.log(`Loaded a ${mapWidth}x${mapHeight} tilemap!`);
+  
   
   ///////////////////////////////////////
   //INITIAL SETUP
@@ -43,6 +53,12 @@
   
   const { Engine, Bodies, Composite, Body } = Matter;
   const app = new PIXI.Application();
+
+  //////////////////////////////////////////
+  // global stuff
+  /////////////////////////////////////////
+  let world;
+  let boxGraphic;
   
   ///////////////////////////////////////////
   //PLAYER DATA
@@ -65,7 +81,7 @@
   ////////////////////////////////////////
   //PIXI INIT + WORLD CONTAINER
   ////////////////////////////////////////
-  let world;
+  
 
   (async () => {
     await app.init({
@@ -92,7 +108,6 @@
     let healthbar_bg_graphic = new PIXI.Graphics();
 
   //box graphic
-    let boxGraphic;
     const box = Bodies.rectangle(100, 100, 160, 160, {
       restitution: 0.0,
       friction: 0.1,
@@ -104,6 +119,10 @@
 
 
   //room manager
+    const baseTexture = await PIXI.Assets.load("js/levels/spritesheet test.png")
+
+    
+
     let current_room = 'room_1';
 
     let walls = [];          
@@ -127,6 +146,82 @@
     app.stage.addChild(room_label);
 
     let canTransition = true; 
+    
+    mapData.layers.forEach((layer) => {
+      if (layer.type == "tilelayer" && layer.visible) {
+        renderVisualLayer(layer, world)
+      };
+
+      if (layer.type == "objectgroup") {
+        renderVisualLayer(layer)
+      };
+    });
+
+    function renderVisualLayer(layer, parentContainer) {
+      if (!parentContainer) return;
+
+      const tileData = layer.data;
+
+      if (!tileData) return;
+      
+      const tileset = mapData.tilesets[0];
+      const columns = tileset.columns;
+      const firstgid = tileset.firstgid;
+
+      const layerContainer = new PIXI.Container();
+      layerContainer.alpha = layer.opacity;
+
+      if (layer.parallaxx) {
+        layerContainer.label = `parallax_${layer.parallaxx}`;
+      }
+
+      parentContainer.addChild(layerContainer);
+
+      for (let i = 0; i < tileData.length; i++) {
+        const gid = tileData[i];
+        if (gid === 0) continue;
+
+        const screenX = (i % mapWidth) * tileWidth;
+        const screenY = Math.floor(i / mapWidth) * tileHeight;
+      
+        const localIdx = gid - firstgid;
+        const sourceX = (localIdx % columns) * tileWidth;
+        const sourceY = Math.floor(localIdx / columns) * tileHeight;
+
+        const frame = new PIXI.Rectangle(sourceX, sourceY, tileWidth, tileHeight);
+        const tileTexture = new PIXI.Texture({source: baseTexture, frame: frame});
+
+        const sprite = new PIXI.Sprite(tileTexture);
+        sprite.x = screenX;
+        sprite.y = screenY;
+
+        layerContainer.addChild(sprite);
+      };
+    };
+
+    function buildPhysicsLayer(layer) {
+      if (!layer.objects) return;
+
+      layer.objects.forEach((obj) => {
+        // Skip pure position nodes or bullet marker points with zero volume
+        if (obj.point || obj.width === 0 || obj.height === 0) {
+          console.log(`Marker registered: ${obj.name} at X:${obj.x}, Y:${obj.y}`);
+          return;
+        }
+
+        const w = obj.width;
+        const h = obj.height;
+        const centerX = obj.x + w / 2;
+        const centerY = obj.y + h / 2;
+
+        const staticBody = Bodies.rectangle(centerX, centerY, w, h, { 
+          isStatic: true,
+          label: obj.name || "tiled_wall" 
+        });
+
+        Composite.add(engine.world, staticBody);
+      });
+    }
     const room_data = {
 
     //btw room x and y pos measured from their center
@@ -202,7 +297,7 @@
     function load_rooms(roomKey, spawnX, spawnY) {
       current_room = roomKey;
       canTransition = false;
-      canDash = false;
+      player.canDash = false;
 
       wall_graphics.forEach(g => world.removeChild(g));
       walls.forEach(w => Composite.remove(engine.world, w));
@@ -294,7 +389,7 @@
 
       setTimeout(() => {
         canTransition = true;
-        canDash = true;
+        player.canDash = true;
       }, 300);
     }
 
@@ -415,8 +510,8 @@
       const halfW = app.screen.width / 2;
       const halfH = app.screen.height / 2;
 
-      const targetX = Math.max(halfW, Math.min(MAP_WIDTH - halfW, box.position.x));
-      const targetY = Math.max(halfH, Math.min(MAP_HEIGHT - halfH, box.position.y));
+      const targetX = Math.max(MAP_WIDTH_MIN, Math.min(MAP_WIDTH_MAX - halfW, box.position.x));
+      const targetY = Math.max(MAP_HEIGHT_MIN, Math.min(MAP_HEIGHT_MAX - halfH, box.position.y));
 
       world.pivot.x += (targetX - world.pivot.x) * LERP_FACTOR;
       world.pivot.y += (targetY - world.pivot.y) * LERP_FACTOR;
