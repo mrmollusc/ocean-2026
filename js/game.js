@@ -7,6 +7,7 @@
   const MAP_WIDTH_MAX = 4000;
   const MAP_HEIGHT_MAX = 4000;
   const LERP_FACTOR = 0.1;
+  const CAMERA_ZOOM = 1;
   
   //Player movement and physics
   const PLAYER_ACCEL = 2;
@@ -93,6 +94,7 @@
 
     world = new PIXI.Container();
     app.stage.addChild(world);
+    world.scale.set(CAMERA_ZOOM);
 
   document.getElementById("game").appendChild(app.canvas);
 
@@ -153,7 +155,7 @@
       };
 
       if (layer.type == "objectgroup") {
-        renderVisualLayer(layer)
+        buildPhysicsLayer(layer)
       };
     });
 
@@ -189,12 +191,32 @@
         const sourceY = Math.floor(localIdx / columns) * tileHeight;
 
         const frame = new PIXI.Rectangle(sourceX, sourceY, tileWidth, tileHeight);
-        const tileTexture = new PIXI.Texture({source: baseTexture, frame: frame});
+        let sprite;
 
-        const sprite = new PIXI.Sprite(tileTexture);
+        const tileMeta = tileset.tiles ? tileset.tiles.find(t => t.id === localIdx) : null;
+
+        if (tileMeta && tileMeta.animation) {
+          //for every frame in the animation, create a texture and store it in an array
+          const textures = tileMeta.animation.map(frameData => {
+            const fIdx = frameData.tileid;
+            const fX = (fIdx % columns) * tileWidth;
+            const fY = Math.floor(fIdx / columns) * tileHeight;
+            const rect = new PIXI.Rectangle(fX, fY, tileWidth, tileHeight);
+            return new PIXI.Texture({ source: baseTexture.source, frame: rect });
+          });
+          // non-static tile/sprite with animation
+          sprite = new PIXI.AnimatedSprite(textures);
+          sprite.animationSpeed = 0.15; 
+          sprite.play(); 
+        } else {
+          // static tile/sprite no animation
+          const tileTexture = new PIXI.Texture({ source: baseTexture.source, frame: frame });
+          sprite = new PIXI.Sprite(tileTexture);
+        }
+
         sprite.x = screenX;
         sprite.y = screenY;
-
+        
         layerContainer.addChild(sprite);
       };
     };
@@ -519,6 +541,16 @@
       world.x = halfW;
       world.y = halfH;
       
+      world.children.forEach((child) => {
+        if (child.label && child.label.startsWith("parallax_")) {
+          //get the parallax factor from the label, e.g., "parallax_1.5" would give a factor of 1.5
+          const parallaxFactor = parseFloat(child.label.split("_")[1]);
+          
+          //scroll the parallax layer based on the camera's pivot and the parallax factor
+          child.x = world.pivot.x * (1 - (1 / parallaxFactor));
+          child.y = world.pivot.y * (1 - (1 / parallaxFactor));
+        }
+      });
       });
 
       
