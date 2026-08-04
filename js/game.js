@@ -123,8 +123,6 @@
   //room manager
     const baseTexture = await PIXI.Assets.load("js/levels/spritesheet test.png")
 
-    
-
     let current_room = 'room_1';
 
     let walls = [];          
@@ -148,6 +146,8 @@
     app.stage.addChild(room_label);
 
     let canTransition = true; 
+
+
     
     mapData.layers.forEach((layer) => {
       if (layer.type == "tilelayer" && layer.visible) {
@@ -244,6 +244,8 @@
         Composite.add(engine.world, staticBody);
       });
     }
+
+    //room data
     const room_data = {
 
     //btw room x and y pos measured from their center
@@ -290,7 +292,7 @@
           { x: 1580, y: 450, w: 40, h: 900}
         ],
         trashes: [
-          {}
+          { x: 800, y: 600, w: 50, h: 50}
         ],
         doors: [
           { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 180, target_y: 450}
@@ -335,6 +337,11 @@
       trashes.forEach(t => Composite.remove(engine.world, t));
       trash_graphics = [];
       trashes = [];
+
+      heart_graphics.forEach(g => world.removeChild(g));
+      hearts.forEach(t => Composite.remove(engine.world, t));
+      heart_graphics = [];
+      hearts = [];
 
 
       Body.setPosition(box, { x: spawnX, y: spawnY });
@@ -394,13 +401,18 @@
     });
 
       data.hearts.forEach(heart_obj => {
+      const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, { isStatic: true, isNonColliding: true });
       
       const heart_graphic = new PIXI.Sprite(heart_texture);
-      
+      heart_graphic.width = 50;
+      heart_graphic.height = 50;
+
       heart_graphic.position.set(heart_obj.x, heart_obj.y);
       world.addChild(heart_graphic);
 
+      hearts.push(heart_body);
       heart_graphics.push(heart_graphic);
+      Composite.add(engine.world, heart_body);
     });
 
     //end of loading objects
@@ -521,11 +533,21 @@
         if (player.iframe == false && check_collision(box, trash_body)) {
           player.health -= TRASH_DAMAGE;
           player.iframe = true;
+          console.log('touching trash')
           setTimeout(() => {
             player.iframe = false;
           }, PLAYER_IFRAME_DURATION);   
         }
-      
+      });
+
+      //health update by touching heart
+      hearts.forEach((heart_body) => {
+        if (check_collision(box, heart_body)) {
+          player.health += 100;
+        }
+      });
+
+
       /////////////////////////////////////////
       //CAMERA FOLLOW SYSTEM
       /////////////////////////////////////////
@@ -550,7 +572,6 @@
           child.x = world.pivot.x * (1 - (1 / parallaxFactor));
           child.y = world.pivot.y * (1 - (1 / parallaxFactor));
         }
-      });
       });
 
       
