@@ -40,7 +40,7 @@
   const APP_BG_COLOR = 0x111111;
 
   //map
-  const mapData = window.TileMaps["room_1"]; 
+  const mapData = window.TileMaps["room_2", "room_1"]; 
 
   //map height, width, tile data
   const { width: mapWidth, height: mapHeight, tilewidth: tileWidth, tileheight: tileHeight} = mapData;
@@ -123,7 +123,7 @@
 
 
   //room manager
-    const baseTexture = await PIXI.Assets.load("js/levels/spritesheet test.png")
+    const baseTexture = await PIXI.Assets.load("js/levels/spritesheet.png")
 
     let walls = [];          
     let wall_graphics = [];  
@@ -226,7 +226,7 @@
 
       layer.objects.forEach((obj) => {
         // Skip pure position nodes or bullet marker points with zero volume
-        if (obj.point || obj.width === 0 || obj.height === 0) {
+        if (obj.point && obj.name !== "") {
           console.log(`Marker registered: ${obj.name} at X:${obj.x}, Y:${obj.y}`);
           return;
         }
@@ -235,6 +235,18 @@
         const h = obj.height;
         const centerX = obj.x + w / 2;
         const centerY = obj.y + h / 2;
+
+        const targetRoom = obj.properties ? obj.properties.find(p => p.name === "target_room") : null;
+        
+        const bodyOptions = {
+          isStatic: true,
+          label: targetRoom ? `door_to_${targetRoom.value}` : obj.name || "tiled_wall"
+        };
+
+        if (targetRoom) {
+          bodyOptions.isSensor = true;
+          bodyOptions.target_room = targetRoom.value;
+        }
 
         const staticBody = Bodies.rectangle(centerX, centerY, w, h, { 
           isStatic: true,

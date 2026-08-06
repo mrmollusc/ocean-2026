@@ -9,69 +9,76 @@
   module.exports = data;
  }})("room_1",
 { "compressionlevel":-1,
- "editorsettings":
-    {
-     "export":
-        {
-         "format":"js",
-         "target":"UR TEST WORLD.js"
-        }
-    },
- "height":3,
+ "height":6,
  "infinite":false,
  "layers":[
         {
-         "data":[1, 1, 1,
-            1, 1, 1,
-            1, 1, 1],
-         "height":3,
+         "data":[3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4,
+            7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8,
+            8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+            8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
+         "height":6,
          "id":1,
-         "name":"Ground",
+         "name":"Parallax 0.5",
+         "opacity":1,
+         "parallaxx":1.05,
+         "type":"tilelayer",
+         "visible":true,
+         "width":13,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "data":[0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 11, 0, 0, 11, 0, 0, 0,
+            0, 0, 0, 11, 4, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 7, 8, 8, 0, 0, 0, 0, 11, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0,
+            0, 0, 0, 11, 0, 13, 14, 0, 0, 0, 0, 0, 0],
+         "height":6,
+         "id":4,
+         "name":"Game",
          "opacity":1,
          "type":"tilelayer",
          "visible":true,
-         "width":3,
+         "width":13,
          "x":0,
          "y":0
         }, 
         {
          "draworder":"topdown",
-         "id":3,
-         "name":"Collisions",
+         "id":7,
+         "name":"Spawn",
          "objects":[
                 {
-                 "height":16,
-                 "id":1,
-                 "name":"",
-                 "opacity":1,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":16,
-                 "x":16,
-                 "y":16
-                }, 
-                {
                  "height":0,
-                 "id":3,
-                 "name":"bulletSpawn",
+                 "id":13,
+                 "name":"Player",
                  "opacity":1,
                  "point":true,
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":48,
-                 "y":48
+                 "x":32,
+                 "y":32
+                }, 
+                {
+                 "height":0,
+                 "id":15,
+                 "name":"Bullets",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":288,
+                 "y":192
                 }],
          "opacity":1,
-         "parallaxx":1,
-         "properties":[
-                {
-                 "name":"damage",
-                 "type":"float",
-                 "value":10
-                }],
          "type":"objectgroup",
          "visible":true,
          "x":0,
@@ -79,20 +86,109 @@
         }, 
         {
          "draworder":"topdown",
-         "id":4,
-         "name":"Positions",
+         "id":2,
+         "name":"Walls",
          "objects":[
                 {
-                 "height":0,
+                 "height":32,
+                 "id":1,
+                 "name":"",
+                 "opacity":1,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":384,
+                 "x":0,
+                 "y":-32
+                }, 
+                {
+                 "height":32,
                  "id":2,
                  "name":"",
                  "opacity":1,
-                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":384,
+                 "x":0,
+                 "y":192
+                }, 
+                {
+                 "height":192,
+                 "id":3,
+                 "name":"",
+                 "opacity":1,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":32,
+                 "x":-32,
+                 "y":0
+                }, 
+                {
+                 "height":192,
+                 "id":4,
+                 "name":"",
+                 "opacity":1,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":28,
+                 "x":388,
+                 "y":0
+                }, 
+                {
+                 "height":0,
+                 "id":5,
+                 "name":"",
+                 "opacity":1,
+                 "polygon":[
+                        {
+                         "x":0,
+                         "y":0
+                        }, 
+                        {
+                         "x":32,
+                         "y":-32
+                        }, 
+                        {
+                         "x":64,
+                         "y":0
+                        }, 
+                        {
+                         "x":0,
+                         "y":0
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":0,
+                 "x":160,
+                 "y":192
+                }, 
+                {
+                 "height":0,
+                 "id":6,
+                 "name":"",
+                 "opacity":1,
+                 "polygon":[
+                        {
+                         "x":0,
+                         "y":0
+                        }, 
+                        {
+                         "x":0,
+                         "y":32
+                        }, 
+                        {
+                         "x":32,
+                         "y":0
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":96,
                  "y":0
                 }],
          "opacity":1,
@@ -100,145 +196,178 @@
          "visible":true,
          "x":0,
          "y":0
-        },
-    
+        }, 
         {
-         "data":[0, 0, 0,
-            0, 5, 2,
-            0, 0, 0],
-         "height":3,
-         "id":2,
-         "name":"Objects",
+         "draworder":"topdown",
+         "id":6,
+         "name":"Hazards",
+         "objects":[
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":7,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"Damage",
+                         "type":"float",
+                         "value":3
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":304,
+                 "y":47
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":8,
+                 "name":"",
+                 "opacity":1,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":207.738074282697,
+                 "y":47.7662383383207
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":9,
+                 "name":"",
+                 "opacity":1,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":111.754972716071,
+                 "y":80.2112304171801
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":10,
+                 "name":"",
+                 "opacity":1,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":110.853722936103,
+                 "y":175.293082203837
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":11,
+                 "name":"",
+                 "opacity":1,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":239.732441471572,
+                 "y":144.19996479493
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":12,
+                 "name":"",
+                 "opacity":1,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":335.715543038197,
+                 "y":112.205597606055
+                }],
          "opacity":1,
-         "type":"tilelayer",
+         "type":"objectgroup",
          "visible":true,
-         "width":3,
          "x":0,
          "y":0
         }, 
         {
-         "data":[0, 0, 0,
-            0, 0, 0,
-            13, 15, 16],
-         "height":3,
-         "id":5,
-         "name":"parallax",
+         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+         "height":6,
+         "id":3,
+         "name":"Parallax 1.5",
          "opacity":1,
-         "parallaxx":1.5,
+         "parallaxx":0.9,
          "type":"tilelayer",
          "visible":true,
-         "width":3,
+         "width":13,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15],
+         "height":6,
+         "id":5,
+         "name":"Door",
+         "opacity":1,
+         "properties":[
+                {
+                 "name":"targetRoom",
+                 "type":"string",
+                 "value":"room_2"
+                }],
+         "type":"tilelayer",
+         "visible":true,
+         "width":13,
          "x":0,
          "y":0
         }],
- "nextlayerid":6,
- "nextobjectid":4,
+ "nextlayerid":8,
+ "nextobjectid":16,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",
- "tileheight":16,
+ "tileheight":32,
  "tilesets":[
         {
          "columns":4,
          "firstgid":1,
-         "image":"OneDrive\/Documents\/spritesheet test.png",
-         "imageheight":64,
-         "imagewidth":64,
+         "image":"Downloads\/pls transparent.png",
+         "imageheight":128,
+         "imagewidth":128,
          "margin":0,
-         "name":"spritesheet test",
+         "name":"pls transparent",
          "spacing":0,
          "tilecount":16,
-         "tileheight":16,
+         "tileheight":32,
          "tiles":[
                 {
                  "animation":[
                         {
                          "duration":100,
-                         "tileid":12
+                         "tileid":10
                         }, 
                         {
                          "duration":100,
-                         "tileid":13
-                        }, 
-                        {
-                         "duration":100,
-                         "tileid":14
-                        },
-                    
-                        {
-                         "duration":100,
-                         "tileid":15
+                         "tileid":11
                         }],
-                 "id":12
-                }, 
-                {
-                 "animation":[
-                        {
-                         "duration":100,
-                         "tileid":13
-                        }, 
-                        {
-                         "duration":100,
-                         "tileid":14
-                        }, 
-                        {
-                         "duration":100,
-                         "tileid":15
-                        },
-                    
-                        {
-                         "duration":100,
-                         "tileid":12
-                        }],
-                 "id":13
-                }, 
-                {
-                 "animation":[
-                        {
-                         "duration":100,
-                         "tileid":14
-                        }, 
-                        {
-                         "duration":100,
-                         "tileid":15
-                        }, 
-                        {
-                         "duration":100,
-                         "tileid":12
-                        },
-                    
-                        {
-                         "duration":100,
-                         "tileid":13
-                        }],
-                 "id":14
-                },
-            
-                {
-                 "animation":[
-                        {
-                         "duration":100,
-                         "tileid":15
-                        }, 
-                        {
-                         "duration":100,
-                         "tileid":12
-                        }, 
-                        {
-                         "duration":100,
-                         "tileid":13
-                        },
-                    
-                        {
-                         "duration":100,
-                         "tileid":14
-                        }],
-                 "id":15
+                 "id":10
                 }],
-         "tilewidth":16
+         "tilewidth":32
         }],
- "tilewidth":16,
+ "tilewidth":32,
  "type":"map",
  "version":"1.10",
- "width":3
+ "width":13
 });
