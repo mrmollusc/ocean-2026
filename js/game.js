@@ -324,7 +324,7 @@
   //everything loader
     function load_rooms(roomKey, spawnX, spawnY) {
       current_room = roomKey;
-      current_room_id = Number(current_room.replaceAll(/[rom_]/gi,''))-1
+      current_room_id = Number(current_room.replaceAll(/[rom_]/gi,''))-1; //regex yummy
       canTransition = false;
       player.canDash = false;
 
@@ -342,6 +342,11 @@
       trashes.forEach(t => Composite.remove(engine.world, t));
       trash_graphics = [];
       trashes = [];
+
+      heart_graphics.forEach(g => world.removeChild(g));
+      hearts.forEach(t => Composite.remove(engine.world, t));
+      heart_graphics = [];
+      hearts = [];
 
       Body.setPosition(box, { x: spawnX, y: spawnY });
       Body.setVelocity(box, { x: 0, y: 0 });
@@ -399,22 +404,13 @@
       Composite.add(engine.world, trash_body);
     });
 
-    function load_hearts(roomKey){
-      heart_graphics.forEach(g => world.removeChild(g));
-      hearts.forEach(t => Composite.remove(engine.world, t));
-      heart_graphics = [];
-      hearts = [];
-
-      Matter.Engine.clear();
-
-      const data = room_data[roomKey];
-
-      data.hearts.forEach(heart_obj => {
-      const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, { isStatic: true, isNonColliding: true });
+    data.hearts.forEach(heart_obj => {
+      const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, { isStatic: true, collisionFilter: { group: -1, mask: 0 }});
       
       const heart_graphic = new PIXI.Sprite(heart_texture);
       heart_graphic.width = 50;
       heart_graphic.height = 50;
+      heart_graphic.anchor.set(0.5);
 
       heart_graphic.position.set(heart_obj.x, heart_obj.y);
       world.addChild(heart_graphic);
@@ -423,7 +419,6 @@
       heart_graphics.push(heart_graphic);
       Composite.add(engine.world, heart_body);
     });
-    }
 
     //end of loading objects
 
@@ -436,6 +431,33 @@
         player.canDash = true;
       }, 300);
     }
+
+  //edit hearts on touching
+    function update_hearts(roomKey) {
+      heart_graphics.forEach(g => world.removeChild(g));
+      hearts.forEach(t => Composite.remove(engine.world, t));
+      heart_graphics = [];
+      hearts = [];
+
+      const data = room_data[roomKey];
+
+      data.hearts.forEach(heart_obj => {
+      const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, { isStatic: true, collisionFilter: { group: -1, mask: 0 }});
+      
+      const heart_graphic = new PIXI.Sprite(heart_texture);
+      heart_graphic.width = 50;
+      heart_graphic.height = 50;
+      heart_graphic.anchor.set(0.5);
+
+      heart_graphic.position.set(heart_obj.x, heart_obj.y);
+      world.addChild(heart_graphic);
+
+      hearts.push(heart_body);
+      heart_graphics.push(heart_graphic);
+      Composite.add(engine.world, heart_body);
+    });
+    }
+
 
   //healthbar sprite
     healthbar_graphic.zIndex = 10;
@@ -550,16 +572,15 @@
         }
       });
 
-      //health update by touching heart
-      hearts.forEach((heart_body,i) => {
-        if (check_collision(box, heart_body)) {
-          player.health += 100;
-          hearts.splice(i,1);
-          heart_graphics.splice(i,1)
-          room_data[current_room].hearts.splice(i,1);
-          load_hearts(current_room)
+      for (let e of hearts) {
+        if(check_collision(box, e)) {
+          console.log(e.id);
+          hearts.splice(e,1);
+          room_data[current_room].hearts.splice(e,1);
+          update_hearts(current_room)
         }
-      });
+        
+      }
 
 
       /////////////////////////////////////////
@@ -587,21 +608,6 @@
           child.y = world.pivot.y * (1 - (1 / parallaxFactor));
         }
       });
-
-      
-      
-
-
-
-
-
-
-
-
-
-
-
-
 
       for (let i = 0; i < walls.length; i++) {
         wall_graphics[i].position.set(walls[i].position.x, walls[i].position.y);
