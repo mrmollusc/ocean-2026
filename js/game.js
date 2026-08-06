@@ -574,12 +574,14 @@
 
       for (let e of hearts) {
         if(check_collision(box, e)) {
-          console.log(e.id);
-          hearts.splice(e,1);
-          room_data[current_room].hearts.splice(e,1);
-          update_hearts(current_room)
+          const heartIndex = hearts.findIndex(e => check_collision(box, e));
+
+          if (heartIndex !== -1) {
+            hearts.splice(heartIndex, 1);
+            room_data[current_room].hearts.splice(heartIndex, 1);
+            update_hearts(current_room);
+          }
         }
-        
       }
 
 
