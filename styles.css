@@ -1,0 +1,13 @@
+body {
+  background-color: powderblue;
+}
+
+h1 {
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    
+}
+

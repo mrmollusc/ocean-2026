@@ -297,7 +297,17 @@
         doors: [
           { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 180, target_y: 450}
         ],
-        hearts: [{x: 50, y:50}]
+        hearts: [
+          {x: 50, y: 50},
+          {x: 100, y: 50},
+          {x: 150, y: 50},
+          {x: 200, y: 50},
+          {x: 250, y: 50},
+          {x: 50, y: 100},
+          {x: 50, y: 150},
+          {x: 50, y: 200},
+          {x: 50, y: 250},
+        ]
     },
     room_4: {
         label: 'room 4',
@@ -470,8 +480,9 @@
 
   //healthbar updater
     function update_healthbar() {
+      if(player.health>100) player.health = 100;
       healthbar_graphic.clear();
-      healthbar_graphic.rect(50,50,player.health*5,10).fill(0x3000F0);
+      healthbar_graphic.rect(50,50,player.health*5,10).fill(0xA090FF);
     }
 
 
@@ -572,11 +583,13 @@
         }
       });
 
+      //heal code of heart collectibles
       for (let e of hearts) {
         if(check_collision(box, e)) {
           const heartIndex = hearts.findIndex(e => check_collision(box, e));
 
           if (heartIndex !== -1) {
+            player.health+=10;
             hearts.splice(heartIndex, 1);
             room_data[current_room].hearts.splice(heartIndex, 1);
             update_hearts(current_room);
