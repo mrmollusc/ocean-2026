@@ -121,7 +121,6 @@
       inertia: Infinity
     });
 
-
   //room manager
     const baseTexture = await PIXI.Assets.load("js/levels/spritesheet.png")
 
