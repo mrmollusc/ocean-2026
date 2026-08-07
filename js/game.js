@@ -22,8 +22,9 @@
   const PLAYER_MAX_HEALTH = 100;
   const PLAYER_IFRAME_DURATION = 100;
 
-  //trash damage
+  //damage
   const TRASH_DAMAGE = 5;
+  const SNAIL_DAMAGE = 1;
 
   //dash mechanic
   const DASH_SPEED = 50;
@@ -136,6 +137,9 @@
     let hearts = [];
     let heart_graphics = [];
 
+    let snails = [];
+    let snail_graphics = [];
+
     let room_label = new PIXI.Text({
       text: 'room_1',
       style: { fontSize: 20, fill: 0xffffff }
@@ -146,8 +150,6 @@
 
     let canTransition = true; 
 
-
-    
     mapData.layers.forEach((layer) => {
       if (layer.type == "tilelayer" && layer.visible) {
         renderVisualLayer(layer, world)
@@ -275,7 +277,16 @@
           { x: 20, y: 450, w: 50, h: 120, target_room: 'room_3', target_x: 1420, target_y: 450},
           { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_2', target_x: 180, target_y: 450}
         ],
-        hearts: [{x: 50, y:50}]
+        hearts: [
+          {x: 50, y:50}
+        ],
+        snails: [
+          {x: 900, y: 600},
+          {x: 800, y: 500},
+          {x: 700, y: 400},
+          {x: 600, y: 500},
+          {x: 500, y: 600}
+        ]
       },
       room_2: {
         label: 'room 2',
@@ -292,7 +303,8 @@
           { x: 20, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 1420, target_y: 450},
           { x: 800, y: 880, w: 120, h: 50, target_room: 'room_4', target_x: 800, target_y: 180}
         ],
-        hearts: [{x: 50, y:50}]
+        hearts: [{x: 50, y:50}],
+        snails: [{}]
       },
       room_3: {
         label: 'room 3',
@@ -318,7 +330,8 @@
           {x: 50, y: 150},
           {x: 50, y: 200},
           {x: 50, y: 250},
-        ]
+        ],
+        snails: [{}]
     },
     room_4: {
         label: 'room 4',
@@ -337,7 +350,8 @@
         hearts: [
           {x: 50, y: 50},
           {x: 1000, y: 600}
-        ]
+        ],
+        snails: [{}]
         
     }
     };
@@ -368,6 +382,11 @@
       hearts.forEach(t => Composite.remove(engine.world, t));
       heart_graphics = [];
       hearts = [];
+
+      snail_graphics.forEach(g => world.removeChild(g));
+      snails.forEach(t => Composite.remove(engine.world, t));
+      snail_graphics = [];
+      snails = [];
 
       Body.setPosition(box, { x: spawnX, y: spawnY });
       Body.setVelocity(box, { x: 0, y: 0 });
@@ -441,6 +460,21 @@
       Composite.add(engine.world, heart_body);
     });
 
+    data.snails.forEach(snail_obj => {
+      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50,50, { isStatic: true, collisionFilter: { group: -1, mask: 0 } });
+      
+      const snail_graphic = new PIXI.Graphics()
+        .rect(-25,-25,50,50)
+        .fill(0xF000F0);
+      
+      snail_graphic.position.set(snail_obj.x, snail_obj.y);
+      world.addChild(snail_graphic);
+
+      snails.push(snail_body);
+      snail_graphics.push(snail_graphic);
+      Composite.add(engine.world, snail_body);
+    });
+
     //end of loading objects
 
       room_label.text = '';
@@ -492,8 +526,43 @@
   //healthbar updater
     function update_healthbar() {
       if(player.health>100) player.health = 100;
+      if(player.health<0) player.health = 0;
       healthbar_graphic.clear();
       healthbar_graphic.rect(50,50,player.health*5,10).fill(0xA090FF);
+      console.warn(player.health)
+    }
+
+  //snail movement
+    function update_snail(roomKey) {
+      snail_graphics.forEach(g => world.removeChild(g));
+      snails.forEach(t => Composite.remove(engine.world, t));
+      snail_graphics = [];
+      snails = [];
+
+      const data = room_data[roomKey];
+
+      data.snails.forEach(snail_obj => {
+      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50,50, { isStatic: true, collisionFilter: { group: -1, mask: 0 } });
+      
+      const snail_graphic = new PIXI.Graphics()
+        .rect(-25,-25,50,50)
+        .fill(0xF000F0);
+      
+      snail_graphic.position.set(snail_obj.x, snail_obj.y);
+      world.addChild(snail_graphic);
+
+      snails.push(snail_body);
+      snail_graphics.push(snail_graphic);
+      Composite.add(engine.world, snail_body);
+    });
+    }
+
+    function snail_movement() {
+      for (const snail of room_data[current_room].snails) {
+        if(snail.x<1) snail.x=1600
+        snail.x--;
+      }
+      update_snail(current_room);
     }
 
 
@@ -514,9 +583,9 @@
 
     //collisiion checker
 
-    function check_collision(playerBody, sensorBody) {
-    const boundsA = playerBody.bounds;
-    const boundsB = sensorBody.bounds;
+    function check_collision(player, object) {
+    const boundsA = player.bounds;
+    const boundsB = object.bounds;
 
     return boundsA.min.x < boundsB.max.x &&
           boundsA.max.x > boundsB.min.x &&
@@ -582,12 +651,24 @@
       //healthbar update
       update_healthbar();
 
+      //snail moves
+      snail_movement();
+
       //register damage and activate iframes
       trashes.forEach(trash_body => {
         if (player.iframe == false && check_collision(box, trash_body)) {
           player.health -= TRASH_DAMAGE;
           player.iframe = true;
-          console.log('touching trash')
+          setTimeout(() => {
+            player.iframe = false;
+          }, PLAYER_IFRAME_DURATION);   
+        }
+      });
+
+      snails.forEach(snail_body => {
+        if (player.iframe == false && check_collision(box, snail_body)) {
+          player.health -= SNAIL_DAMAGE;
+          player.iframe = true;
           setTimeout(() => {
             player.iframe = false;
           }, PLAYER_IFRAME_DURATION);   
