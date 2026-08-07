@@ -3,11 +3,58 @@ body {
 }
 
 h1 {
+    top: 50%;
+    left: 75%;
+
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    top: 50%;
+    background-color: rgb(66, 11, 184);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 100px;
+    transform: translate(-50%, -50%);
+}
+
+h2 {
+    top: 75%;
     left: 50%;
-    
+
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    background-color: rgb(66, 11, 184);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 100px;
+    transform: translate(-50%, -50%);
+}
+
+h3 {
+    top: 50%;
+    left: 25%;
+
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    background-color: rgb(66, 11, 184);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 100px;
+    transform: translate(-50%, -50%);
+}
+
+h2267284643634 { 
+    top: 25%;
+    left: 50%;
+
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    background-color: rgb(66, 11, 184);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 100px;
+    transform: translate(-50%, -50%);
 }
 
