@@ -156,7 +156,7 @@
       };
 
       if (layer.type == "objectgroup") {
-        buildPhysicsLayer(layer)
+        //buildPhysicsLayer(layer)
       };
     });
 
