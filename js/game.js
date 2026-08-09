@@ -12,7 +12,7 @@
   //Player movement and physics
   const PLAYER_ACCEL = 2;
   const PLAYER_MAX_SPEED = 10;
-  const PLAYER_SLOW_SPEED = 5;
+  const PLAYER_SLOW_SPEED = 50;
 
   //player body size
   const PLAYER_WIDTH = 160;
@@ -209,7 +209,7 @@
           sprite = new PIXI.AnimatedSprite(textures);
           sprite.animationSpeed = 0.15; 
           sprite.play(); 
-        } else {
+        } /*else {
           // static tile/sprite no animation
           const tileTexture = new PIXI.Texture({ source: baseTexture.source, frame: frame });
           sprite = new PIXI.Sprite(tileTexture);
@@ -218,7 +218,7 @@
         sprite.x = screenX;
         sprite.y = screenY;
         
-        layerContainer.addChild(sprite);
+        layerContainer.addChild(sprite);*/
       };
     };
 
@@ -254,7 +254,6 @@
           label: obj.name || "tiled_wall" 
         });
 
-        Composite.add(engine.world, staticBody);
       });
     }
 
@@ -281,11 +280,7 @@
           {x: 50, y:50}
         ],
         snails: [
-          {x: 900, y: 600},
-          {x: 800, y: 500},
-          {x: 700, y: 400},
-          {x: 600, y: 500},
-          {x: 500, y: 600}
+          {}
         ]
       },
       room_2: {
@@ -391,8 +386,6 @@
       Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
       Matter.Body.setVelocity(box, { x: 0, y: 0 });
 
-      Matter.Engine.clear(engine); 
-
       const data = room_data[roomKey];
 
       data.walls.forEach(wall => {
@@ -493,8 +486,6 @@
       hearts.forEach(t => Composite.remove(engine.world, t));
       heart_graphics = [];
       hearts = [];
-
-      Matter.Engine.clear(engine); 
 
       const data = room_data[roomKey];
 
@@ -599,9 +590,8 @@
 
 
   //important start or main game loop
-    app.ticker.add(async (ticker) => {
-      const delta = ticker.deltaTime;
-      Matter.Engine.update(engine, delta * (1000 / 60));
+    app.ticker.add((ticker) => {
+      Matter.Engine.update(engine, 1000/60);
       
       if (!boxGraphic) return;
 
