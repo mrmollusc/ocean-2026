@@ -152,7 +152,7 @@
 
     mapData.layers.forEach((layer) => {
       if (layer.type == "tilelayer" && layer.visible) {
-        renderVisualLayer(layer, world)
+        //renderVisualLayer(layer, world)
       };
 
       if (layer.type == "objectgroup") {
@@ -209,7 +209,7 @@
           sprite = new PIXI.AnimatedSprite(textures);
           sprite.animationSpeed = 0.15; 
           sprite.play(); 
-        } /*else {
+        } else {
           // static tile/sprite no animation
           const tileTexture = new PIXI.Texture({ source: baseTexture.source, frame: frame });
           sprite = new PIXI.Sprite(tileTexture);
@@ -218,7 +218,7 @@
         sprite.x = screenX;
         sprite.y = screenY;
         
-        layerContainer.addChild(sprite);*/
+        layerContainer.addChild(sprite);
       };
     };
 
