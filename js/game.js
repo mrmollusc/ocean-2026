@@ -388,8 +388,8 @@
       snail_graphics = [];
       snails = [];
 
-      Body.setPosition(box, { x: spawnX, y: spawnY });
-      Body.setVelocity(box, { x: 0, y: 0 });
+      Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
+      Matter.Body.setVelocity(box, { x: 0, y: 0 });
 
       Matter.Engine.clear(engine); 
 
@@ -461,7 +461,7 @@
     });
 
     data.snails.forEach(snail_obj => {
-      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50,50, { isStatic: true, collisionFilter: { group: -1, mask: 0 } });
+      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50,50, { isStatic: false, collisionFilter: { group: -1, mask: 0 } });
       
       const snail_graphic = new PIXI.Graphics()
         .rect(-25,-25,50,50)
@@ -493,6 +493,8 @@
       hearts.forEach(t => Composite.remove(engine.world, t));
       heart_graphics = [];
       hearts = [];
+
+      Matter.Engine.clear(engine); 
 
       const data = room_data[roomKey];
 
@@ -529,39 +531,33 @@
       if(player.health<0) player.health = 0;
       healthbar_graphic.clear();
       healthbar_graphic.rect(50,50,player.health*5,10).fill(0xA090FF);
-      console.warn(player.health)
     }
 
   //snail movement
     function update_snail(roomKey) {
-      snail_graphics.forEach(g => world.removeChild(g));
-      snails.forEach(t => Composite.remove(engine.world, t));
-      snail_graphics = [];
-      snails = [];
-
       const data = room_data[roomKey];
 
-      data.snails.forEach(snail_obj => {
-      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50,50, { isStatic: true, collisionFilter: { group: -1, mask: 0 } });
-      
-      const snail_graphic = new PIXI.Graphics()
-        .rect(-25,-25,50,50)
-        .fill(0xF000F0);
-      
-      snail_graphic.position.set(snail_obj.x, snail_obj.y);
-      world.addChild(snail_graphic);
+      data.snails.forEach((snail_obj, index) => {
+        const snail_body = snails[index];
+        const snail_graphic = snail_graphics[index];
 
-      snails.push(snail_body);
-      snail_graphics.push(snail_graphic);
-      Composite.add(engine.world, snail_body);
+        if (!snail_body || !snail_graphic) return;
+
+        if (snail_obj.x <= 1) {
+      snail_obj.x = 1600;
+      Matter.Body.setPosition(snail_body, { x: 1600, y: snail_obj.y });
+    }
+
+        Matter.Body.setVelocity(snail_body, { x: -10, y: 0 });
+
+        snail_obj.x = snail_body.position.x;
+        snail_obj.y = snail_body.position.y;
+        snail_graphic.position.set(snail_body.position.x, snail_body.position.y);
+        snail_graphic.position.set(snail_obj.x, snail_obj.y);
     });
     }
 
     function snail_movement() {
-      for (const snail of room_data[current_room].snails) {
-        if(snail.x<1) snail.x=1600
-        snail.x--;
-      }
       update_snail(current_room);
     }
 
