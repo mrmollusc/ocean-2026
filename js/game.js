@@ -1,464 +1,519 @@
-  ///////////////////////////////////////////
-  //constants
-  ///////////////////////////////////////////
-  //camera and world stuff
-  const MAP_WIDTH_MIN = 0;
-  const MAP_HEIGHT_MIN = 0;
-  const MAP_WIDTH_MAX = 4000;
-  const MAP_HEIGHT_MAX = 4000;
-  const LERP_FACTOR = 0.1;
-  const CAMERA_ZOOM = 1;
-  
-  //Player movement and physics
-  const PLAYER_ACCEL = 5;
-  const PLAYER_MAX_SPEED = 10;
-  const PLAYER_SLOW_SPEED = 50;
+///////////////////////////////////////////
+//constants
+///////////////////////////////////////////
+//camera and world stuff
+const MAP_WIDTH_MIN = 0;
+const MAP_HEIGHT_MIN = 0;
+const MAP_WIDTH_MAX = 4000;
+const MAP_HEIGHT_MAX = 4000;
+const LERP_FACTOR = 0.1;
+const CAMERA_ZOOM = 1;
 
-  //player body size
-  const PLAYER_WIDTH = 120;
-  const PLAYER_HEIGHT = 120;
+//Player movement and physics
+const PLAYER_ACCEL = 5;
+const PLAYER_MAX_SPEED = 7;
+const PLAYER_SLOW_SPEED = 50;
 
-  //player health and damage
-  const PLAYER_MAX_HEALTH = 100;
-  const PLAYER_IFRAME_DURATION = 100;
+//player body size
+const PLAYER_WIDTH = 120;
+const PLAYER_HEIGHT = 120;
 
-  //damage
-  const TRASH_DAMAGE = 5;
-  const SNAIL_DAMAGE = 1;
+//player health and damage
+const PLAYER_MAX_HEALTH = 100;
+const PLAYER_IFRAME_DURATION = 100;
 
-  //dash mechanic
-  const DASH_SPEED = 50;
-  const DASH_ACCEL = 10;
-  const DASH_DURATION = 150;
-  const DASH_COOLDOWN = 1500;
+//damage
+const TRASH_DAMAGE = 5;
+const SNAIL_DAMAGE = 1;
 
-  //room transition
-  const ROOM_TRANSITION_DELAY = 300;
+//dash mechanic
+const DASH_SPEED = 40;
+const DASH_ACCEL = 10;
+const DASH_DURATION = 150;
+const DASH_COOLDOWN = 1500;
 
-  //app settings
-  const APP_WIDTH = 1600;
-  const APP_HEIGHT = 900;
-  const APP_BG_COLOR = 0x111111;
+//room transition
+const ROOM_TRANSITION_DELAY = 300;
 
-  //map
-  const mapData = window.TileMaps["room_2", "room_1"]; 
+//app settings
+const APP_WIDTH = 1600;
+const APP_HEIGHT = 900;
+const APP_BG_COLOR = 0x111111;
 
-  //map height, width, tile data
-  const { width: mapWidth, height: mapHeight, tilewidth: tileWidth, tileheight: tileHeight} = mapData;
+//map
+const mapData = window.TileMaps[("room_2", "room_1")];
 
-  console.log(`Loaded a ${mapWidth}x${mapHeight} tilemap!`);
-  
-  
-  ///////////////////////////////////////
-  //INITIAL SETUP
-  ////////////////////////////////////////
-  
-  const { Engine, Bodies, Composite, Body } = Matter;
-  const app = new PIXI.Application();
+//map height, width, tile data
+const {
+  width: mapWidth,
+  height: mapHeight,
+  tilewidth: tileWidth,
+  tileheight: tileHeight,
+} = mapData;
 
-  //////////////////////////////////////////
-  // global stuff
-  /////////////////////////////////////////
-  let world;
-  let boxGraphic;
-  let current_room = 'room_2';
-  let current_room_id = '1'
-  
-  ///////////////////////////////////////////
-  //PLAYER DATA
-  ////////////////////////////////////////////
-  
-  const player = {
-    chapter: 1,
-    dealt_nuts: false,
+console.log(`Loaded a ${mapWidth}x${mapHeight} tilemap!`);
 
-    acceleration: PLAYER_ACCEL,
-    max_speed: PLAYER_MAX_SPEED,
-    
-    health: PLAYER_MAX_HEALTH,
-    iframe: false,
+///////////////////////////////////////
+//INITIAL SETUP
+////////////////////////////////////////
 
-    can_dash: true,
-    is_dashing: false,
-  };
-  
-  ////////////////////////////////////////
-  //PIXI INIT + WORLD CONTAINER
-  ////////////////////////////////////////
-  
+const { Engine, Bodies, Composite, Body } = Matter;
+const app = new PIXI.Application();
 
-  (async () => {
-    await app.init({
-      width: APP_WIDTH,
-      height: APP_HEIGHT,
-      backgroundColor: APP_BG_COLOR,
-      antialias: true,
-    });
+//////////////////////////////////////////
+// global stuff
+/////////////////////////////////////////
+let world;
+let boxGraphic;
+let current_room = "room_2";
+let current_room_id = "1";
 
-    world = new PIXI.Container();
-    app.stage.addChild(world);
-    world.scale.set(CAMERA_ZOOM);
+///////////////////////////////////////////
+//PLAYER DATA
+////////////////////////////////////////////
 
-    const canvas = app.canvas;
+const player = {
+  chapter: 1,
+  dealt_nuts: false,
 
-    canvas.style.imageRendering = 'pixelated';
+  acceleration: PLAYER_ACCEL,
+  max_speed: PLAYER_MAX_SPEED,
 
-    canvas.style.width = 'auto';
-    canvas.style.height = 'auto';
+  health: PLAYER_MAX_HEALTH,
+  iframe: false,
 
-    canvas.style.position = 'absolute';
-    canvas.style.top = '50%';
-    canvas.style.left = '50%';
-    canvas.style.transform = 'translate(-50%, -50%)';
+  can_dash: true,
+  is_dashing: false,
+};
 
-    document.body.appendChild(canvas);
+////////////////////////////////////////
+//PIXI INIT + WORLD CONTAINER
+////////////////////////////////////////
 
-    document.body.style.margin = '0';
-    document.body.style.padding = '0';
-    document.body.style.overflow = 'hidden';
-    document.body.style.backgroundColor = '#000000';
+(async () => {
+  await app.init({
+    width: APP_WIDTH,
+    height: APP_HEIGHT,
+    backgroundColor: APP_BG_COLOR,
+    antialias: true,
+  });
+
+  world = new PIXI.Container();
+  app.stage.addChild(world);
+  world.scale.set(CAMERA_ZOOM);
+
+  const canvas = app.canvas;
+
+  canvas.style.imageRendering = "pixelated";
+
+  canvas.style.width = "auto";
+  canvas.style.height = "auto";
+
+  canvas.style.position = "absolute";
+  canvas.style.top = "50%";
+  canvas.style.left = "50%";
+  canvas.style.transform = "translate(-50%, -50%)";
+
+  document.body.appendChild(canvas);
+
+  document.body.style.margin = "0";
+  document.body.style.padding = "0";
+  document.body.style.overflow = "hidden";
+  document.body.style.backgroundColor = "#000000";
 
   document.getElementById("game").appendChild(app.canvas);
 
-    const engine = Engine.create();
-    engine.gravity.y = 0;
-    engine.friction = 0;
-    engine.airResistance = 0;
+  const engine = Engine.create();
+  engine.gravity.y = 0;
+  engine.friction = 0;
+  engine.airResistance = 0;
 
   //TEXTURES
-    const ralsei_texture = await PIXI.Assets.load("ralsei.webp");
-    const heart_texture = await PIXI.Assets.load("heart.png");
+  const ralsei_texture = await PIXI.Assets.load("ralsei.webp");
+  const heart_texture = await PIXI.Assets.load("heart.png");
 
   //player healthbar sprite
-    let healthbar_graphic = new PIXI.Graphics();
-    let healthbar_bg_graphic = new PIXI.Graphics();
+  let healthbar_graphic = new PIXI.Graphics();
+  let healthbar_bg_graphic = new PIXI.Graphics();
 
   //box graphic
-    const box = Bodies.rectangle(100, 100, 120, 120, {
-      restitution: 0.0,
-      friction: 0.0,
-      frictionAir: 0.0,
-      density: 0.05,
-      slop: 0.05,
-      inertia: Infinity
-    });
+  const box = Bodies.rectangle(100, 100, 120, 120, {
+    restitution: 0.0,
+    friction: 0.0,
+    frictionAir: 0.0,
+    density: 0.05,
+    slop: 0.05,
+    inertia: Infinity,
+  });
 
   //room manager
-    const baseTexture = await PIXI.Assets.load("js/levels/spritesheet.png")
+  const baseTexture = await PIXI.Assets.load("js/levels/spritesheet.png");
 
-    let walls = [];          
-    let wall_graphics = [];  
+  let walls = [];
+  let wall_graphics = [];
 
-    let doors = [];    
-    let door_graphics = [];      
-    
-    let trashes = [];
-    let trash_graphics = [];
+  let doors = [];
+  let door_graphics = [];
 
-    let hearts = [];
-    let heart_graphics = [];
+  let trashes = [];
+  let trash_graphics = [];
 
-    let snails = [];
-    let snail_graphics = [];
+  let hearts = [];
+  let heart_graphics = [];
 
-    let room_label = new PIXI.Text({
-      text: 'room_1',
-      style: { fontSize: 20, fill: 0xffffff }
-    });
-    room_label.zIndex = 11;
-    room_label.position.set(1420, 20);
-    app.stage.addChild(room_label);
+  let snails = [];
+  let snail_graphics = [];
 
-    let canTransition = true; 
+  let room_label = new PIXI.Text({
+    text: "room_1",
+    style: { fontSize: 20, fill: 0xffffff },
+  });
+  room_label.zIndex = 11;
+  room_label.position.set(1420, 20);
+  app.stage.addChild(room_label);
 
-    mapData.layers.forEach((layer) => {
-      if (layer.type == "tilelayer" && layer.visible) {
-        //renderVisualLayer(layer, world)
-      };
+  let canTransition = true;
 
-      if (layer.type == "objectgroup") {
-        //buildPhysicsLayer(layer)
-      };
-    });
+  mapData.layers.forEach((layer) => {
+    if (layer.type == "tilelayer" && layer.visible) {
+      //renderVisualLayer(layer, world)
+    }
 
-    function renderVisualLayer(layer, parentContainer) {
-      if (!parentContainer) return;
+    if (layer.type == "objectgroup") {
+      //buildPhysicsLayer(layer)
+    }
+  });
 
-      const tileData = layer.data;
+  function renderVisualLayer(layer, parentContainer) {
+    if (!parentContainer) return;
 
-      if (!tileData) return;
-      
-      const tileset = mapData.tilesets[0];
-      const columns = tileset.columns;
-      const firstgid = tileset.firstgid;
+    const tileData = layer.data;
 
-      const layerContainer = new PIXI.Container();
-      layerContainer.alpha = layer.opacity;
+    if (!tileData) return;
 
-      if (layer.parallaxx) {
-        layerContainer.label = `parallax_${layer.parallaxx}`;
+    const tileset = mapData.tilesets[0];
+    const columns = tileset.columns;
+    const firstgid = tileset.firstgid;
+
+    const layerContainer = new PIXI.Container();
+    layerContainer.alpha = layer.opacity;
+
+    if (layer.parallaxx) {
+      layerContainer.label = `parallax_${layer.parallaxx}`;
+    }
+
+    parentContainer.addChild(layerContainer);
+
+    for (let i = 0; i < tileData.length; i++) {
+      const gid = tileData[i];
+      if (gid === 0) continue;
+
+      const screenX = (i % mapWidth) * tileWidth;
+      const screenY = Math.floor(i / mapWidth) * tileHeight;
+
+      const localIdx = gid - firstgid;
+      const sourceX = (localIdx % columns) * tileWidth;
+      const sourceY = Math.floor(localIdx / columns) * tileHeight;
+
+      const frame = new PIXI.Rectangle(sourceX, sourceY, tileWidth, tileHeight);
+      let sprite;
+
+      const tileMeta = tileset.tiles
+        ? tileset.tiles.find((t) => t.id === localIdx)
+        : null;
+
+      if (tileMeta && tileMeta.animation) {
+        //for every frame in the animation, create a texture and store it in an array
+        const textures = tileMeta.animation.map((frameData) => {
+          const fIdx = frameData.tileid;
+          const fX = (fIdx % columns) * tileWidth;
+          const fY = Math.floor(fIdx / columns) * tileHeight;
+          const rect = new PIXI.Rectangle(fX, fY, tileWidth, tileHeight);
+          return new PIXI.Texture({ source: baseTexture.source, frame: rect });
+        });
+        // non-static tile/sprite with animation
+        sprite = new PIXI.AnimatedSprite(textures);
+        sprite.animationSpeed = 0.15;
+        sprite.play();
+      } else {
+        // static tile/sprite no animation
+        const tileTexture = new PIXI.Texture({
+          source: baseTexture.source,
+          frame: frame,
+        });
+        sprite = new PIXI.Sprite(tileTexture);
       }
 
-      parentContainer.addChild(layerContainer);
+      sprite.x = screenX;
+      sprite.y = screenY;
 
-      for (let i = 0; i < tileData.length; i++) {
-        const gid = tileData[i];
-        if (gid === 0) continue;
-
-        const screenX = (i % mapWidth) * tileWidth;
-        const screenY = Math.floor(i / mapWidth) * tileHeight;
-      
-        const localIdx = gid - firstgid;
-        const sourceX = (localIdx % columns) * tileWidth;
-        const sourceY = Math.floor(localIdx / columns) * tileHeight;
-
-        const frame = new PIXI.Rectangle(sourceX, sourceY, tileWidth, tileHeight);
-        let sprite;
-
-        const tileMeta = tileset.tiles ? tileset.tiles.find(t => t.id === localIdx) : null;
-
-        if (tileMeta && tileMeta.animation) {
-          //for every frame in the animation, create a texture and store it in an array
-          const textures = tileMeta.animation.map(frameData => {
-            const fIdx = frameData.tileid;
-            const fX = (fIdx % columns) * tileWidth;
-            const fY = Math.floor(fIdx / columns) * tileHeight;
-            const rect = new PIXI.Rectangle(fX, fY, tileWidth, tileHeight);
-            return new PIXI.Texture({ source: baseTexture.source, frame: rect });
-          });
-          // non-static tile/sprite with animation
-          sprite = new PIXI.AnimatedSprite(textures);
-          sprite.animationSpeed = 0.15; 
-          sprite.play(); 
-        } else {
-          // static tile/sprite no animation
-          const tileTexture = new PIXI.Texture({ source: baseTexture.source, frame: frame });
-          sprite = new PIXI.Sprite(tileTexture);
-        }
-
-        sprite.x = screenX;
-        sprite.y = screenY;
-        
-        layerContainer.addChild(sprite);
-      };
-    };
-
-    function buildPhysicsLayer(layer) {
-      if (!layer.objects) return;
-
-      layer.objects.forEach((obj) => {
-        // Skip pure position nodes or bullet marker points with zero volume
-        if (obj.point && obj.name !== "") {
-          console.log(`Marker registered: ${obj.name} at X:${obj.x}, Y:${obj.y}`);
-          if (obj.name === 'Player') {
-            console.log(`spawn at (${obj.x}, ${obj.y})`)
-          }
-          return;
-        }
-
-        const w = obj.width;
-        const h = obj.height;
-        const centerX = obj.x + w / 2;
-        const centerY = obj.y + h / 2;
-
-        const targetRoom = obj.properties ? obj.properties.find(p => p.name === "target_room") : null;
-        
-        const bodyOptions = {
-          isStatic: true,
-          label: targetRoom ? `door_to_${targetRoom.value}` : obj.name || "tiled_wall"
-        };
-
-        if (targetRoom) {
-          bodyOptions.isSensor = true;
-          bodyOptions.target_room = targetRoom.value;
-        }
-
-        const staticBody = Bodies.rectangle(centerX, centerY, w, h, { 
-          isStatic: true,
-          label: obj.name || "tiled_wall" 
-        });
-
-      });
+      layerContainer.addChild(sprite);
     }
+  }
 
-    //room data
-  let room_data = {
+  function buildPhysicsLayer(layer) {
+    if (!layer.objects) return;
 
-    //btw room x and y pos measured from their center
-      room_1: {
-        label: 'room 1',
-        walls: [
-          { x: 800, y: 20, w: 1600, h: 40 },
-          { x: 800, y: 880, w: 1600, h: 40 },
-          { x: 20, y: 450, w: 40, h: 900},
-          { x: 1580, y: 450, w: 40, h: 900}
-        ],
-        trashes: [
-          { x: 800, y: 450, w: 180, h: 180}
-        ],
-        doors: [
-          { x: 20, y: 450, w: 50, h: 120, target_room: 'room_3', target_x: 1420, target_y: 450},
-          { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_2', target_x: 180, target_y: 450}
-        ],
-        hearts: [
-          {x: 50, y:50}
-        ],
-        snails: [{
-
+    layer.objects.forEach((obj) => {
+      // Skip pure position nodes or bullet marker points with zero volume
+      if (obj.point && obj.name !== "") {
+        console.log(`Marker registered: ${obj.name} at X:${obj.x}, Y:${obj.y}`);
+        if (obj.name === "Player") {
+          console.log(`spawn at (${obj.x}, ${obj.y})`);
         }
-        ]
-      },
-      room_2: {
-        label: 'room 2',
-        walls: [
-          { x: 800, y: 20, w: 1600, h: 40 },
-          { x: 800, y: 880, w: 1600, h: 40 },
-          { x: 20, y: 450, w: 40, h: 900},
-          { x: 1580, y: 450, w: 40, h: 900},
+        return;
+      }
 
-          { x: 400, y: 600, w: 120, h: 600},
-          { x: 800, y: 420, w: 400, h: 120}
-        ],
-        trashes: [
-          {}
-        ],
-        doors: [
-          { x: 20, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 1420, target_y: 450},
-          { x: 800, y: 880, w: 120, h: 50, target_room: 'room_4', target_x: 800, target_y: 180}
-        ],
-        hearts: [{}],
-        snails: [{}]
-      },
-      room_3: {
-        label: 'room 3',
-        walls: [
-          { x: 800, y: 20, w: 1600, h: 40 },
-          { x: 800, y: 880, w: 1600, h: 40 },
-          { x: 20, y: 450, w: 40, h: 900},
-          { x: 1580, y: 450, w: 40, h: 900}
-        ],
-        trashes: [
-          { x: 800, y: 600, w: 50, h: 50}
-        ],
-        doors: [
-          { x: 1580, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 180, target_y: 450}
-        ],
-        hearts: [
-          {x: 50, y: 50},
-          {x: 100, y: 50},
-          {x: 150, y: 50},
-          {x: 200, y: 50},
-          {x: 250, y: 50},
-          {x: 50, y: 100},
-          {x: 50, y: 150},
-          {x: 50, y: 200},
-          {x: 50, y: 250},
-        ],
-        snails: [{}]
+      const w = obj.width;
+      const h = obj.height;
+      const centerX = obj.x + w / 2;
+      const centerY = obj.y + h / 2;
+
+      const targetRoom = obj.properties
+        ? obj.properties.find((p) => p.name === "target_room")
+        : null;
+
+      const bodyOptions = {
+        isStatic: true,
+        label: targetRoom
+          ? `door_to_${targetRoom.value}`
+          : obj.name || "tiled_wall",
+      };
+
+      if (targetRoom) {
+        bodyOptions.isSensor = true;
+        bodyOptions.target_room = targetRoom.value;
+      }
+
+      const staticBody = Bodies.rectangle(centerX, centerY, w, h, {
+        isStatic: true,
+        label: obj.name || "tiled_wall",
+      });
+    });
+  }
+
+  //room data
+  let room_data = {
+    //btw room x and y pos measured from their center
+    room_1: {
+      label: "room 1",
+      walls: [
+        { x: 800, y: 20, w: 1600, h: 40 },
+        { x: 800, y: 880, w: 1600, h: 40 },
+        { x: 20, y: 450, w: 40, h: 900 },
+        { x: 1580, y: 450, w: 40, h: 900 },
+      ],
+      trashes: [{ x: 800, y: 450, w: 180, h: 180 }],
+      doors: [
+        {
+          x: 20,
+          y: 450,
+          w: 50,
+          h: 120,
+          target_room: "room_3",
+          target_x: 1420,
+          target_y: 450,
+        },
+        {
+          x: 1580,
+          y: 450,
+          w: 50,
+          h: 120,
+          target_room: "room_2",
+          target_x: 180,
+          target_y: 450,
+        },
+      ],
+      hearts: [{ x: 50, y: 50 }],
+      snails: [{}],
+    },
+    room_2: {
+      label: "room 2",
+      walls: [
+        { x: 800, y: 20, w: 1600, h: 40 },
+        { x: 800, y: 880, w: 1600, h: 40 },
+        { x: 20, y: 450, w: 40, h: 900 },
+        { x: 1580, y: 450, w: 40, h: 900 },
+
+        { x: 400, y: 600, w: 120, h: 600 },
+        { x: 900, y: 360, w: 960, h: 120 },
+      ],
+      trashes: [{}],
+      doors: [
+        {
+          x: 20,
+          y: 450,
+          w: 50,
+          h: 120,
+          target_room: "room_1",
+          target_x: 1420,
+          target_y: 450,
+        },
+        {
+          x: 800,
+          y: 880,
+          w: 120,
+          h: 50,
+          target_room: "room_4",
+          target_x: 800,
+          target_y: 180,
+        },
+      ],
+      hearts: [{}],
+      snails: [{}],
+    },
+    room_3: {
+      label: "room 3",
+      walls: [
+        { x: 800, y: 20, w: 1600, h: 40 },
+        { x: 800, y: 880, w: 1600, h: 40 },
+        { x: 20, y: 450, w: 40, h: 900 },
+        { x: 1580, y: 450, w: 40, h: 900 },
+      ],
+      trashes: [{ x: 800, y: 600, w: 50, h: 50 }],
+      doors: [
+        {
+          x: 1580,
+          y: 450,
+          w: 50,
+          h: 120,
+          target_room: "room_1",
+          target_x: 180,
+          target_y: 450,
+        },
+      ],
+      hearts: [
+        { x: 50, y: 50 },
+        { x: 100, y: 50 },
+        { x: 150, y: 50 },
+        { x: 200, y: 50 },
+        { x: 250, y: 50 },
+        { x: 50, y: 100 },
+        { x: 50, y: 150 },
+        { x: 50, y: 200 },
+        { x: 50, y: 250 },
+      ],
+      snails: [{}],
     },
     room_4: {
-        label: 'room 4',
-        walls: [
-          { x: 800, y: 20, w: 1600, h: 40 },
-          { x: 800, y: 880, w: 1600, h: 40 },
-          { x: 20, y: 450, w: 40, h: 900},
-          { x: 1580, y: 450, w: 40, h: 900}
-        ],
-        trashes: [
-          {}
-        ],
-        doors: [
-          { x: 800, y: 20, w: 120, h: 50, target_room: 'room_2', target_x: 800, target_y: 720}
-        ],
-        hearts: [
-          {x: 50, y: 50},
-          {x: 1000, y: 600}
-        ],
-        snails: [{}]
-        
-    }
-    };
+      label: "room 4",
+      walls: [
+        { x: 800, y: 20, w: 1600, h: 40 },
+        { x: 800, y: 880, w: 1600, h: 40 },
+        { x: 20, y: 450, w: 40, h: 900 },
+        { x: 1580, y: 450, w: 40, h: 900 },
+      ],
+      trashes: [{}],
+      doors: [
+        {
+          x: 800,
+          y: 20,
+          w: 120,
+          h: 50,
+          target_room: "room_2",
+          target_x: 800,
+          target_y: 720,
+        },
+      ],
+      hearts: [
+        { x: 50, y: 50 },
+        { x: 1000, y: 600 },
+      ],
+      snails: [{}],
+    },
+  };
 
   //everything loader
-    function load_rooms(roomKey, spawnX, spawnY) {
-      current_room = roomKey;
-      current_room_id = Number(current_room.replaceAll(/[rom_]/gi,''))-1; //regex yummy
-      canTransition = false;
-      player.canDash = false;
+  function load_rooms(roomKey, spawnX, spawnY) {
+    current_room = roomKey;
+    current_room_id = Number(current_room.replaceAll(/[rom_]/gi, "")) - 1; //regex yummy
+    canTransition = false;
+    player.canDash = false;
 
-      wall_graphics.forEach(g => world.removeChild(g));
-      walls.forEach(w => Composite.remove(engine.world, w));
-      wall_graphics = [];
-      walls = [];
+    wall_graphics.forEach((g) => world.removeChild(g));
+    walls.forEach((w) => Composite.remove(engine.world, w));
+    wall_graphics = [];
+    walls = [];
 
-      door_graphics.forEach(g => world.removeChild(g));
-      doors.forEach(d => Composite.remove(engine.world, d));
-      door_graphics = [];
-      doors = [];
+    door_graphics.forEach((g) => world.removeChild(g));
+    doors.forEach((d) => Composite.remove(engine.world, d));
+    door_graphics = [];
+    doors = [];
 
-      trash_graphics.forEach(g => world.removeChild(g));
-      trashes.forEach(t => Composite.remove(engine.world, t));
-      trash_graphics = [];
-      trashes = [];
+    trash_graphics.forEach((g) => world.removeChild(g));
+    trashes.forEach((t) => Composite.remove(engine.world, t));
+    trash_graphics = [];
+    trashes = [];
 
-      heart_graphics.forEach(g => world.removeChild(g));
-      hearts.forEach(t => Composite.remove(engine.world, t));
-      heart_graphics = [];
-      hearts = [];
+    heart_graphics.forEach((g) => world.removeChild(g));
+    hearts.forEach((t) => Composite.remove(engine.world, t));
+    heart_graphics = [];
+    hearts = [];
 
-      snail_graphics.forEach(g => world.removeChild(g));
-      snails.forEach(t => Composite.remove(engine.world, t));
-      snail_graphics = [];
-      snails = [];
+    snail_graphics.forEach((g) => world.removeChild(g));
+    snails.forEach((t) => Composite.remove(engine.world, t));
+    snail_graphics = [];
+    snails = [];
 
+    Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
+    Matter.Body.setVelocity(box, { x: 0, y: 0 });
 
+    const data = room_data[roomKey];
 
-      Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
-      Matter.Body.setVelocity(box, { x: 0, y: 0 });
-
-      const data = room_data[roomKey];
-
-      data.walls.forEach(wall => {
-        const wallBody = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, { isStatic: true, restitution: 1, friction: 0 });
-        
-        const wallGraphic = new PIXI.Graphics()
-          .rect(-wall.w / 2, -wall.h / 2, wall.w, wall.h)
-          .fill(0x333333);
-        
-        wallGraphic.position.set(wall.x, wall.y);
-        world.addChild(wallGraphic);
-
-        walls.push(wallBody);
-        wall_graphics.push(wallGraphic);
-        Composite.add(engine.world, wallBody);
+    data.walls.forEach((wall) => {
+      const wallBody = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, {
+        isStatic: true,
+        restitution: 1,
+        friction: 0,
       });
 
-      data.doors.forEach(door => {
-        const doorBody = Bodies.rectangle(door.x, door.y, door.w, door.h, { isStatic: true, isSensor: true });
+      const wallGraphic = new PIXI.Graphics()
+        .rect(-wall.w / 2, -wall.h / 2, wall.w, wall.h)
+        .fill(0x333333);
 
-        doorBody.target_room = door.target_room;
-        doorBody.target_x = door.target_x;
-        doorBody.target_y = door.target_y;
+      wallGraphic.position.set(wall.x, wall.y);
+      world.addChild(wallGraphic);
 
-        const doorGraphic = new PIXI.Graphics()
-          .rect(-door.w / 2, -door.h / 2, door.w, door.h)
-          .fill({ color: 0xFF0000, alpha: 0.2 }); 
-        
-        doorGraphic.position.set(door.x, door.y);
-        world.addChild(doorGraphic);
+      walls.push(wallBody);
+      wall_graphics.push(wallGraphic);
+      Composite.add(engine.world, wallBody);
+    });
 
-        doors.push(doorBody);
-        door_graphics.push(doorGraphic);
-        Composite.add(engine.world, doorBody);
+    data.doors.forEach((door) => {
+      const doorBody = Bodies.rectangle(door.x, door.y, door.w, door.h, {
+        isStatic: true,
+        isSensor: true,
       });
 
-      data.trashes.forEach(trash_obj => {
-      const trash_body = Bodies.rectangle(trash_obj.x, trash_obj.y, trash_obj.w, trash_obj.h, { isStatic: true });
-      
+      doorBody.target_room = door.target_room;
+      doorBody.target_x = door.target_x;
+      doorBody.target_y = door.target_y;
+
+      const doorGraphic = new PIXI.Graphics()
+        .rect(-door.w / 2, -door.h / 2, door.w, door.h)
+        .fill({ color: 0xff0000, alpha: 0.2 });
+
+      doorGraphic.position.set(door.x, door.y);
+      world.addChild(doorGraphic);
+
+      doors.push(doorBody);
+      door_graphics.push(doorGraphic);
+      Composite.add(engine.world, doorBody);
+    });
+
+    data.trashes.forEach((trash_obj) => {
+      const trash_body = Bodies.rectangle(
+        trash_obj.x,
+        trash_obj.y,
+        trash_obj.w,
+        trash_obj.h,
+        { isStatic: true },
+      );
+
       const trash_graphic = new PIXI.Graphics()
         .rect(-trash_obj.w / 2, -trash_obj.h / 2, trash_obj.w, trash_obj.h)
-        .fill(0xAAAA00);
-      
+        .fill(0xaaaa00);
+
       trash_graphic.position.set(trash_obj.x, trash_obj.y);
       world.addChild(trash_graphic);
 
@@ -467,9 +522,12 @@
       Composite.add(engine.world, trash_body);
     });
 
-    data.hearts.forEach(heart_obj => {
-      const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, { isStatic: true, collisionFilter: { group: -1, mask: 0 }});
-      
+    data.hearts.forEach((heart_obj) => {
+      const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, {
+        isStatic: true,
+        collisionFilter: { group: -1, mask: 0 },
+      });
+
       const heart_graphic = new PIXI.Sprite(heart_texture);
       heart_graphic.width = 50;
       heart_graphic.height = 50;
@@ -483,47 +541,56 @@
       Composite.add(engine.world, heart_body);
     });
 
-    data.snails.forEach(snail_obj => {
-      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50,50, { isStatic: false, restitution: 1, friction: 0, collisionFilter: { group: -1, mask: 0 }});
-      
+    data.snails.forEach((snail_obj) => {
+      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50, 50, {
+        isStatic: false,
+        restitution: 1,
+        friction: 0,
+        collisionFilter: { group: -1, mask: 0 },
+      });
+
       const snail_graphic = new PIXI.Graphics()
-        .rect(-25,-25,50,50)
-        .fill(0xF000F0);
-      
+        .rect(-25, -25, 50, 50)
+        .fill(0xf000f0);
+
       snail_graphic.position.set(snail_obj.x, snail_obj.y);
       world.addChild(snail_graphic);
 
       snails.push(snail_body);
       snail_graphics.push(snail_graphic);
       Composite.add(engine.world, snail_body);
-      Matter.Body.setVelocity(snail_body, {x: snail_obj.x_vel, y: snail_obj.y_vel});
-      
+      Matter.Body.setVelocity(snail_body, {
+        x: snail_obj.x_vel,
+        y: snail_obj.y_vel,
+      });
     });
 
     //end of loading objects
 
-      room_label.text = '';
-      room_label.text = data.label;
+    room_label.text = "";
+    room_label.text = data.label;
 
-
-      setTimeout(() => {
-        canTransition = true;
-        player.canDash = true;
-      }, 300);
-    }
+    setTimeout(() => {
+      canTransition = true;
+      player.canDash = true;
+    }, 300);
+  }
 
   //edit hearts on touching
-    function update_hearts(roomKey) {
-      heart_graphics.forEach(g => world.removeChild(g));
-      hearts.forEach(t => Composite.remove(engine.world, t));
-      heart_graphics = [];
-      hearts = [];
+  function update_hearts(roomKey) {
+    heart_graphics.forEach((g) => world.removeChild(g));
+    hearts.forEach((t) => Composite.remove(engine.world, t));
+    heart_graphics = [];
+    hearts = [];
 
-      const data = room_data[roomKey];
+    const data = room_data[roomKey];
 
-      data.hearts.forEach(heart_obj => {
-      const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, { isStatic: true, collisionFilter: { group: -1, mask: 0 }});
-      
+    data.hearts.forEach((heart_obj) => {
+      const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, {
+        isStatic: true,
+        collisionFilter: { group: -1, mask: 0 },
+      });
+
       const heart_graphic = new PIXI.Sprite(heart_texture);
       heart_graphic.width = 50;
       heart_graphic.height = 50;
@@ -536,235 +603,249 @@
       heart_graphics.push(heart_graphic);
       Composite.add(engine.world, heart_body);
     });
-    }
-
+  }
 
   //healthbar sprite
-    healthbar_graphic.zIndex = 10;
-    app.stage.addChild(healthbar_graphic);
-    
-    healthbar_bg_graphic.rect(50,50,500,10).fill(0xFF0000);
-    healthbar_bg_graphic.zIndex = 9;
-    app.stage.addChild(healthbar_bg_graphic);
-    
+  healthbar_graphic.zIndex = 10;
+  app.stage.addChild(healthbar_graphic);
+
+  healthbar_bg_graphic.rect(50, 50, 500, 10).fill(0xff0000);
+  healthbar_bg_graphic.zIndex = 9;
+  app.stage.addChild(healthbar_bg_graphic);
 
   //healthbar updater
-    function update_healthbar() {
-      if(player.health>100) player.health = 100;
-      if(player.health<0) player.health = 0;
-      healthbar_graphic.clear();
-      healthbar_graphic.rect(50,50,player.health*5,10).fill(0xA090FF);
-    }
+  function update_healthbar() {
+    if (player.health > 100) player.health = 100;
+    if (player.health < 0) player.health = 0;
+    healthbar_graphic.clear();
+    healthbar_graphic.rect(50, 50, player.health * 5, 10).fill(0xa090ff);
+  }
 
   //snail movement
-    function update_snail(roomKey) {
-      const data = room_data[roomKey];
+  function update_snail(roomKey) {
+    const data = room_data[roomKey];
 
-      data.snails.forEach((snail_obj, index) => {
-        const snail_body = snails[index];
-        const snail_graphic = snail_graphics[index];
+    data.snails.forEach((snail_obj, index) => {
+      const snail_body = snails[index];
+      const snail_graphic = snail_graphics[index];
 
-        if (!snail_body || !snail_graphic) return;
+      if (!snail_body || !snail_graphic) return;
 
-        // Check boundaries and reverse direction if needed
-        if (snail_obj.x <= 60) {
-          snail_obj.x_vel = Math.abs(snail_obj.x_vel); // Move right
-        }
-        if (snail_obj.x >= 1540) {
-          snail_obj.x_vel = -Math.abs(snail_obj.x_vel); // Move left
-        }
-        if (snail_obj.y >= 840) {
-          snail_obj.y_vel = -Math.abs(snail_obj.y_vel); // Move up
-        }
-        if (snail_obj.y <= 60) {
-          snail_obj.y_vel = Math.abs(snail_obj.y_vel); // Move down
-        }
+      // Check boundaries and reverse direction if needed
+      if (snail_obj.x <= 60) {
+        snail_obj.x_vel = Math.abs(snail_obj.x_vel); // Move right
+      }
+      if (snail_obj.x >= 1540) {
+        snail_obj.x_vel = -Math.abs(snail_obj.x_vel); // Move left
+      }
+      if (snail_obj.y >= 840) {
+        snail_obj.y_vel = -Math.abs(snail_obj.y_vel); // Move up
+      }
+      if (snail_obj.y <= 60) {
+        snail_obj.y_vel = Math.abs(snail_obj.y_vel); // Move down
+      }
 
-        // Apply velocity once (after boundary checks)
-        Matter.Body.setVelocity(snail_body, { x: snail_obj.x_vel, y: snail_obj.y_vel });
+      // Apply velocity once (after boundary checks)
+      Matter.Body.setVelocity(snail_body, {
+        x: snail_obj.x_vel,
+        y: snail_obj.y_vel,
+      });
 
-        // Sync position
-        snail_obj.x = snail_body.position.x;
-        snail_obj.y = snail_body.position.y;
-        snail_graphic.position.set(snail_obj.x, snail_obj.y);
+      // Sync position
+      snail_obj.x = snail_body.position.x;
+      snail_obj.y = snail_body.position.y;
+      snail_graphic.position.set(snail_obj.x, snail_obj.y);
     });
-}
+  }
 
-    function snail_movement() {
-      update_snail(current_room);
-    }
-
+  function snail_movement() {
+    update_snail(current_room);
+  }
 
   //player sprite
-    async function createPlayerSprite() {
-      boxGraphic = new PIXI.Sprite(ralsei_texture);
-      boxGraphic.width = PLAYER_WIDTH;
-      boxGraphic.height = PLAYER_HEIGHT;
-      boxGraphic.anchor.set(0.5);
-      world.addChild(boxGraphic);
+  async function createPlayerSprite() {
+    boxGraphic = new PIXI.Sprite(ralsei_texture);
+    boxGraphic.width = PLAYER_WIDTH;
+    boxGraphic.height = PLAYER_HEIGHT;
+    boxGraphic.anchor.set(0.5);
+    world.addChild(boxGraphic);
 
-      Composite.add(engine.world, [box]);
-      load_rooms('room_2', 200, window.innerHeight / 2);
-    }
-    await createPlayerSprite();
+    Composite.add(engine.world, [box]);
+    load_rooms("room_2", 200, window.innerHeight / 2);
+  }
+  await createPlayerSprite();
 
+  //collisiion checker
 
-
-    //collisiion checker
-
-    function check_collision(player, object) {
+  function check_collision(player, object) {
     const boundsA = player.bounds;
     const boundsB = object.bounds;
 
-    return boundsA.min.x < boundsB.max.x &&
-          boundsA.max.x > boundsB.min.x &&
-          boundsA.min.y < boundsB.max.y &&
-          boundsA.max.y > boundsB.min.y;
+    return (
+      boundsA.min.x < boundsB.max.x &&
+      boundsA.max.x > boundsB.min.x &&
+      boundsA.min.y < boundsB.max.y &&
+      boundsA.max.y > boundsB.min.y
+    );
   }
 
-    // Key Event Hooks
-    let keys = {};
-    let e;
-    window.addEventListener('keydown', (event) => { keys[event.code] = true; e = event; });
-    window.addEventListener('keyup', (event) => { keys[event.code] = false; });
-
-
-
+  // Key Event Hooks
+  let keys = {};
+  let e;
+  window.addEventListener("keydown", (event) => {
+    keys[event.code] = true;
+    e = event;
+  });
+  window.addEventListener("keyup", (event) => {
+    keys[event.code] = false;
+  });
 
   //important start or main game loop
-    app.ticker.add((ticker) => {
-      Matter.Engine.update(engine, 1000/60);
-      
-      if (!boxGraphic) return;
+  app.ticker.add((ticker) => {
+    Matter.Engine.update(engine, 1000 / 60);
 
-      let v1x = box.velocity.x;
-      let v1y = box.velocity.y;
+    if (!boxGraphic) return;
 
-      //dash mechanic
-      if(keys['Space']) {
-        if(player.can_dash){
+    let v1x = box.velocity.x;
+    let v1y = box.velocity.y;
 
-          if(player.is_dashing) return;
+    //dash mechanic
+    if (keys["Space"]) {
+      if (player.can_dash) {
+        if (player.is_dashing) return;
 
-          player.max_speed = DASH_SPEED;
-          player.acceleration = DASH_ACCEL;
-          player.can_dash = false;
-          player.is_dashing = true;
+        player.max_speed = DASH_SPEED;
+        player.acceleration = DASH_ACCEL;
+        player.can_dash = false;
+        player.is_dashing = true;
 
-          setTimeout(() => {
+        setTimeout(() => {
           player.max_speed = PLAYER_MAX_SPEED;
           player.acceleration = PLAYER_ACCEL;
           player.is_dashing = false;
-          }, DASH_DURATION);
+        }, DASH_DURATION);
 
-          setTimeout(() => {
-            player.can_dash = true;
-          }, DASH_COOLDOWN)  
-        }
-      } 
-      
-      //WASD
-      if (keys['KeyD']) v1x = Math.min(v1x + player.acceleration, player.max_speed);
-      else if (keys['KeyA']) v1x = Math.max(v1x - player.acceleration, -player.max_speed);
-      else v1x = v1x * 0.9; 
-      
-      if (keys['KeyS']) v1y = Math.min(v1y + player.acceleration, player.max_speed); 
-      else if (keys['KeyW']) v1y = Math.max(v1y - player.acceleration, -player.max_speed);
-      else v1y = v1y * 0.9; 
-      Matter.Body.setVelocity(box, { x: v1x, y: v1y });
+        setTimeout(() => {
+          player.can_dash = true;
+        }, DASH_COOLDOWN);
+      }
+    }
 
-      boxGraphic.position.set(box.position.x, box.position.y);
-      boxGraphic.rotation = box.angle;
+    //WASD
+    if (keys["KeyD"])
+      v1x = Math.min(v1x + player.acceleration, player.max_speed);
+    else if (keys["KeyA"])
+      v1x = Math.max(v1x - player.acceleration, -player.max_speed);
+    else v1x = v1x * 0.9;
 
-      //healthbar update
-      update_healthbar();
+    if (keys["KeyS"])
+      v1y = Math.min(v1y + player.acceleration, player.max_speed);
+    else if (keys["KeyW"])
+      v1y = Math.max(v1y - player.acceleration, -player.max_speed);
+    else v1y = v1y * 0.9;
+    Matter.Body.setVelocity(box, { x: v1x, y: v1y });
 
-      //snail moves
-      snail_movement();
+    boxGraphic.position.set(box.position.x, box.position.y);
+    boxGraphic.rotation = box.angle;
 
-      //register damage and activate iframes
-      trashes.forEach(trash_body => {
-        if (player.iframe == false && check_collision(box, trash_body)) {
-          player.health -= TRASH_DAMAGE;
-          player.iframe = true;
-          setTimeout(() => {
-            player.iframe = false;
-          }, PLAYER_IFRAME_DURATION);   
-        }
-      });
+    //healthbar update
+    update_healthbar();
 
-      snails.forEach(snail_body => {
-        if (player.iframe == false && check_collision(box, snail_body)) {
-          player.health -= SNAIL_DAMAGE;
-          player.iframe = true;
-          setTimeout(() => {
-            player.iframe = false;
-          }, PLAYER_IFRAME_DURATION);   
-        }
-      });
+    //snail moves
+    snail_movement();
 
-      //heal code of heart collectibles
-      for (let e of hearts) {
-        if(check_collision(box, e)) {
-          const heartIndex = hearts.findIndex(e => check_collision(box, e));
+    //register damage and activate iframes
+    trashes.forEach((trash_body) => {
+      if (player.iframe == false && check_collision(box, trash_body)) {
+        player.health -= TRASH_DAMAGE;
+        player.iframe = true;
+        setTimeout(() => {
+          player.iframe = false;
+        }, PLAYER_IFRAME_DURATION);
+      }
+    });
 
-          if (heartIndex !== -1) {
-            player.health+=10;
-            hearts.splice(heartIndex, 1);
-            room_data[current_room].hearts.splice(heartIndex, 1);
-            update_hearts(current_room);
-          }
+    snails.forEach((snail_body) => {
+      if (player.iframe == false && check_collision(box, snail_body)) {
+        player.health -= SNAIL_DAMAGE;
+        player.iframe = true;
+        setTimeout(() => {
+          player.iframe = false;
+        }, PLAYER_IFRAME_DURATION);
+      }
+    });
+
+    //heal code of heart collectibles
+    for (let e of hearts) {
+      if (check_collision(box, e)) {
+        const heartIndex = hearts.findIndex((e) => check_collision(box, e));
+
+        if (heartIndex !== -1) {
+          player.health += 10;
+          hearts.splice(heartIndex, 1);
+          room_data[current_room].hearts.splice(heartIndex, 1);
+          update_hearts(current_room);
         }
       }
+    }
 
+    /////////////////////////////////////////
+    //CAMERA FOLLOW SYSTEM
+    /////////////////////////////////////////
+    const halfW = app.screen.width / 2;
+    const halfH = app.screen.height / 2;
 
-      /////////////////////////////////////////
-      //CAMERA FOLLOW SYSTEM
-      /////////////////////////////////////////
-      const halfW = app.screen.width / 2;
-      const halfH = app.screen.height / 2;
+    const targetX = Math.max(
+      MAP_WIDTH_MIN,
+      Math.min(MAP_WIDTH_MAX - halfW, box.position.x),
+    );
+    const targetY = Math.max(
+      MAP_HEIGHT_MIN,
+      Math.min(MAP_HEIGHT_MAX - halfH, box.position.y),
+    );
 
-      const targetX = Math.max(MAP_WIDTH_MIN, Math.min(MAP_WIDTH_MAX - halfW, box.position.x));
-      const targetY = Math.max(MAP_HEIGHT_MIN, Math.min(MAP_HEIGHT_MAX - halfH, box.position.y));
+    world.pivot.x += (targetX - world.pivot.x) * LERP_FACTOR;
+    world.pivot.y += (targetY - world.pivot.y) * LERP_FACTOR;
 
-      world.pivot.x += (targetX - world.pivot.x) * LERP_FACTOR;
-      world.pivot.y += (targetY - world.pivot.y) * LERP_FACTOR;
+    world.x = halfW;
+    world.y = halfH;
 
-      world.x = halfW;
-      world.y = halfH;
-      
-      world.children.forEach((child) => {
-        if (child.label && child.label.startsWith("parallax_")) {
-          //get the parallax factor from the label, e.g., "parallax_1.5" would give a factor of 1.5
-          const parallaxFactor = parseFloat(child.label.split("_")[1]);
-          
-          //scroll the parallax layer based on the camera's pivot and the parallax factor
-          child.x = world.pivot.x * (1 - (1 / parallaxFactor));
-          child.y = world.pivot.y * (1 - (1 / parallaxFactor));
-        }
-      });
+    world.children.forEach((child) => {
+      if (child.label && child.label.startsWith("parallax_")) {
+        //get the parallax factor from the label, e.g., "parallax_1.5" would give a factor of 1.5
+        const parallaxFactor = parseFloat(child.label.split("_")[1]);
 
-      for (let i = 0; i < walls.length; i++) {
-        wall_graphics[i].position.set(walls[i].position.x, walls[i].position.y);
+        //scroll the parallax layer based on the camera's pivot and the parallax factor
+        child.x = world.pivot.x * (1 - 1 / parallaxFactor);
+        child.y = world.pivot.y * (1 - 1 / parallaxFactor);
       }
+    });
+
+    for (let i = 0; i < walls.length; i++) {
+      wall_graphics[i].position.set(walls[i].position.x, walls[i].position.y);
+    }
+
+    if (canTransition) {
+      const playerBounds = {
+        x: box.position.x - 80,
+        y: box.position.y - 80,
+        w: 160,
+        h: 160,
+      };
 
       if (canTransition) {
-        const playerBounds = { 
-          x: box.position.x - 80, 
-          y: box.position.y - 80, 
-          w: 160, 
-          h: 160 
-        };
-
-        if (canTransition) {
         for (let doorBody of doors) {
           if (check_collision(box, doorBody)) {
-            doors = []; 
-            load_rooms(doorBody.target_room, doorBody.target_x, doorBody.target_y);
+            doors = [];
+            load_rooms(
+              doorBody.target_room,
+              doorBody.target_x,
+              doorBody.target_y,
+            );
             break;
           }
         }
       }
-      }
-    });
-  })(); 
+    }
+  });
+})();
