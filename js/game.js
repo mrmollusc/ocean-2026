@@ -10,7 +10,7 @@
   const CAMERA_ZOOM = 1;
   
   //Player movement and physics
-  const PLAYER_ACCEL = 2;
+  const PLAYER_ACCEL = 5;
   const PLAYER_MAX_SPEED = 10;
   const PLAYER_SLOW_SPEED = 50;
 
@@ -61,7 +61,7 @@
   /////////////////////////////////////////
   let world;
   let boxGraphic;
-  let current_room = 'room_1';
+  let current_room = 'room_2';
   let current_room_id = '1'
   
   ///////////////////////////////////////////
@@ -92,7 +92,7 @@
       width: APP_WIDTH,
       height: APP_HEIGHT,
       backgroundColor: APP_BG_COLOR,
-      antialias: false,
+      antialias: true,
     });
 
     world = new PIXI.Container();
@@ -134,7 +134,7 @@
     let healthbar_bg_graphic = new PIXI.Graphics();
 
   //box graphic
-    const box = Bodies.rectangle(100, 100, 160, 160, {
+    const box = Bodies.rectangle(100, 100, 120, 120, {
       restitution: 0.0,
       friction: 0.0,
       frictionAir: 0.0,
@@ -303,8 +303,9 @@
         hearts: [
           {x: 50, y:50}
         ],
-        snails: [
-          {x: 500, y: 500}
+        snails: [{
+
+        }
         ]
       },
       room_2: {
@@ -313,7 +314,10 @@
           { x: 800, y: 20, w: 1600, h: 40 },
           { x: 800, y: 880, w: 1600, h: 40 },
           { x: 20, y: 450, w: 40, h: 900},
-          { x: 1580, y: 450, w: 40, h: 900}
+          { x: 1580, y: 450, w: 40, h: 900},
+
+          { x: 400, y: 600, w: 120, h: 600},
+          { x: 800, y: 420, w: 400, h: 120}
         ],
         trashes: [
           {}
@@ -322,7 +326,7 @@
           { x: 20, y: 450, w: 50, h: 120, target_room: 'room_1', target_x: 1420, target_y: 450},
           { x: 800, y: 880, w: 120, h: 50, target_room: 'room_4', target_x: 800, target_y: 180}
         ],
-        hearts: [{x: 50, y:50}],
+        hearts: [{}],
         snails: [{}]
       },
       room_3: {
@@ -492,6 +496,7 @@
       snails.push(snail_body);
       snail_graphics.push(snail_graphic);
       Composite.add(engine.world, snail_body);
+      Matter.Body.setVelocity(snail_body, {x: snail_obj.x_vel, y: snail_obj.y_vel});
       
     });
 
@@ -561,26 +566,29 @@
 
         if (!snail_body || !snail_graphic) return;
 
+        // Check boundaries and reverse direction if needed
+        if (snail_obj.x <= 60) {
+          snail_obj.x_vel = Math.abs(snail_obj.x_vel); // Move right
+        }
+        if (snail_obj.x >= 1540) {
+          snail_obj.x_vel = -Math.abs(snail_obj.x_vel); // Move left
+        }
+        if (snail_obj.y >= 840) {
+          snail_obj.y_vel = -Math.abs(snail_obj.y_vel); // Move up
+        }
+        if (snail_obj.y <= 60) {
+          snail_obj.y_vel = Math.abs(snail_obj.y_vel); // Move down
+        }
 
+        // Apply velocity once (after boundary checks)
+        Matter.Body.setVelocity(snail_body, { x: snail_obj.x_vel, y: snail_obj.y_vel });
 
-        if (snail_obj.x <= 1) {
-          Matter.Body.setVelocity(snail_body, {x: 1, y:0});
-        }
-        if (snail_obj.x <= 1) {
-          Matter.Body.setVelocity(snail_body, {x: -1, y:0});
-        }
-        if (snail_obj.y >= 900) {
-          Matter.Body.setVelocity(snail_body, {x: 0, y:-1});
-        }
-        if (snail_obj.y <= 1) {
-          Matter.Body.setVelocity(snail_body, {x: 0, y:1});
-        }
+        // Sync position
         snail_obj.x = snail_body.position.x;
         snail_obj.y = snail_body.position.y;
-        snail_graphic.position.set(snail_body.position.x, snail_body.position.y);
         snail_graphic.position.set(snail_obj.x, snail_obj.y);
     });
-    }
+}
 
     function snail_movement() {
       update_snail(current_room);
@@ -596,7 +604,7 @@
       world.addChild(boxGraphic);
 
       Composite.add(engine.world, [box]);
-      load_rooms('room_1', 200, window.innerHeight / 2);
+      load_rooms('room_2', 200, window.innerHeight / 2);
     }
     await createPlayerSprite();
 
@@ -658,11 +666,11 @@
       //WASD
       if (keys['KeyD']) v1x = Math.min(v1x + player.acceleration, player.max_speed);
       else if (keys['KeyA']) v1x = Math.max(v1x - player.acceleration, -player.max_speed);
-      else v1x = v1x * 0.8; 
+      else v1x = v1x * 0.9; 
       
       if (keys['KeyS']) v1y = Math.min(v1y + player.acceleration, player.max_speed); 
       else if (keys['KeyW']) v1y = Math.max(v1y - player.acceleration, -player.max_speed);
-      else v1y = v1y * 0.8; 
+      else v1y = v1y * 0.9; 
       Matter.Body.setVelocity(box, { x: v1x, y: v1y });
 
       boxGraphic.position.set(box.position.x, box.position.y);
