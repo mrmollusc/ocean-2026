@@ -92,12 +92,31 @@
       width: APP_WIDTH,
       height: APP_HEIGHT,
       backgroundColor: APP_BG_COLOR,
-      antialias: true,
+      antialias: false,
     });
 
     world = new PIXI.Container();
     app.stage.addChild(world);
     world.scale.set(CAMERA_ZOOM);
+
+    const canvas = app.canvas;
+
+    canvas.style.imageRendering = 'pixelated';
+
+    canvas.style.width = 'auto';
+    canvas.style.height = 'auto';
+
+    canvas.style.position = 'absolute';
+    canvas.style.top = '50%';
+    canvas.style.left = '50%';
+    canvas.style.transform = 'translate(-50%, -50%)';
+
+    document.body.appendChild(canvas);
+
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.body.style.overflow = 'hidden';
+    document.body.style.backgroundColor = '#000000';
 
   document.getElementById("game").appendChild(app.canvas);
 
@@ -231,6 +250,9 @@
         // Skip pure position nodes or bullet marker points with zero volume
         if (obj.point && obj.name !== "") {
           console.log(`Marker registered: ${obj.name} at X:${obj.x}, Y:${obj.y}`);
+          if (obj.name === 'Player') {
+            console.log(`spawn at (${obj.x}, ${obj.y})`)
+          }
           return;
         }
 
