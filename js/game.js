@@ -15,8 +15,8 @@
   const PLAYER_SLOW_SPEED = 50;
 
   //player body size
-  const PLAYER_WIDTH = 160;
-  const PLAYER_HEIGHT = 160;
+  const PLAYER_WIDTH = 120;
+  const PLAYER_HEIGHT = 120;
 
   //player health and damage
   const PLAYER_MAX_HEALTH = 100;
@@ -103,6 +103,8 @@
 
     const engine = Engine.create();
     engine.gravity.y = 0;
+    engine.friction = 0;
+    engine.airResistance = 0;
 
   //TEXTURES
     const ralsei_texture = await PIXI.Assets.load("ralsei.webp");
@@ -115,8 +117,8 @@
   //box graphic
     const box = Bodies.rectangle(100, 100, 160, 160, {
       restitution: 0.0,
-      friction: 0.1,
-      frictionAir: 0.1,
+      friction: 0.0,
+      frictionAir: 0.0,
       density: 0.05,
       slop: 0.05,
       inertia: Infinity
@@ -280,7 +282,7 @@
           {x: 50, y:50}
         ],
         snails: [
-          {}
+          {x: 500, y: 500}
         ]
       },
       room_2: {
@@ -383,13 +385,15 @@
       snail_graphics = [];
       snails = [];
 
+
+
       Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
       Matter.Body.setVelocity(box, { x: 0, y: 0 });
 
       const data = room_data[roomKey];
 
       data.walls.forEach(wall => {
-        const wallBody = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, { isStatic: true });
+        const wallBody = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, { isStatic: true, restitution: 1, friction: 0 });
         
         const wallGraphic = new PIXI.Graphics()
           .rect(-wall.w / 2, -wall.h / 2, wall.w, wall.h)
@@ -454,7 +458,7 @@
     });
 
     data.snails.forEach(snail_obj => {
-      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50,50, { isStatic: false, collisionFilter: { group: -1, mask: 0 } });
+      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50,50, { isStatic: false, restitution: 1, friction: 0, collisionFilter: { group: -1, mask: 0 }});
       
       const snail_graphic = new PIXI.Graphics()
         .rect(-25,-25,50,50)
@@ -466,6 +470,7 @@
       snails.push(snail_body);
       snail_graphics.push(snail_graphic);
       Composite.add(engine.world, snail_body);
+      
     });
 
     //end of loading objects
@@ -534,13 +539,20 @@
 
         if (!snail_body || !snail_graphic) return;
 
+
+
         if (snail_obj.x <= 1) {
-      snail_obj.x = 1600;
-      Matter.Body.setPosition(snail_body, { x: 1600, y: snail_obj.y });
-    }
-
-        Matter.Body.setVelocity(snail_body, { x: -10, y: 0 });
-
+          Matter.Body.setVelocity(snail_body, {x: 1, y:0});
+        }
+        if (snail_obj.x <= 1) {
+          Matter.Body.setVelocity(snail_body, {x: -1, y:0});
+        }
+        if (snail_obj.y >= 900) {
+          Matter.Body.setVelocity(snail_body, {x: 0, y:-1});
+        }
+        if (snail_obj.y <= 1) {
+          Matter.Body.setVelocity(snail_body, {x: 0, y:1});
+        }
         snail_obj.x = snail_body.position.x;
         snail_obj.y = snail_body.position.y;
         snail_graphic.position.set(snail_body.position.x, snail_body.position.y);
