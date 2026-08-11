@@ -34,7 +34,7 @@ const DASH_DURATION = 150;
 const DASH_COOLDOWN = 1500;
 
 //zap
-const ZAP_DURATION = 100;
+const ZAP_DURATION = 500;
 const ZAP_COOLDOWN = 1000;
 
 //room transition
@@ -369,7 +369,11 @@ const player = {
         },
       ],
       hearts: [{}],
-      snails: [{}],
+      snails: [
+        {x: 50, y: 50, x_vel: 1, y_vel: 2},
+        {x: 800, y: 800, x_vel: 2, y_vel: 1},
+
+      ],
     },
     room_3: {
       label: "room 3",
@@ -685,7 +689,6 @@ const player = {
   await createPlayerSprite();
 
   //collisiion checker
-
   function check_collision(player, object) {
     const boundsA = player.bounds;
     const boundsB = object.bounds;
@@ -696,6 +699,14 @@ const player = {
       boundsA.min.y < boundsB.max.y &&
       boundsA.max.y > boundsB.min.y
     );
+  }
+
+  //distance checker
+  function distance_between(player, object) {
+    const dx = player.position.x - object.position.x;
+    const dy = player.position.y - object.position.y;
+    if (isNaN(object.position.x) || isNaN(object.position.y) || isNaN(dx) || isNaN(dy)) return 0;
+    return Math.round(Math.hypot(dx, dy));
   }
 
   // Key Event Hooks
@@ -742,21 +753,44 @@ const player = {
 
     //bullet freeze
     if (keys["KeyK"]) {
-      if (player.can_zap) {
-        if (player.is_zapping) return;
-
+      if (player.can_zap && !player.is_zapping) {
         player.can_zap = false;
         player.is_zapping = true;
         
-        setTimeout(() => {
-          player.max_speed = PLAYER_MAX_SPEED;
-          player.acceleration = PLAYER_ACCEL;
-          player.is_dashing = false;
-        }, DASH_DURATION);
+        const frozen_snails = []; //store frozen snails
+
+        snails.forEach((snail_body, index) => {
+          if (distance_between(box, snail_body) < 300) {
+            console.log('true')
+            const snail_obj = room_data[current_room].snails[index];
+
+            frozen_snails.push({
+              index: index,
+              x_vel: snail_obj.x_vel,
+              y_vel: snail_obj.y_vel
+            });
+
+            snail_obj.x_vel = 0;
+            snail_obj.y_vel = 0;
+          }
+        });
 
         setTimeout(() => {
-          player.can_dash = true;
-        }, DASH_COOLDOWN);
+          player.is_zapping = false;
+
+          //reapply stored movement data to snails
+          frozen_snails.forEach(({ index, x_vel, y_vel }) => {
+            const snail_obj = room_data[current_room].snails[index];
+            if (snail_obj) {
+              snail_obj.x_vel = x_vel;
+              snail_obj.y_vel = y_vel;
+            }
+          });
+        }, ZAP_DURATION);
+
+        setTimeout(() => {
+          player.can_zap = true;
+        }, ZAP_COOLDOWN);
       }
     }
     
