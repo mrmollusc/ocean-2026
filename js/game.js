@@ -32,6 +32,10 @@ const DASH_ACCEL = 10;
 const DASH_DURATION = 150;
 const DASH_COOLDOWN = 1500;
 
+//zap
+const ZAP_DURATION = 100;
+const ZAP_COOLDOWN = 1000;
+
 //room transition
 const ROOM_TRANSITION_DELAY = 300;
 
@@ -84,6 +88,9 @@ const player = {
 
   can_dash: true,
   is_dashing: false,
+
+  can_zap: true,
+  is_zapping: false
 };
 
 ////////////////////////////////////////
@@ -731,6 +738,27 @@ const player = {
         }, DASH_COOLDOWN);
       }
     }
+
+    //bullet freeze
+    if (keys["KeyK"]) {
+      if (player.can_zap) {
+        if (player.is_zapping) return;
+
+        player.can_zap = false;
+        player.is_zapping = true;
+        
+        setTimeout(() => {
+          player.max_speed = PLAYER_MAX_SPEED;
+          player.acceleration = PLAYER_ACCEL;
+          player.is_dashing = false;
+        }, DASH_DURATION);
+
+        setTimeout(() => {
+          player.can_dash = true;
+        }, DASH_COOLDOWN);
+      }
+    }
+    
 
     //WASD
     if (keys["KeyD"])
