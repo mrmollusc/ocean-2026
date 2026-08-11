@@ -1,5 +1,3 @@
-import * as PIXI from 'pixi.js';
-import Matter from 'matter-js';
 
 export class bullet {
     constructor(texture, x, y, vx, vy, world) {
@@ -31,10 +29,10 @@ export class bullet {
 export class defaultBullet extends bullet {
 
 }
-export class defaultBullet extends bullet {
+export class Bullet extends bullet {
     
 }
-export class defaultBullet extends bullet {
+export class bossRockBullet extends bullet {
     
 }
 export class bossFishBullet extends bullet {
