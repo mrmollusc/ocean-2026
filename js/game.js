@@ -13,7 +13,7 @@ const CAMERA_ZOOM = 1;
 //Player movement and physics
 const PLAYER_ACCEL = 5;
 const PLAYER_MAX_SPEED = 7;
-const PLAYER_SLOW_SPEED = 50;
+const PLAYER_HEAL_SPEED = 1;
 
 //player body size
 const PLAYER_WIDTH = 120;
@@ -36,6 +36,10 @@ const DASH_COOLDOWN = 1500;
 //zap
 const ZAP_DURATION = 500;
 const ZAP_COOLDOWN = 1000;
+
+//regen
+const HEAL_DURATION = 2000;
+const HEAL_COOLDOWN = 5000;
 
 //room transition
 const ROOM_TRANSITION_DELAY = 300;
@@ -91,7 +95,10 @@ const player = {
   is_dashing: false,
 
   can_zap: true,
-  is_zapping: false
+  is_zapping: false,
+
+  can_heal: true,
+  is_healing: false
 };
 
 ////////////////////////////////////////
@@ -372,6 +379,28 @@ const player = {
       snails: [
         {x: 50, y: 50, x_vel: 1, y_vel: 2},
         {x: 800, y: 800, x_vel: 2, y_vel: 1},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+
+
 
       ],
     },
@@ -441,7 +470,6 @@ const player = {
     current_room = roomKey;
     current_room_id = Number(current_room.replaceAll(/[rom_]/gi, "")) - 1; //regex yummy
     canTransition = false;
-    player.canDash = false;
 
     wall_graphics.forEach((g) => world.removeChild(g));
     walls.forEach((w) => Composite.remove(engine.world, w));
@@ -585,7 +613,6 @@ const player = {
 
     setTimeout(() => {
       canTransition = true;
-      player.canDash = true;
     }, 300);
   }
 
@@ -734,6 +761,8 @@ const player = {
       if (player.can_dash) {
         if (player.is_dashing) return;
 
+        player.can_heal = false;
+
         player.max_speed = DASH_SPEED;
         player.acceleration = DASH_ACCEL;
         player.can_dash = false;
@@ -743,6 +772,7 @@ const player = {
           player.max_speed = PLAYER_MAX_SPEED;
           player.acceleration = PLAYER_ACCEL;
           player.is_dashing = false;
+          player.can_heal = true;
         }, DASH_DURATION);
 
         setTimeout(() => {
@@ -757,10 +787,10 @@ const player = {
         player.can_zap = false;
         player.is_zapping = true;
         
-        const frozen_snails = []; //store frozen snails
+        const frozen_snails = [];
 
         snails.forEach((snail_body, index) => {
-          if (distance_between(box, snail_body) < 300) {
+          if (distance_between(box, snail_body) < 150) {
             console.log('true')
             const snail_obj = room_data[current_room].snails[index];
 
@@ -774,7 +804,6 @@ const player = {
             snail_obj.y_vel = 0;
           }
         });
-
         setTimeout(() => {
           player.is_zapping = false;
 
@@ -793,7 +822,35 @@ const player = {
         }, ZAP_COOLDOWN);
       }
     }
-    
+
+    //regenerate health
+    if (keys["KeyL"]) {
+      if (player.can_heal) {
+        if (player.is_healing) return;
+
+        player.can_dash = false;
+        player.can_heal = false;
+        player.is_healing = true;
+        player.max_speed = PLAYER_HEAL_SPEED;
+        
+        const heal_interval = setInterval(() => {
+          if(player.is_healing){
+            player.health += Math.min(15/player.health, 1.5);
+          }
+        }, 10);
+
+        setTimeout(() => {
+          clearInterval(heal_interval);
+          player.can_dash = true;
+          player.max_speed = PLAYER_MAX_SPEED;
+          player.is_healing = false;
+        }, HEAL_DURATION);
+
+        setTimeout(() => {
+          player.can_heal = true;
+        }, HEAL_COOLDOWN);
+      }     
+    }
 
     //WASD
     if (keys["KeyD"])
