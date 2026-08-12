@@ -34,8 +34,8 @@ const DASH_DURATION = 150;
 const DASH_COOLDOWN = 1500;
 
 //zap
-const ZAP_DURATION = 500;
-const ZAP_COOLDOWN = 1000;
+const ZAP_DURATION = 1500;
+const ZAP_COOLDOWN = 3000;
 
 //regen
 const HEAL_DURATION = 2000;
@@ -178,6 +178,9 @@ const player = {
 
   let snails = [];
   let snail_graphics = [];
+
+  let forces = [];
+  let force_graphics = [];
 
   let room_label = new PIXI.Text({
     text: "room_1",
@@ -341,6 +344,12 @@ const player = {
       ],
       hearts: [{ x: 50, y: 50 }],
       snails: [{}],
+      force_blocks: [
+        {x: 300, y: 300, w: 100, h: 100, velocity: {x: 10, y: 10}},
+        {x: 400, y: 400, w: 100, h: 100, velocity: {x: 10, y: -10}},
+        {x: 500, y: 300, w: 100, h: 100, velocity: {x: -10, y: -10}},
+        {x: 400, y: 200, w: 100, h: 100, velocity: {x: -10, y: 10}}
+      ]
     },
     room_2: {
       label: "room 2",
@@ -399,10 +408,8 @@ const player = {
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-
-
-
       ],
+      force_blocks:[{}]
     },
     room_3: {
       label: "room 3",
@@ -436,6 +443,7 @@ const player = {
         { x: 50, y: 250 },
       ],
       snails: [{}],
+      force_blocks:[{}]
     },
     room_4: {
       label: "room 4",
@@ -462,6 +470,7 @@ const player = {
         { x: 1000, y: 600 },
       ],
       snails: [{}],
+      force_blocks:[{}]
     },
   };
 
@@ -495,6 +504,11 @@ const player = {
     snails.forEach((t) => Composite.remove(engine.world, t));
     snail_graphics = [];
     snails = [];
+
+    force_graphics.forEach((g) => world.removeChild(g));
+    forces.forEach((t) => Composite.remove(engine.world, t));
+    force_graphics = [];
+    forces = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -606,6 +620,28 @@ const player = {
       });
     });
 
+    data.force_blocks.forEach((force_obj) => {
+      const force_body = Bodies.rectangle(
+        force_obj.x,
+        force_obj.y,
+        force_obj.w,
+        force_obj.h,
+        { isStatic: true },
+      );
+
+      const force_graphic = new PIXI.Graphics()
+        .rect(-force_obj.w / 2, -force_obj.h / 2, force_obj.w, force_obj.h)
+        .fill(0x00AAAA);
+      force_graphic.zIndex = "7";
+
+      force_graphic.position.set(force_obj.x, force_obj.y);
+      world.addChild(force_graphic);
+
+      forces.push(force_body);
+      force_graphics.push(force_graphic);
+      Composite.add(engine.world, force_body);
+    });
+
     //end of loading objects
 
     room_label.text = "";
@@ -705,6 +741,7 @@ const player = {
   //player sprite
   async function createPlayerSprite() {
     boxGraphic = new PIXI.Sprite(ralsei_texture);
+    boxGraphic.zIndex = "8";
     boxGraphic.width = PLAYER_WIDTH;
     boxGraphic.height = PLAYER_HEIGHT;
     boxGraphic.anchor.set(0.5);
@@ -852,23 +889,6 @@ const player = {
       }     
     }
 
-    //WASD
-    if (keys["KeyD"])
-      v1x = Math.min(v1x + player.acceleration, player.max_speed);
-    else if (keys["KeyA"])
-      v1x = Math.max(v1x - player.acceleration, -player.max_speed);
-    else v1x = v1x * 0.9;
-
-    if (keys["KeyS"])
-      v1y = Math.min(v1y + player.acceleration, player.max_speed);
-    else if (keys["KeyW"])
-      v1y = Math.max(v1y - player.acceleration, -player.max_speed);
-    else v1y = v1y * 0.9;
-    Matter.Body.setVelocity(box, { x: v1x, y: v1y });
-
-    boxGraphic.position.set(box.position.x, box.position.y);
-    boxGraphic.rotation = box.angle;
-
     //healthbar update
     update_healthbar();
 
@@ -896,6 +916,19 @@ const player = {
       }
     });
 
+    forces.forEach((e) => {
+      if (check_collision(box, e)) {
+        const force_index = forces.findIndex((e) => check_collision(box, e));
+
+        if (force_index !== -1) {
+          const applied_x = room_data[current_room].force_blocks[force_index].velocity.x;
+          const applied_y = room_data[current_room].force_blocks[force_index].velocity.y;
+          v1x = applied_x;
+          v1y = applied_y;
+        }
+      }
+    });
+
     //heal code of heart collectibles
     for (let e of hearts) {
       if (check_collision(box, e)) {
@@ -909,6 +942,24 @@ const player = {
         }
       }
     }
+
+
+    //WASD
+    if (keys["KeyD"])
+      v1x = Math.min(v1x + player.acceleration, player.max_speed);
+    else if (keys["KeyA"])
+      v1x = Math.max(v1x - player.acceleration, -player.max_speed);
+    else v1x = v1x * 0.9;
+
+    if (keys["KeyS"])
+      v1y = Math.min(v1y + player.acceleration, player.max_speed);
+    else if (keys["KeyW"])
+      v1y = Math.max(v1y - player.acceleration, -player.max_speed);
+    else v1y = v1y * 0.9;
+    Matter.Body.setVelocity(box, { x: v1x, y: v1y });
+
+    boxGraphic.position.set(box.position.x, box.position.y);
+    boxGraphic.rotation = box.angle;
 
     /////////////////////////////////////////
     //CAMERA FOLLOW SYSTEM
