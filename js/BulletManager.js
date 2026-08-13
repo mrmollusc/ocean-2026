@@ -5,7 +5,7 @@ export class bullet {
         this.x = x;
         this.y = y;
         
-        this.body = Matter.Bodies.rectangle(x, y, 10, { isSensor: true });
+        this.body = Matter.Bodies.rectangle(x, y, 20, 20, { isSensor: true });
         Matter.World.add(world, this.body);
         this.sprite.anchor.set(0.5);
 
@@ -46,7 +46,7 @@ export class bossFishBullet extends bullet {
     update(dt) {
         super.update(dt);
         this.sprite.rotation += 0.05; // Rotate the bullet sprite for visual effect
-    }
+    }   
 }
 export class bossTurtleBullet extends bullet {
     constructor(texture, x, y, world) {
@@ -64,7 +64,7 @@ export class bossTurtleBullet extends bullet {
     }
 }
 
-export class bulletManager {
+export class BulletManager {
     constructor(world, stage) {
         this.world = world;
         this.stage = stage;
@@ -82,5 +82,17 @@ export class bulletManager {
         }
 
         this.bullets = this.bullets.filter(b => !b.dead);
+    }
+}
+
+export function bossFishPattern(manager, texture, world) {
+    for (let i = 0; i < 10; i++) {
+        manager.spawn(new bossFishBullet(texture, 200 + i * 40, 200, world));
+    }
+}
+
+export function bossTurtlePattern(manager, texture, world) {
+    for (let i = 0; i < 6; i++) {
+        manager.spawn(new bossTurtleBullet(texture, 300 + i * 60, 200, world));
     }
 }
