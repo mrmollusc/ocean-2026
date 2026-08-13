@@ -4,7 +4,8 @@
 import { 
   BulletManager,
   bossFishBullet, 
-  bossTurtleBullet, 
+  bossTurtleBullet,
+  defaultBullet,
   bossFishPattern,
   bossTurtlePattern
 } from './BulletManager.js';
@@ -90,6 +91,9 @@ let boxGraphic;
 let current_room = "room_2";
 let current_room_id = "1";
 
+let spawners = [];
+let spawner_graphics = [];
+
 ///////////////////////////////////////////
 //PLAYER DATA
 ////////////////////////////////////////////
@@ -166,9 +170,13 @@ const player = {
   const bossTurtleGraphics = new PIXI.Graphics()
     .rect(-10, -10, 20, 20)
     .fill(0x0000ff);
+  const spawnerBulletGraphics = new PIXI.Graphics()
+    .rect(-5, -5, 10, 10)
+    .fill(0xffffff);
 
   const bossFishTexture = app.renderer.generateTexture(bossFishGraphics);
   const bossTurtleTexture = app.renderer.generateTexture(bossTurtleGraphics);
+  const spawnerBulletTexture = app.renderer.generateTexture(spawnerBulletGraphics);
   //////////////////////////////////////////////////////////////////
   //bullet manager and patterns
   /////////////////////////////////////////////////////////////////
@@ -359,7 +367,7 @@ const player = {
         { x: 20, y: 450, w: 40, h: 900 },
         { x: 1580, y: 450, w: 40, h: 900 },
       ],
-      trashes: [{ x: 800, y: 450, w: 180, h: 180 }],
+      trashes: [{ x: 800, y: 450, w: 100, h: 100 }],
       doors: [
         {
           x: 20,
@@ -383,8 +391,12 @@ const player = {
       hearts: [{ x: 50, y: 50 }],
       snails: [{}],
       force_blocks: [
-        {x: 300, y: 300, w: 100, h: 100, velocity: {x: 7, y: 7}},
-      ]
+        {x: 600, y: 300, w: 100, h: 100, velocity: {x: 7, y: 0}},
+        {x: 900, y: 300, w: 100, h: 100, velocity: {x: 0, y: 7}},
+        {x: 900, y: 600, w: 100, h: 100, velocity: {x: -7, y: 0}},
+        {x: 600, y: 600, w: 100, h: 100, velocity: {x: 0, y: -7}}
+      ],
+      spawners: []
     },
     room_2: {
       label: "room 2",
@@ -444,7 +456,11 @@ const player = {
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
       ],
-      force_blocks:[{}]
+      force_blocks:[{}],
+      spawners: [
+        { x: 400, y: 200, w: 30, h: 30, frequency: 1000, bulletType: 'defaultBullet' },
+        { x: 1200, y: 700, w: 30, h: 30, frequency: 800, bulletType: 'defaultBullet' }
+      ]
     },
     room_3: {
       label: "room 3",
@@ -478,7 +494,8 @@ const player = {
         { x: 50, y: 250 },
       ],
       snails: [{}],
-      force_blocks:[{}]
+      force_blocks:[{}],
+      spawners: []
     },
     room_4: {
       label: "room 4",
@@ -505,7 +522,8 @@ const player = {
         { x: 1000, y: 600 },
       ],
       snails: [{}],
-      force_blocks:[{}]
+      force_blocks:[{}],
+      spawners: []
     },
   };
 
@@ -544,6 +562,10 @@ const player = {
     forces.forEach((t) => Composite.remove(engine.world, t));
     force_graphics = [];
     forces = [];
+
+    spawner_graphics.forEach((g) => world.removeChild(g));
+    spawners = [];
+    spawner_graphics = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -661,7 +683,7 @@ const player = {
         force_obj.y,
         force_obj.w,
         force_obj.h,
-        { isStatic: true },
+        { isStatic: true , collisionFilter: { group: -1, mask: 0 }}
       );
 
       const force_graphic = new PIXI.Graphics()
@@ -676,6 +698,31 @@ const player = {
       force_graphics.push(force_graphic);
       Composite.add(engine.world, force_body);
     });
+
+    // Load spawners
+    if (data.spawners) {
+      data.spawners.forEach((spawner_obj) => {
+        const spawner_graphic = new PIXI.Graphics()
+          .rect(-spawner_obj.w / 2, -spawner_obj.h / 2, spawner_obj.w, spawner_obj.h)
+          .fill(0x888888);
+        spawner_graphic.alpha = 0.5;
+        spawner_graphic.position.set(spawner_obj.x, spawner_obj.y);
+        world.addChild(spawner_graphic);
+
+        const spawnerObj = {
+          x: spawner_obj.x,
+          y: spawner_obj.y,
+          w: spawner_obj.w,
+          h: spawner_obj.h,
+          frequency: spawner_obj.frequency,
+          bulletType: spawner_obj.bulletType || 'defaultBullet',
+          lastSpawnTime: Date.now()
+        };
+
+        spawners.push(spawnerObj);
+        spawner_graphics.push(spawner_graphic);
+      });
+    }
 
     //end of loading objects
 
@@ -770,6 +817,46 @@ const player = {
     update_snail(current_room);
   }
 
+  //spawner update
+  function update_spawners() {
+    const currentTime = Date.now();
+
+    spawners.forEach((spawner) => {
+      if (currentTime - spawner.lastSpawnTime >= spawner.frequency) {
+        spawner.lastSpawnTime = currentTime;
+
+        // Determine bullet type and create appropriate bullet
+        let bulletToSpawn;
+        if (spawner.bulletType === 'defaultBullet') {
+          bulletToSpawn = new defaultBullet(
+            spawnerBulletTexture,
+            spawner.x,
+            spawner.y,
+            Math.random() * 6 - 3,  // random velocity x (-3 to 3)
+            Math.random() * 6 - 3,  // random velocity y (-3 to 3)
+            engine.world
+          );
+        } else if (spawner.bulletType === 'bossFishBullet') {
+          bulletToSpawn = new bossFishBullet(spawnerBulletTexture, spawner.x, spawner.y, engine.world);
+        } else if (spawner.bulletType === 'bossTurtleBullet') {
+          bulletToSpawn = new bossTurtleBullet(spawnerBulletTexture, spawner.x, spawner.y, engine.world);
+        } else {
+          // Default to defaultBullet if type not recognized
+          bulletToSpawn = new defaultBullet(
+            spawnerBulletTexture,
+            spawner.x,
+            spawner.y,
+            Math.random() * 6 - 3,
+            Math.random() * 6 - 3,
+            engine.world
+          );
+        }
+
+        bulletManager.spawn(bulletToSpawn);
+      }
+    });
+  }
+
   //player sprite
   async function createPlayerSprite() {
     boxGraphic = new PIXI.Sprite(ralsei_texture);
@@ -816,10 +903,31 @@ const player = {
     keys[event.code] = false;
   });
 
+  
   //important start or main game loop
   app.ticker.add((ticker) => {
+
+    if (!boxGraphic) return;
+
+    let v1x = box.velocity.x;
+    let v1y = box.velocity.y;
+
+    //WASD
+    if (keys["KeyD"] && player.can_move == true)
+      v1x = Math.min(v1x + player.acceleration, player.max_speed);
+    else if (keys["KeyA"] && player.can_move == true)
+      v1x = Math.max(v1x - player.acceleration, -player.max_speed);
+    else v1x = v1x * 0.9;
+
+    if (keys["KeyS"] && player.can_move == true)
+      v1y = Math.min(v1y + player.acceleration, player.max_speed);
+    else if (keys["KeyW"] && player.can_move == true)
+      v1y = Math.max(v1y - player.acceleration, -player.max_speed);
+    else v1y = v1y * 0.9;
+
     Matter.Engine.update(engine, 1000 / 60);
     bulletManager.update();
+    update_spawners();
 
     bulletManager.bullets.forEach(b => {
       if (!b.dead && b.damage > 0 && check_collision(box, b.body)) {
@@ -827,11 +935,6 @@ const player = {
         b.destroy(engine.world, world);
       }
     });
-
-    if (!boxGraphic) return;
-
-    let v1x = box.velocity.x;
-    let v1y = box.velocity.y;
 
     //dash mechanic
     if (keys["Space"]) {
@@ -961,9 +1064,8 @@ const player = {
         let applied_x = room_data[current_room].force_blocks[index].velocity.x;
         let applied_y = room_data[current_room].force_blocks[index].velocity.y;
       
-        v1x = applied_x + v1x;
-        v1y = applied_y + v1y;
-        return;
+        v1x += applied_x;
+        v1y += applied_y;
       }
     });
 
@@ -982,20 +1084,8 @@ const player = {
     }
 
 
-    //WASD
-    if (keys["KeyD"] && player.can_move == true)
-      v1x = Math.min(v1x + player.acceleration, player.max_speed);
-    else if (keys["KeyA"] && player.can_move == true)
-      v1x = Math.max(v1x - player.acceleration, -player.max_speed);
-    else v1x = v1x * 0.9;
-
-    if (keys["KeyS"] && player.can_move == true)
-      v1y = Math.min(v1y + player.acceleration, player.max_speed);
-    else if (keys["KeyW"] && player.can_move == true)
-      v1y = Math.max(v1y - player.acceleration, -player.max_speed);
-    else v1y = v1y * 0.9;
+    
     Matter.Body.setVelocity(box, { x: v1x, y: v1y });
-
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.rotation = box.angle;
 
