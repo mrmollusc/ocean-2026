@@ -37,9 +37,9 @@ export class bossRockBullet extends bullet {
 }
 export class bossFishBullet extends bullet {
     constructor(texture, x, y, world) {
-        const speed = 3;
-        const vx = speed * Math.cos(Math.PI / 4); // Example angle
-        const vy = speed * Math.sin(Math.PI / 4); // Example angle
+        const speed = 5;
+        const vx = speed * Math.cos(- Math.PI / 4); // Example angle
+        const vy = speed * Math.sin(- Math.PI / 4); // Example angle
         super(texture, x, y, vx, vy, world);
     }
 
@@ -50,9 +50,9 @@ export class bossFishBullet extends bullet {
 }
 export class bossTurtleBullet extends bullet {
     constructor(texture, x, y, world) {
-        const speed = 3;
-        const vx = speed * Math.cos(Math.PI / 4); // Example angle
-        const vy = speed * Math.sin(Math.PI / 4); // Example angle
+        const speed = 10;
+        const vx = speed * Math.cos(- Math.PI / 4); // Example angle
+        const vy = speed * Math.sin(- Math.PI / 4); // Example angle
         super(texture, x, y, vx, vy, world);
 
         this.damage = 20; // Set the damage value for the boss turtle bullet
@@ -86,13 +86,17 @@ export class BulletManager {
 }
 
 export function bossFishPattern(manager, texture, world) {
-    for (let i = 0; i < 10; i++) {
-        manager.spawn(new bossFishBullet(texture, 200 + i * 40, 200, world));
+    for (let i = 0; i < 4; i++) {
+        setTimeout(() => {
+            manager.spawn(new bossFishBullet(texture, i * 40, 200, world));
+        }, i * 500); // Spawn bullets with a delay of 500ms between each
     }
 }
 
 export function bossTurtlePattern(manager, texture, world) {
-    for (let i = 0; i < 6; i++) {
-        manager.spawn(new bossTurtleBullet(texture, 300 + i * 60, 200, world));
+    for (let i = 0; i < 4; i++) {
+        setTimeout(() => {
+            manager.spawn(new bossTurtleBullet(texture, i * 40, 200, world));
+        }, i * 0); // Spawn bullets with a delay of 500ms between each
     }
 }
