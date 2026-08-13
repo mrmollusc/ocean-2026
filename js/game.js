@@ -91,9 +91,6 @@ let boxGraphic;
 let current_room = "room_2";
 let current_room_id = "1";
 
-let spawners = [];
-let spawner_graphics = [];
-
 ///////////////////////////////////////////
 //PLAYER DATA
 ////////////////////////////////////////////
@@ -164,30 +161,6 @@ const player = {
   ///////////////////////////////////////////////////////
   //bullet texture
   ////////////////////////////////////////////
-  const bossFishGraphics = new PIXI.Graphics()
-    .rect(-10, -10, 20, 20)
-    .fill(0x00ff00);
-  const bossTurtleGraphics = new PIXI.Graphics()
-    .rect(-10, -10, 20, 20)
-    .fill(0x0000ff);
-  const spawnerBulletGraphics = new PIXI.Graphics()
-    .rect(-5, -5, 10, 10)
-    .fill(0xffffff);
-
-  const bossFishTexture = app.renderer.generateTexture(bossFishGraphics);
-  const bossTurtleTexture = app.renderer.generateTexture(bossTurtleGraphics);
-  const spawnerBulletTexture = app.renderer.generateTexture(spawnerBulletGraphics);
-  //////////////////////////////////////////////////////////////////
-  //bullet manager and patterns
-  /////////////////////////////////////////////////////////////////
-  const bulletManager = new BulletManager(engine.world, world);
-
-  bossFishPattern(bulletManager, bossFishTexture, engine.world);
-
-  setTimeout(() => {
-    bossTurtlePattern(bulletManager, bossTurtleTexture, engine.world);
-  }, 2000);
-
 
   //TEXTURES
   const ralsei_texture = await PIXI.Assets.load("ralsei.webp");
@@ -396,7 +369,6 @@ const player = {
         {x: 900, y: 600, w: 100, h: 100, velocity: {x: -7, y: 0}},
         {x: 600, y: 600, w: 100, h: 100, velocity: {x: 0, y: -7}}
       ],
-      spawners: []
     },
     room_2: {
       label: "room 2",
@@ -457,10 +429,6 @@ const player = {
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
       ],
       force_blocks:[{}],
-      spawners: [
-        { x: 400, y: 200, w: 30, h: 30, frequency: 1000, bulletType: 'defaultBullet' },
-        { x: 1200, y: 700, w: 30, h: 30, frequency: 800, bulletType: 'defaultBullet' }
-      ]
     },
     room_3: {
       label: "room 3",
@@ -495,7 +463,6 @@ const player = {
       ],
       snails: [{}],
       force_blocks:[{}],
-      spawners: []
     },
     room_4: {
       label: "room 4",
@@ -523,7 +490,6 @@ const player = {
       ],
       snails: [{}],
       force_blocks:[{}],
-      spawners: []
     },
   };
 
@@ -562,10 +528,6 @@ const player = {
     forces.forEach((t) => Composite.remove(engine.world, t));
     force_graphics = [];
     forces = [];
-
-    spawner_graphics.forEach((g) => world.removeChild(g));
-    spawners = [];
-    spawner_graphics = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -699,30 +661,7 @@ const player = {
       Composite.add(engine.world, force_body);
     });
 
-    // Load spawners
-    if (data.spawners) {
-      data.spawners.forEach((spawner_obj) => {
-        const spawner_graphic = new PIXI.Graphics()
-          .rect(-spawner_obj.w / 2, -spawner_obj.h / 2, spawner_obj.w, spawner_obj.h)
-          .fill(0x888888);
-        spawner_graphic.alpha = 0.5;
-        spawner_graphic.position.set(spawner_obj.x, spawner_obj.y);
-        world.addChild(spawner_graphic);
 
-        const spawnerObj = {
-          x: spawner_obj.x,
-          y: spawner_obj.y,
-          w: spawner_obj.w,
-          h: spawner_obj.h,
-          frequency: spawner_obj.frequency,
-          bulletType: spawner_obj.bulletType || 'defaultBullet',
-          lastSpawnTime: Date.now()
-        };
-
-        spawners.push(spawnerObj);
-        spawner_graphics.push(spawner_graphic);
-      });
-    }
 
     //end of loading objects
 
@@ -817,46 +756,6 @@ const player = {
     update_snail(current_room);
   }
 
-  //spawner update
-  function update_spawners() {
-    const currentTime = Date.now();
-
-    spawners.forEach((spawner) => {
-      if (currentTime - spawner.lastSpawnTime >= spawner.frequency) {
-        spawner.lastSpawnTime = currentTime;
-
-        // Determine bullet type and create appropriate bullet
-        let bulletToSpawn;
-        if (spawner.bulletType === 'defaultBullet') {
-          bulletToSpawn = new defaultBullet(
-            spawnerBulletTexture,
-            spawner.x,
-            spawner.y,
-            Math.random() * 6 - 3,  // random velocity x (-3 to 3)
-            Math.random() * 6 - 3,  // random velocity y (-3 to 3)
-            engine.world
-          );
-        } else if (spawner.bulletType === 'bossFishBullet') {
-          bulletToSpawn = new bossFishBullet(spawnerBulletTexture, spawner.x, spawner.y, engine.world);
-        } else if (spawner.bulletType === 'bossTurtleBullet') {
-          bulletToSpawn = new bossTurtleBullet(spawnerBulletTexture, spawner.x, spawner.y, engine.world);
-        } else {
-          // Default to defaultBullet if type not recognized
-          bulletToSpawn = new defaultBullet(
-            spawnerBulletTexture,
-            spawner.x,
-            spawner.y,
-            Math.random() * 6 - 3,
-            Math.random() * 6 - 3,
-            engine.world
-          );
-        }
-
-        bulletManager.spawn(bulletToSpawn);
-      }
-    });
-  }
-
   //player sprite
   async function createPlayerSprite() {
     boxGraphic = new PIXI.Sprite(ralsei_texture);
@@ -926,15 +825,6 @@ const player = {
     else v1y = v1y * 0.9;
 
     Matter.Engine.update(engine, 1000 / 60);
-    bulletManager.update();
-    update_spawners();
-
-    bulletManager.bullets.forEach(b => {
-      if (!b.dead && b.damage > 0 && check_collision(box, b.body)) {
-        player.health -= b.damage;
-        b.destroy(engine.world, world);
-      }
-    });
 
     //dash mechanic
     if (keys["Space"]) {
