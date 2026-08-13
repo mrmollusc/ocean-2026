@@ -1,4 +1,16 @@
-import { bossFishBullet, bossTurtleBullet } from './BulletManager.js'
+////////////////////////////////////////////
+//imports of bullets and manager
+////////////////////////////////////////////
+import { 
+  BulletManager,
+  bossFishBullet, 
+  bossTurtleBullet, 
+  bossFishPattern,
+  bossTurtlePattern
+} from './BulletManager.js';
+
+//////////////////////////////////////////////
+  // for all bullet manager and bullet graphics, scroll down
 ///////////////////////////////////////////
 //constants
 ///////////////////////////////////////////
@@ -142,6 +154,29 @@ const player = {
   engine.gravity.y = 0;
   engine.friction = 0;
   engine.airResistance = 0;
+  ///////////////////////////////////////////////////////
+  //bullet texture
+  ////////////////////////////////////////////
+  const bossFishGraphics = new PIXI.Graphics()
+    .rect(-10, -10, 20, 20)
+    .fill(0x00ff00);
+  const bossTurtleGraphics = new PIXI.Graphics()
+    .rect(-10, -10, 20, 20)
+    .fill(0x0000ff);
+
+  const bossFishTexture = app.renderer.generateTexture(bossFishGraphics);
+  const bossTurtleTexture = app.renderer.generateTexture(bossTurtleGraphics);
+  //////////////////////////////////////////////////////////////////
+  //bullet manager and patterns
+  /////////////////////////////////////////////////////////////////
+  const bulletManager = new BulletManager(engine.world, world);
+
+  bossFishPattern(bulletManager, bossFishTexture, engine.world);
+
+  setTimeout(() => {
+    bossTurtlePattern(bulletManager, bossTurtleTexture, engine.world);
+  }, 2000);
+
 
   //TEXTURES
   const ralsei_texture = await PIXI.Assets.load("ralsei.webp");
@@ -787,6 +822,14 @@ const player = {
   //important start or main game loop
   app.ticker.add((ticker) => {
     Matter.Engine.update(engine, 1000 / 60);
+    bulletManager.update();
+
+    bulletManager.bullets.forEach(b => {
+      if (!b.dead && b.damage > 0 && check_collision(box, b.body)) {
+        player.health -= b.damage;
+        b.destroy(engine.world, world);
+      }
+    });
 
     if (!boxGraphic) return;
 
