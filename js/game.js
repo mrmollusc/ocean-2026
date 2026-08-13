@@ -960,16 +960,15 @@ const player = {
       }
     });
 
-    forces.forEach((e) => {
+    forces.forEach((e, index) => {
       if (check_collision(box, e)) {
-        const force_index = forces.findIndex((e) => check_collision(box, e));
+        touching_booster = true;
 
-        if (force_index !== -1) {
-          const applied_x = room_data[current_room].force_blocks[force_index].velocity.x;
-          const applied_y = room_data[current_room].force_blocks[force_index].velocity.y;
-          v1x = applied_x;
-          v1y = applied_y;
-        }
+        applied_x = room_data[current_room].force_blocks[index].velocity.x;
+        applied_y = room_data[current_room].force_blocks[index].velocity.y;
+      
+        v1x = applied_x + v1x;
+        v1y = applied_y + v1y;
       }
     });
 
