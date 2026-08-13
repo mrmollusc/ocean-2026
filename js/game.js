@@ -99,8 +99,6 @@ const player = {
   chapter: 1,
   dealt_nuts: false,
 
-  can_move: true,
-
   acceleration: PLAYER_ACCEL,
   max_speed: PLAYER_MAX_SPEED,
 
@@ -200,6 +198,9 @@ const player = {
 
   let forces = [];
   let force_graphics = [];
+
+  let bullet_boxes = [];
+  let bullet_box_graphics = []; 
 
   let room_label = new PIXI.Text({
     text: "room_1",
