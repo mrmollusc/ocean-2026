@@ -98,6 +98,8 @@ const player = {
   chapter: 1,
   dealt_nuts: false,
 
+  can_move: true,
+
   acceleration: PLAYER_ACCEL,
   max_speed: PLAYER_MAX_SPEED,
 
@@ -381,10 +383,7 @@ const player = {
       hearts: [{ x: 50, y: 50 }],
       snails: [{}],
       force_blocks: [
-        {x: 300, y: 300, w: 100, h: 100, velocity: {x: 10, y: 10}},
-        {x: 400, y: 400, w: 100, h: 100, velocity: {x: 10, y: -10}},
-        {x: 500, y: 300, w: 100, h: 100, velocity: {x: -10, y: -10}},
-        {x: 400, y: 200, w: 100, h: 100, velocity: {x: -10, y: 10}}
+        {x: 300, y: 300, w: 100, h: 100, velocity: {x: 7, y: 7}},
       ]
     },
     room_2: {
@@ -959,13 +958,12 @@ const player = {
 
     forces.forEach((e, index) => {
       if (check_collision(box, e)) {
-        touching_booster = true;
-
-        applied_x = room_data[current_room].force_blocks[index].velocity.x;
-        applied_y = room_data[current_room].force_blocks[index].velocity.y;
+        let applied_x = room_data[current_room].force_blocks[index].velocity.x;
+        let applied_y = room_data[current_room].force_blocks[index].velocity.y;
       
         v1x = applied_x + v1x;
         v1y = applied_y + v1y;
+        return;
       }
     });
 
@@ -985,15 +983,15 @@ const player = {
 
 
     //WASD
-    if (keys["KeyD"])
+    if (keys["KeyD"] && player.can_move == true)
       v1x = Math.min(v1x + player.acceleration, player.max_speed);
-    else if (keys["KeyA"])
+    else if (keys["KeyA"] && player.can_move == true)
       v1x = Math.max(v1x - player.acceleration, -player.max_speed);
     else v1x = v1x * 0.9;
 
-    if (keys["KeyS"])
+    if (keys["KeyS"] && player.can_move == true)
       v1y = Math.min(v1y + player.acceleration, player.max_speed);
-    else if (keys["KeyW"])
+    else if (keys["KeyW"] && player.can_move == true)
       v1y = Math.max(v1y - player.acceleration, -player.max_speed);
     else v1y = v1y * 0.9;
     Matter.Body.setVelocity(box, { x: v1x, y: v1y });
