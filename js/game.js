@@ -25,7 +25,7 @@ const CAMERA_ZOOM = 1;
 //Player movement and physics
 const PLAYER_ACCEL = 5;
 const PLAYER_MAX_SPEED = 7;
-const PLAYER_SLOW_SPEED = 50;
+const PLAYER_HEAL_SPEED = 1;
 
 //player body size
 const PLAYER_WIDTH = 120;
@@ -46,8 +46,12 @@ const DASH_DURATION = 150;
 const DASH_COOLDOWN = 1500;
 
 //zap
-const ZAP_DURATION = 100;
-const ZAP_COOLDOWN = 1000;
+const ZAP_DURATION = 1500;
+const ZAP_COOLDOWN = 3000;
+
+//regen
+const HEAL_DURATION = 2000;
+const HEAL_COOLDOWN = 5000;
 
 //room transition
 const ROOM_TRANSITION_DELAY = 300;
@@ -103,7 +107,10 @@ const player = {
   is_dashing: false,
 
   can_zap: true,
-  is_zapping: false
+  is_zapping: false,
+
+  can_heal: true,
+  is_healing: false
 };
 
 ////////////////////////////////////////
@@ -206,6 +213,9 @@ const player = {
 
   let snails = [];
   let snail_graphics = [];
+
+  let forces = [];
+  let force_graphics = [];
 
   let room_label = new PIXI.Text({
     text: "room_1",
@@ -369,6 +379,12 @@ const player = {
       ],
       hearts: [{ x: 50, y: 50 }],
       snails: [{}],
+      force_blocks: [
+        {x: 300, y: 300, w: 100, h: 100, velocity: {x: 10, y: 10}},
+        {x: 400, y: 400, w: 100, h: 100, velocity: {x: 10, y: -10}},
+        {x: 500, y: 300, w: 100, h: 100, velocity: {x: -10, y: -10}},
+        {x: 400, y: 200, w: 100, h: 100, velocity: {x: -10, y: 10}}
+      ]
     },
     room_2: {
       label: "room 2",
@@ -404,7 +420,31 @@ const player = {
         },
       ],
       hearts: [{}],
-      snails: [{}],
+      snails: [
+        {x: 50, y: 50, x_vel: 1, y_vel: 2},
+        {x: 800, y: 800, x_vel: 2, y_vel: 1},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
+      ],
+      force_blocks:[{}]
     },
     room_3: {
       label: "room 3",
@@ -438,6 +478,7 @@ const player = {
         { x: 50, y: 250 },
       ],
       snails: [{}],
+      force_blocks:[{}]
     },
     room_4: {
       label: "room 4",
@@ -464,6 +505,7 @@ const player = {
         { x: 1000, y: 600 },
       ],
       snails: [{}],
+      force_blocks:[{}]
     },
   };
 
@@ -472,7 +514,6 @@ const player = {
     current_room = roomKey;
     current_room_id = Number(current_room.replaceAll(/[rom_]/gi, "")) - 1; //regex yummy
     canTransition = false;
-    player.canDash = false;
 
     wall_graphics.forEach((g) => world.removeChild(g));
     walls.forEach((w) => Composite.remove(engine.world, w));
@@ -498,6 +539,11 @@ const player = {
     snails.forEach((t) => Composite.remove(engine.world, t));
     snail_graphics = [];
     snails = [];
+
+    force_graphics.forEach((g) => world.removeChild(g));
+    forces.forEach((t) => Composite.remove(engine.world, t));
+    force_graphics = [];
+    forces = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -609,6 +655,28 @@ const player = {
       });
     });
 
+    data.force_blocks.forEach((force_obj) => {
+      const force_body = Bodies.rectangle(
+        force_obj.x,
+        force_obj.y,
+        force_obj.w,
+        force_obj.h,
+        { isStatic: true },
+      );
+
+      const force_graphic = new PIXI.Graphics()
+        .rect(-force_obj.w / 2, -force_obj.h / 2, force_obj.w, force_obj.h)
+        .fill(0x00AAAA);
+      force_graphic.zIndex = "7";
+
+      force_graphic.position.set(force_obj.x, force_obj.y);
+      world.addChild(force_graphic);
+
+      forces.push(force_body);
+      force_graphics.push(force_graphic);
+      Composite.add(engine.world, force_body);
+    });
+
     //end of loading objects
 
     room_label.text = "";
@@ -616,7 +684,6 @@ const player = {
 
     setTimeout(() => {
       canTransition = true;
-      player.canDash = true;
     }, 300);
   }
 
@@ -709,6 +776,7 @@ const player = {
   //player sprite
   async function createPlayerSprite() {
     boxGraphic = new PIXI.Sprite(ralsei_texture);
+    boxGraphic.zIndex = "8";
     boxGraphic.width = PLAYER_WIDTH;
     boxGraphic.height = PLAYER_HEIGHT;
     boxGraphic.anchor.set(0.5);
@@ -720,7 +788,6 @@ const player = {
   await createPlayerSprite();
 
   //collisiion checker
-
   function check_collision(player, object) {
     const boundsA = player.bounds;
     const boundsB = object.bounds;
@@ -731,6 +798,14 @@ const player = {
       boundsA.min.y < boundsB.max.y &&
       boundsA.max.y > boundsB.min.y
     );
+  }
+
+  //distance checker
+  function distance_between(player, object) {
+    const dx = player.position.x - object.position.x;
+    const dy = player.position.y - object.position.y;
+    if (isNaN(object.position.x) || isNaN(object.position.y) || isNaN(dx) || isNaN(dy)) return 0;
+    return Math.round(Math.hypot(dx, dy));
   }
 
   // Key Event Hooks
@@ -766,6 +841,8 @@ const player = {
       if (player.can_dash) {
         if (player.is_dashing) return;
 
+        player.can_heal = false;
+
         player.max_speed = DASH_SPEED;
         player.acceleration = DASH_ACCEL;
         player.can_dash = false;
@@ -775,6 +852,7 @@ const player = {
           player.max_speed = PLAYER_MAX_SPEED;
           player.acceleration = PLAYER_ACCEL;
           player.is_dashing = false;
+          player.can_heal = true;
         }, DASH_DURATION);
 
         setTimeout(() => {
@@ -785,41 +863,74 @@ const player = {
 
     //bullet freeze
     if (keys["KeyK"]) {
-      if (player.can_zap) {
-        if (player.is_zapping) return;
-
+      if (player.can_zap && !player.is_zapping) {
         player.can_zap = false;
         player.is_zapping = true;
         
+        const frozen_snails = [];
+
+        snails.forEach((snail_body, index) => {
+          if (distance_between(box, snail_body) < 150) {
+            console.log('true')
+            const snail_obj = room_data[current_room].snails[index];
+
+            frozen_snails.push({
+              index: index,
+              x_vel: snail_obj.x_vel,
+              y_vel: snail_obj.y_vel
+            });
+
+            snail_obj.x_vel = 0;
+            snail_obj.y_vel = 0;
+          }
+        });
         setTimeout(() => {
-          player.max_speed = PLAYER_MAX_SPEED;
-          player.acceleration = PLAYER_ACCEL;
-          player.is_dashing = false;
-        }, DASH_DURATION);
+          player.is_zapping = false;
+
+          //reapply stored movement data to snails
+          frozen_snails.forEach(({ index, x_vel, y_vel }) => {
+            const snail_obj = room_data[current_room].snails[index];
+            if (snail_obj) {
+              snail_obj.x_vel = x_vel;
+              snail_obj.y_vel = y_vel;
+            }
+          });
+        }, ZAP_DURATION);
 
         setTimeout(() => {
-          player.can_dash = true;
-        }, DASH_COOLDOWN);
+          player.can_zap = true;
+        }, ZAP_COOLDOWN);
       }
     }
-    
 
-    //WASD
-    if (keys["KeyD"])
-      v1x = Math.min(v1x + player.acceleration, player.max_speed);
-    else if (keys["KeyA"])
-      v1x = Math.max(v1x - player.acceleration, -player.max_speed);
-    else v1x = v1x * 0.9;
+    //regenerate health
+    if (keys["KeyL"]) {
+      if (player.can_heal) {
+        if (player.is_healing) return;
 
-    if (keys["KeyS"])
-      v1y = Math.min(v1y + player.acceleration, player.max_speed);
-    else if (keys["KeyW"])
-      v1y = Math.max(v1y - player.acceleration, -player.max_speed);
-    else v1y = v1y * 0.9;
-    Matter.Body.setVelocity(box, { x: v1x, y: v1y });
+        player.can_dash = false;
+        player.can_heal = false;
+        player.is_healing = true;
+        player.max_speed = PLAYER_HEAL_SPEED;
+        
+        const heal_interval = setInterval(() => {
+          if(player.is_healing){
+            player.health += Math.min(15/player.health, 1.5);
+          }
+        }, 10);
 
-    boxGraphic.position.set(box.position.x, box.position.y);
-    boxGraphic.rotation = box.angle;
+        setTimeout(() => {
+          clearInterval(heal_interval);
+          player.can_dash = true;
+          player.max_speed = PLAYER_MAX_SPEED;
+          player.is_healing = false;
+        }, HEAL_DURATION);
+
+        setTimeout(() => {
+          player.can_heal = true;
+        }, HEAL_COOLDOWN);
+      }     
+    }
 
     //healthbar update
     update_healthbar();
@@ -848,6 +959,19 @@ const player = {
       }
     });
 
+    forces.forEach((e) => {
+      if (check_collision(box, e)) {
+        const force_index = forces.findIndex((e) => check_collision(box, e));
+
+        if (force_index !== -1) {
+          const applied_x = room_data[current_room].force_blocks[force_index].velocity.x;
+          const applied_y = room_data[current_room].force_blocks[force_index].velocity.y;
+          v1x = applied_x;
+          v1y = applied_y;
+        }
+      }
+    });
+
     //heal code of heart collectibles
     for (let e of hearts) {
       if (check_collision(box, e)) {
@@ -861,6 +985,24 @@ const player = {
         }
       }
     }
+
+
+    //WASD
+    if (keys["KeyD"])
+      v1x = Math.min(v1x + player.acceleration, player.max_speed);
+    else if (keys["KeyA"])
+      v1x = Math.max(v1x - player.acceleration, -player.max_speed);
+    else v1x = v1x * 0.9;
+
+    if (keys["KeyS"])
+      v1y = Math.min(v1y + player.acceleration, player.max_speed);
+    else if (keys["KeyW"])
+      v1y = Math.max(v1y - player.acceleration, -player.max_speed);
+    else v1y = v1y * 0.9;
+    Matter.Body.setVelocity(box, { x: v1x, y: v1y });
+
+    boxGraphic.position.set(box.position.x, box.position.y);
+    boxGraphic.rotation = box.angle;
 
     /////////////////////////////////////////
     //CAMERA FOLLOW SYSTEM
