@@ -14,6 +14,7 @@ import {
 ///////////////////////////////////////////
 //constants
 ///////////////////////////////////////////
+
 //camera and world stuff
 const MAP_WIDTH_MIN = 0;
 const MAP_HEIGHT_MIN = 0;
@@ -24,12 +25,12 @@ const CAMERA_ZOOM = 1;
 
 //Player movement and physics
 const PLAYER_ACCEL = 5;
-const PLAYER_MAX_SPEED = 5;
+const PLAYER_MAX_SPEED = 7;
 const PLAYER_HEAL_SPEED = 1;
 
 //player body size
-const PLAYER_WIDTH = 32;
-const PLAYER_HEIGHT = 32;
+const PLAYER_WIDTH = 120;
+const PLAYER_HEIGHT = 120;
 
 //player health and damage
 const PLAYER_MAX_HEALTH = 100;
@@ -40,8 +41,8 @@ const TRASH_DAMAGE = 5;
 const SNAIL_DAMAGE = 1;
 
 //dash mechanic
-const DASH_SPEED = 20;
-const DASH_ACCEL = 8;
+const DASH_SPEED = 40;
+const DASH_ACCEL = 10;
 const DASH_DURATION = 150;
 const DASH_COOLDOWN = 1500;
 
@@ -57,8 +58,8 @@ const HEAL_COOLDOWN = 5000;
 const ROOM_TRANSITION_DELAY = 300;
 
 //app settings
-const APP_WIDTH = 512;
-const APP_HEIGHT = 288;
+const APP_WIDTH = 1600;
+const APP_HEIGHT = 900;
 const APP_BG_COLOR = 0x111111;
 
 //map
@@ -133,9 +134,8 @@ const player = {
 
   canvas.style.imageRendering = "pixelated";
 
-  canvas.style.width = "100vw";
-  canvas.style.height = "100vh";
-  canvas.style.objectFit = "contain";
+  canvas.style.width = "auto";
+  canvas.style.height = "auto";
 
   canvas.style.position = "absolute";
   canvas.style.top = "50%";
@@ -188,7 +188,7 @@ const player = {
   let healthbar_bg_graphic = new PIXI.Graphics();
 
   //box graphic
-  const box = Bodies.rectangle(100, 100, PLAYER_WIDTH, PLAYER_HEIGHT, {
+  const box = Bodies.rectangle(100, 100, 120, 120, {
     restitution: 0.0,
     friction: 0.0,
     frictionAir: 0.0,
@@ -220,10 +220,10 @@ const player = {
 
   let room_label = new PIXI.Text({
     text: "room_1",
-    style: { fontSize: 10, fill: 0xffffff },
+    style: { fontSize: 20, fill: 0xffffff },
   });
   room_label.zIndex = 11;
-  room_label.position.set(420, 10);
+  room_label.position.set(1420, 20);
   app.stage.addChild(room_label);
 
   let canTransition = true;
@@ -721,7 +721,7 @@ const player = {
   healthbar_graphic.zIndex = 10;
   app.stage.addChild(healthbar_graphic);
 
-  healthbar_bg_graphic.rect(5, 5, 100, 10).fill(0xff0000);
+  healthbar_bg_graphic.rect(50, 50, 500, 10).fill(0xff0000);
   healthbar_bg_graphic.zIndex = 9;
   app.stage.addChild(healthbar_bg_graphic);
 
@@ -730,7 +730,7 @@ const player = {
     if (player.health > 100) player.health = 100;
     if (player.health < 0) player.health = 0;
     healthbar_graphic.clear();
-    healthbar_graphic.rect(5, 5, player.health, 10).fill(0xa090ff);
+    healthbar_graphic.rect(50, 50, player.health * 5, 10).fill(0xa090ff);
   }
 
   //snail movement
@@ -743,27 +743,24 @@ const player = {
 
       if (!snail_body || !snail_graphic) return;
 
-      // Check boundaries and reverse direction if needed
       if (snail_obj.x <= 60) {
-        snail_obj.x_vel = Math.abs(snail_obj.x_vel); // Move right
+        snail_obj.x_vel = Math.abs(snail_obj.x_vel);
       }
       if (snail_obj.x >= 1540) {
-        snail_obj.x_vel = -Math.abs(snail_obj.x_vel); // Move left
+        snail_obj.x_vel = -Math.abs(snail_obj.x_vel); 
       }
       if (snail_obj.y >= 840) {
-        snail_obj.y_vel = -Math.abs(snail_obj.y_vel); // Move up
+        snail_obj.y_vel = -Math.abs(snail_obj.y_vel); 
       }
       if (snail_obj.y <= 60) {
-        snail_obj.y_vel = Math.abs(snail_obj.y_vel); // Move down
+        snail_obj.y_vel = Math.abs(snail_obj.y_vel); 
       }
 
-      // Apply velocity once (after boundary checks)
       Matter.Body.setVelocity(snail_body, {
         x: snail_obj.x_vel,
         y: snail_obj.y_vel,
       });
 
-      // Sync position
       snail_obj.x = snail_body.position.x;
       snail_obj.y = snail_body.position.y;
       snail_graphic.position.set(snail_obj.x, snail_obj.y);
@@ -809,7 +806,7 @@ const player = {
     return Math.round(Math.hypot(dx, dy));
   }
 
-  // Key Event Hooks
+
   let keys = {};
   let e;
   window.addEventListener("keydown", (event) => {
