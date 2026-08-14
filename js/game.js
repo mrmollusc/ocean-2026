@@ -377,6 +377,7 @@ const player = {
         {x: 900, y: 600, w: 100, h: 100, velocity: {x: -7, y: 0}, texture: left_arrow_texture},
         {x: 600, y: 600, w: 100, h: 100, velocity: {x: 0, y: -7}, texture: up_arrow_texture}
       ],
+      bullet_boxes:[{x: 200, y: 200, w: 20, h: 20}]
     },
     room_2: {
       label: "room 2",
@@ -437,6 +438,7 @@ const player = {
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
       ],
       force_blocks:[{}],
+      bullet_boxes:[{}]
     },
     room_3: {
       label: "room 3",
@@ -471,6 +473,7 @@ const player = {
       ],
       snails: [{}],
       force_blocks:[{}],
+      bullet_boxes:[{}]
     },
     room_4: {
       label: "room 4",
@@ -498,6 +501,7 @@ const player = {
       ],
       snails: [{}],
       force_blocks:[{}],
+      bullet_boxes:[{}]
     },
   };
 
@@ -536,6 +540,11 @@ const player = {
     forces.forEach((t) => Composite.remove(engine.world, t));
     force_graphics = [];
     forces = [];
+
+    bullet_box_graphics.forEach((g) => world.removeChild(g));
+    bullet_boxes.forEach((t) => Composite.remove(engine.world, t));
+    bullet_box_graphics = [];
+    bullet_boxes = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -667,6 +676,31 @@ const player = {
       forces.push(force_body);
       force_graphics.push(force_graphic);
       Composite.add(engine.world, force_body);
+    });
+
+    data.bullet_boxes.forEach((bullet_box_obj) => {
+      const bullet_box_body = Bodies.rectangle(
+        bullet_box_obj.x,
+        bullet_box_obj.y,
+        bullet_box_obj.w,
+        bullet_box_obj.h,
+        { isStatic: true , collisionFilter: { group: -1, mask: 0 }}
+      );
+
+      const bullet_box_graphic = new PIXI.Graphics()
+        .rect(-25, -25, 50, 50)
+        .fill(0xAAAAAA);
+
+      bullet_box_graphic.position.set(bullet_box_obj.x, bullet_box_obj.y);
+      world.addChild(bullet_box_graphic);
+
+      bullet_boxes.push(bullet_box_body);
+      bullet_box_graphics.push(bullet_box_graphic);
+      Composite.add(engine.world, bullet_box_body);
+      Matter.Body.setVelocity(bullet_box_body, {
+        x: bullet_box_obj.x_vel,
+        y: bullet_box_obj.y_vel,
+      });
     });
 
 
