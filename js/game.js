@@ -99,6 +99,8 @@ const player = {
   chapter: 1,
   dealt_nuts: false,
 
+  can_move: true,
+
   acceleration: PLAYER_ACCEL,
   max_speed: PLAYER_MAX_SPEED,
 
@@ -163,6 +165,11 @@ const player = {
   //TEXTURES
   const ralsei_texture = await PIXI.Assets.load("ralsei.webp");
   const heart_texture = await PIXI.Assets.load("heart.png");
+
+  const up_arrow_texture = await PIXI.Assets.load("up_dir.png");
+  const right_arrow_texture = await PIXI.Assets.load("right_dir.png");
+  const left_arrow_texture = await PIXI.Assets.load("left_dir.png");
+  const down_arrow_texture =  await PIXI.Assets.load("down_dir.png");
 
   //player healthbar sprite
   let healthbar_graphic = new PIXI.Graphics();
@@ -365,10 +372,10 @@ const player = {
       hearts: [{ x: 50, y: 50 }],
       snails: [{}],
       force_blocks: [
-        {x: 600, y: 300, w: 100, h: 100, velocity: {x: 7, y: 0}},
-        {x: 900, y: 300, w: 100, h: 100, velocity: {x: 0, y: 7}},
-        {x: 900, y: 600, w: 100, h: 100, velocity: {x: -7, y: 0}},
-        {x: 600, y: 600, w: 100, h: 100, velocity: {x: 0, y: -7}}
+        {x: 600, y: 300, w: 100, h: 100, velocity: {x: 7, y: 0}, texture: right_arrow_texture},
+        {x: 900, y: 300, w: 100, h: 100, velocity: {x: 0, y: 7}, texture: down_arrow_texture},
+        {x: 900, y: 600, w: 100, h: 100, velocity: {x: -7, y: 0}, texture: left_arrow_texture},
+        {x: 600, y: 600, w: 100, h: 100, velocity: {x: 0, y: -7}, texture: up_arrow_texture}
       ],
     },
     room_2: {
@@ -648,10 +655,10 @@ const player = {
         force_obj.h,
         { isStatic: true , collisionFilter: { group: -1, mask: 0 }}
       );
-
-      const force_graphic = new PIXI.Graphics()
-        .rect(-force_obj.w / 2, -force_obj.h / 2, force_obj.w, force_obj.h)
-        .fill(0x00AAAA);
+      if(!force_obj.texture) return;
+      const force_graphic = new PIXI.Sprite(force_obj.texture);
+      force_graphic.width = force_obj.w;
+      force_graphic.height = force_obj.h;
       force_graphic.zIndex = "7";
 
       force_graphic.position.set(force_obj.x, force_obj.y);
