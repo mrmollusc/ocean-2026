@@ -920,21 +920,6 @@ const player = {
         }
       }
     }
-
-    for (let e of bullets) {
-      if (check_collision(box, e)) {
-        const heartIndex = hearts.findIndex((e) => check_collision(box, e));
-
-        if (heartIndex !== -1) {
-          player.health += 10;
-          hearts.splice(heartIndex, 1);
-          room_data[current_room].hearts.splice(heartIndex, 1);
-          update_hearts(current_room);
-        }
-      }
-    }
-
-
     
     Matter.Body.setVelocity(box, { x: v1x, y: v1y });
     boxGraphic.position.set(box.position.x, box.position.y);
