@@ -1,5 +1,3 @@
-import { up_arrow_texture, right_arrow_texture, left_arrow_texture, down_arrow_texture } from "./game.js";
-
 //room data
 
   let room_data = {
@@ -52,12 +50,20 @@ import { up_arrow_texture, right_arrow_texture, left_arrow_texture, down_arrow_t
       hearts: [{ x: 50, y: 50 }],
       snails: [],
       force_blocks: [
-        {x: 600, y: 300, w: 100, h: 100, velocity: {x: 7, y: 0}, texture: right_arrow_texture},
-        {x: 900, y: 300, w: 100, h: 100, velocity: {x: 0, y: 7}, texture: down_arrow_texture},
-        {x: 900, y: 600, w: 100, h: 100, velocity: {x: -7, y: 0}, texture: left_arrow_texture},
-        {x: 600, y: 600, w: 100, h: 100, velocity: {x: 0, y: -7}, texture: up_arrow_texture}
+        {x: 600, y: 300, w: 100, h: 100, velocity: {x: 7, y: 0}, textureKey: "right"},
+        {x: 900, y: 300, w: 100, h: 100, velocity: {x: 0, y: 7}, textureKey: "down"},
+        {x: 900, y: 600, w: 100, h: 100, velocity: {x: -7, y: 0}, textureKey: "left"},
+        {x: 600, y: 600, w: 100, h: 100, velocity: {x: 0, y: -7}, textureKey: "up"}
       ],
-      bullet_boxes:[{x: 200, y: 200, w: 20, h: 20}]
+      bullet_boxes:[{
+        x: 200,
+        y: 200,
+        w: 20,
+        h: 20,
+        interval: 100,
+        bullet_speed: 4,
+        colour: 0xffffff,
+      }]
     },
 
     room_2: {

@@ -128,6 +128,13 @@ const player = {
   const right_arrow_texture = await PIXI.Assets.load("right_dir.png");
   const left_arrow_texture = await PIXI.Assets.load("left_dir.png");
   const down_arrow_texture =  await PIXI.Assets.load("down_dir.png");
+
+  const arrowTextures = {
+    up: up_arrow_texture,
+    right: right_arrow_texture,
+    left: left_arrow_texture,
+    down: down_arrow_texture,
+  };
   
   export {up_arrow_texture, right_arrow_texture, left_arrow_texture, down_arrow_texture};
 
@@ -212,7 +219,8 @@ const player = {
   let force_graphics = [];
 
   let bullet_boxes = [];
-  let bullet_box_graphics = []; 
+  let bullet_box_graphics = [];
+  let bullet_spawners = [];
 
   let room_label = new PIXI.Text({
     text: "room_1",
@@ -342,6 +350,42 @@ const player = {
     });
   }
 
+  //bullet array{
+    class Bullet {
+        constructor(x, y, vx, vy, world, stage) {
+            this.sprite = new PIXI.Graphics()
+        .rect(100, 100, 20, 20)
+        .fill(0xffffff);
+            this.sprite.zIndex = 5;
+            this.x = x;
+            this.y = y;
+            
+            this.body = Matter.Bodies.rectangle(x, y, 20, 20, { isSensor: true });
+        Matter.World.add(world, this.body);
+        stage.addChild(this.sprite);
+
+        this.vx = vx;
+        this.vy = vy;
+        this.dead = false;
+      }
+      update(dt) {
+        Matter.Body.setVelocity(this.body, { x: this.vx, y: this.vy });
+        this.sprite.x = this.body.position.x;
+        this.sprite.y = this.body.position.y;
+      }
+
+      destroy(world, stage) {
+        Matter.World.remove(world, this.body);
+        stage.removeChild(this.sprite);
+        this.dead = true;
+      }
+    }
+
+    const mybullet = new Bullet(100, 100, 5, 0, engine.world, world);
+
+
+
+
   //everything loader
   function load_rooms(roomKey, spawnX, spawnY) {
     current_room = roomKey;
@@ -382,6 +426,11 @@ const player = {
     bullet_boxes.forEach((t) => Composite.remove(engine.world, t));
     bullet_box_graphics = [];
     bullet_boxes = [];
+
+    for (const bulletSpawner of bullet_spawners) {
+      bulletSpawner.destroy();
+    }
+    bullet_spawners = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -494,6 +543,7 @@ const player = {
     });
 
     data.force_blocks?.forEach((force_obj) => {
+      const texture = force_obj.texture ?? arrowTextures[force_obj.textureKey];
       const force_body = Bodies.rectangle(
         force_obj.x,
         force_obj.y,
@@ -501,7 +551,7 @@ const player = {
         force_obj.h,
         { isStatic: true , collisionFilter: { group: -1, mask: 0 }}
       );
-      const force_graphic = new PIXI.Sprite(force_obj.texture);
+      const force_graphic = new PIXI.Sprite(texture);
       force_graphic.width = force_obj.w;
       force_graphic.height = force_obj.h;
       force_graphic.anchor.set(0.5);
@@ -521,7 +571,7 @@ const player = {
         bullet_box_obj.y,
         bullet_box_obj.w,
         bullet_box_obj.h,
-        { isStatic: true , collisionFilter: { group: -1, mask: 0 }}
+        { isStatic: true}
       );
 
       const bullet_box_graphic = new PIXI.Graphics()
@@ -530,14 +580,6 @@ const player = {
 
       bullet_box_graphic.position.set(bullet_box_obj.x, bullet_box_obj.y);
       world.addChild(bullet_box_graphic);
-
-      bullet_boxes.push(bullet_box_body);
-      bullet_box_graphics.push(bullet_box_graphic);
-      Composite.add(engine.world, bullet_box_body);
-      Matter.Body.setVelocity(bullet_box_body, {
-        x: bullet_box_obj.x_vel,
-        y: bullet_box_obj.y_vel,
-      });
     });
 
 
@@ -803,6 +845,19 @@ const player = {
 
     //healthbar update
     update_healthbar();
+
+    bullet_spawners.forEach((spawner) => spawner.update(ticker.deltaMS));
+
+    bullet_spawners.forEach((spawner) => {
+      spawner.bullets.forEach((bullet) => {
+        if (check_collision(box, bullet.body)) {
+          player.health -= 5;
+          bullet.destroy(engine.world, world);
+        }
+      });
+
+      spawner.bullets = spawner.bullets.filter((bullet) => !bullet.dead);
+    });
 
     //snail moves
     snail_movement();
