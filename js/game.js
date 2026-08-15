@@ -220,7 +220,9 @@ const player = {
 
   let bullet_boxes = [];
   let bullet_box_graphics = [];
-  let bullet_spawners = [];
+
+  let bullets = [];
+  let bullet_graphics = [];
 
   let room_label = new PIXI.Text({
     text: "room_1",
@@ -354,11 +356,10 @@ const player = {
     class Bullet {
         constructor(x, y, vx, vy, world, stage) {
             this.sprite = new PIXI.Graphics()
-        .rect(100, 100, 20, 20)
+        .rect(-10, -10, 20, 20)
         .fill(0xffffff);
             this.sprite.zIndex = 5;
-            this.x = x;
-            this.y = y;
+            this.sprite.position.set(x, y);
             
             this.body = Matter.Bodies.rectangle(x, y, 20, 20, { isSensor: true });
         Matter.World.add(world, this.body);
@@ -370,8 +371,8 @@ const player = {
       }
       update(dt) {
         Matter.Body.setVelocity(this.body, { x: this.vx, y: this.vy });
-        this.sprite.x = this.body.position.x;
-        this.sprite.y = this.body.position.y;
+        this.sprite.position.x = this.body.position.x;
+        this.sprite.position.y = this.body.position.y;
       }
 
       destroy(world, stage) {
@@ -381,7 +382,18 @@ const player = {
       }
     }
 
-    const mybullet = new Bullet(100, 100, 5, 0, engine.world, world);
+  //bullet patterns
+    const simple_pattern = function(x, y) {
+      const pattern = [
+        new Bullet(x, y, 5, 0, engine.world, world), 
+        new Bullet(x, y, -5, 0, engine.world, world), 
+        new Bullet(x, y, 0, 5, engine.world, world),
+        new Bullet(x, y, 0, -5, engine.world, world)];
+
+      bullets.push(...pattern);
+      return pattern;
+    }
+
 
 
 
@@ -427,10 +439,10 @@ const player = {
     bullet_box_graphics = [];
     bullet_boxes = [];
 
-    for (const bulletSpawner of bullet_spawners) {
-      bulletSpawner.destroy();
-    }
-    bullet_spawners = [];
+    bullet_graphics.forEach((g) => world.removeChild(g));
+    bullets.forEach((t) => Composite.remove(engine.world, t));
+    bullet_graphics = [];
+    bullets = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -518,30 +530,6 @@ const player = {
       Composite.add(engine.world, heart_body);
     });
 
-    data.snails?.forEach((snail_obj) => {
-      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50, 50, {
-        isStatic: false,
-        restitution: 1,
-        friction: 0,
-        collisionFilter: { group: -1, mask: 0 },
-      });
-
-      const snail_graphic = new PIXI.Graphics()
-        .rect(-25, -25, 50, 50)
-        .fill(0xf000f0);
-
-      snail_graphic.position.set(snail_obj.x, snail_obj.y);
-      world.addChild(snail_graphic);
-
-      snails.push(snail_body);
-      snail_graphics.push(snail_graphic);
-      Composite.add(engine.world, snail_body);
-      Matter.Body.setVelocity(snail_body, {
-        x: snail_obj.x_vel,
-        y: snail_obj.y_vel,
-      });
-    });
-
     data.force_blocks?.forEach((force_obj) => {
       const texture = force_obj.texture ?? arrowTextures[force_obj.textureKey];
       const force_body = Bodies.rectangle(
@@ -580,6 +568,30 @@ const player = {
 
       bullet_box_graphic.position.set(bullet_box_obj.x, bullet_box_obj.y);
       world.addChild(bullet_box_graphic);
+    });
+
+    data.snails?.forEach((snail_obj) => {
+      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50, 50, {
+        isStatic: false,
+        restitution: 1,
+        friction: 0,
+        collisionFilter: { group: -1, mask: 0 },
+      });
+
+      const snail_graphic = new PIXI.Graphics()
+        .rect(-25, -25, 50, 50)
+        .fill(0xf000f0);
+
+      snail_graphic.position.set(snail_obj.x, snail_obj.y);
+      world.addChild(snail_graphic);
+
+      snails.push(snail_body);
+      snail_graphics.push(snail_graphic);
+      Composite.add(engine.world, snail_body);
+      Matter.Body.setVelocity(snail_body, {
+        x: snail_obj.x_vel,
+        y: snail_obj.y_vel,
+      });
     });
 
 
@@ -688,6 +700,10 @@ const player = {
 
     Composite.add(engine.world, [box]);
     load_rooms("room_2", 200, window.innerHeight / 2);
+    
+    // Spawn bullets AFTER room loads so they don't get cleared
+    simple_pattern(100, 400);
+    simple_pattern(500, 500);
   }
   await createPlayerSprite();
 
@@ -782,7 +798,6 @@ const player = {
 
         snails.forEach((snail_body, index) => {
           if (distance_between(box, snail_body) < 150) {
-            console.log('true')
             const snail_obj = room_data[current_room].snails[index];
 
             frozen_snails.push({
@@ -846,18 +861,17 @@ const player = {
     //healthbar update
     update_healthbar();
 
-    bullet_spawners.forEach((spawner) => spawner.update(ticker.deltaMS));
-
-    bullet_spawners.forEach((spawner) => {
-      spawner.bullets.forEach((bullet) => {
-        if (check_collision(box, bullet.body)) {
-          player.health -= 5;
-          bullet.destroy(engine.world, world);
-        }
-      });
-
-      spawner.bullets = spawner.bullets.filter((bullet) => !bullet.dead);
-    });
+    //update all bullets each tick
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      bullets[i].update(1000 / 60);
+      
+      // Remove bullets that go out of bounds
+      if (bullets[i].body.position.x < MAP_WIDTH_MIN || bullets[i].body.position.x > MAP_WIDTH_MAX ||
+          bullets[i].body.position.y < MAP_HEIGHT_MIN || bullets[i].body.position.y > MAP_HEIGHT_MAX) {
+        bullets[i].destroy(engine.world, world);
+        bullets.splice(i, 1);
+      }
+    }
 
     //snail moves
     snail_movement();
@@ -895,6 +909,19 @@ const player = {
 
     //heal code of heart collectibles
     for (let e of hearts) {
+      if (check_collision(box, e)) {
+        const heartIndex = hearts.findIndex((e) => check_collision(box, e));
+
+        if (heartIndex !== -1) {
+          player.health += 10;
+          hearts.splice(heartIndex, 1);
+          room_data[current_room].hearts.splice(heartIndex, 1);
+          update_hearts(current_room);
+        }
+      }
+    }
+
+    for (let e of bullets) {
       if (check_collision(box, e)) {
         const heartIndex = hearts.findIndex((e) => check_collision(box, e));
 
