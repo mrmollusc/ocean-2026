@@ -1,17 +1,29 @@
 
 export class bullet {
-    constructor(texture, x, y, vx, vy, world) {
+    constructor(x, y, vx, vy, world, stage, texture = PIXI.Texture.WHITE) {
         this.sprite = new PIXI.Sprite(texture);
+        this.sprite.anchor.set(0.5);
+        this.sprite.width = 20;
+        this.sprite.height = 20;
+        this.sprite.position.set(x, y);
+
         this.x = x;
         this.y = y;
-        
-        this.body = Matter.Bodies.rectangle(x, y, 20, 20, { isSensor: true });
-        Matter.World.add(world, this.body);
-        this.sprite.anchor.set(0.5);
-
         this.vx = vx;
         this.vy = vy;
         this.dead = false;
+
+        this.body = Matter.Bodies.rectangle(x, y, 20, 20, { isSensor: true });
+
+        if (world) {
+            Matter.World.add(world, this.body);
+        }
+
+        if (stage && stage.addChild) {
+            stage.addChild(this.sprite);
+        } else if (world && world.addChild) {
+            world.addChild(this.sprite);
+        }
     }
 
     update(dt) {
@@ -21,8 +33,14 @@ export class bullet {
     }
 
     destroy(world, stage) {
-        Matter.World.remove(world, this.body);
-        stage.removeChild(this.sprite);
+        if (world) {
+            Matter.World.remove(world, this.body);
+        }
+        if (stage && stage.removeChild) {
+            stage.removeChild(this.sprite);
+        } else if (this.sprite.parent) {
+            this.sprite.parent.removeChild(this.sprite);
+        }
         this.dead = true;
     }
 }
@@ -38,9 +56,9 @@ export class bossRockBullet extends bullet {
 export class bossFishBullet extends bullet {
     constructor(texture, x, y, world) {
         const speed = 5;
-        const vx = speed * Math.cos(- Math.PI / 4); // Example angle
-        const vy = speed * Math.sin(- Math.PI / 4); // Example angle
-        super(texture, x, y, vx, vy, world);
+        const vx = speed * Math.cos(-Math.PI / 4);
+        const vy = speed * Math.sin(-Math.PI / 4);
+        super(x, y, vx, vy, world, world, texture);
     }
 
     update(dt) {
@@ -51,11 +69,11 @@ export class bossFishBullet extends bullet {
 export class bossTurtleBullet extends bullet {
     constructor(texture, x, y, world) {
         const speed = 10;
-        const vx = speed * Math.cos(- Math.PI / 4); // Example angle
-        const vy = speed * Math.sin(- Math.PI / 4); // Example angle
-        super(texture, x, y, vx, vy, world);
+        const vx = speed * Math.cos(-Math.PI / 4);
+        const vy = speed * Math.sin(-Math.PI / 4);
+        super(x, y, vx, vy, world, world, texture);
 
-        this.damage = 20; // Set the damage value for the boss turtle bullet
+        this.damage = 20;
     }
 
     update(dt) {

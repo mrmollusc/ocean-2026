@@ -4,16 +4,21 @@
 import { 
   BulletManager,
   bossFishBullet, 
-  bossTurtleBullet, 
+  bossTurtleBullet,
+  defaultBullet,
   bossFishPattern,
   bossTurtlePattern
 } from './BulletManager.js';
+
+//import room data
+import { room_data } from "./room_data.js";
 
 //////////////////////////////////////////////
   // for all bullet manager and bullet graphics, scroll down
 ///////////////////////////////////////////
 //constants
 ///////////////////////////////////////////
+
 //camera and world stuff
 const MAP_WIDTH_MIN = 0;
 const MAP_HEIGHT_MIN = 0;
@@ -24,12 +29,12 @@ const CAMERA_ZOOM = 1;
 
 //Player movement and physics
 const PLAYER_ACCEL = 5;
-const PLAYER_MAX_SPEED = 5;
+const PLAYER_MAX_SPEED = 7;
 const PLAYER_HEAL_SPEED = 1;
 
 //player body size
-const PLAYER_WIDTH = 32;
-const PLAYER_HEIGHT = 32;
+const PLAYER_WIDTH = 120;
+const PLAYER_HEIGHT = 120;
 
 //player health and damage
 const PLAYER_MAX_HEALTH = 100;
@@ -43,8 +48,8 @@ const TRASH_DAMAGE = 5;
 const SNAIL_DAMAGE = 1;
 
 //dash mechanic
-const DASH_SPEED = 20;
-const DASH_ACCEL = 8;
+const DASH_SPEED = 40;
+const DASH_ACCEL = 10;
 const DASH_DURATION = 150;
 const DASH_COOLDOWN = 1500;
 
@@ -60,8 +65,8 @@ const HEAL_COOLDOWN = 5000;
 const ROOM_TRANSITION_DELAY = 300;
 
 //app settings
-const APP_WIDTH = 512;
-const APP_HEIGHT = 288;
+const APP_WIDTH = 1600;
+const APP_HEIGHT = 900;
 const APP_BG_COLOR = 0x111111;
 
 //map
@@ -100,6 +105,8 @@ const player = {
   chapter: 1,
   dealt_nuts: false,
 
+  can_move: true,
+
   acceleration: PLAYER_ACCEL,
   max_speed: PLAYER_MAX_SPEED,
 
@@ -115,6 +122,24 @@ const player = {
   can_heal: true,
   is_healing: false
 };
+  
+//TEXTURES
+  const ralsei_texture = await PIXI.Assets.load("ralsei.webp");
+  const heart_texture = await PIXI.Assets.load("heart.png");
+
+  const up_arrow_texture = await PIXI.Assets.load("up_dir.png");
+  const right_arrow_texture = await PIXI.Assets.load("right_dir.png");
+  const left_arrow_texture = await PIXI.Assets.load("left_dir.png");
+  const down_arrow_texture =  await PIXI.Assets.load("down_dir.png");
+
+  const arrowTextures = {
+    up: up_arrow_texture,
+    right: right_arrow_texture,
+    left: left_arrow_texture,
+    down: down_arrow_texture,
+  };
+  
+  export {up_arrow_texture, right_arrow_texture, left_arrow_texture, down_arrow_texture};
 
 ////////////////////////////////////////
 //PIXI INIT + WORLD CONTAINER
@@ -136,9 +161,8 @@ const player = {
 
   canvas.style.imageRendering = "pixelated";
 
-  canvas.style.width = "100vw";
-  canvas.style.height = "100vh";
-  canvas.style.objectFit = "contain";
+  canvas.style.width = "auto";
+  canvas.style.height = "auto";
 
   canvas.style.position = "absolute";
   canvas.style.top = "50%";
@@ -161,37 +185,13 @@ const player = {
   ///////////////////////////////////////////////////////
   //bullet texture
   ////////////////////////////////////////////
-  const bossFishGraphics = new PIXI.Graphics()
-    .rect(-10, -10, 20, 20)
-    .fill(0x00ff00);
-  const bossTurtleGraphics = new PIXI.Graphics()
-    .rect(-10, -10, 20, 20)
-    .fill(0x0000ff);
-
-  const bossFishTexture = app.renderer.generateTexture(bossFishGraphics);
-  const bossTurtleTexture = app.renderer.generateTexture(bossTurtleGraphics);
-  //////////////////////////////////////////////////////////////////
-  //bullet manager and patterns
-  /////////////////////////////////////////////////////////////////
-  const bulletManager = new BulletManager(engine.world, world);
-
-  bossFishPattern(bulletManager, bossFishTexture, engine.world);
-
-  setTimeout(() => {
-    bossTurtlePattern(bulletManager, bossTurtleTexture, engine.world);
-  }, 2000);
-
-
-  //TEXTURES
-  const ralsei_texture = await PIXI.Assets.load("ralsei.webp");
-  const heart_texture = await PIXI.Assets.load("heart.png");
 
   //player healthbar sprite
   let healthbar_graphic = new PIXI.Graphics();
   let healthbar_bg_graphic = new PIXI.Graphics();
 
   //box graphic
-  const box = Bodies.rectangle(100, 100, PLAYER_WIDTH, PLAYER_HEIGHT, {
+  const box = Bodies.rectangle(100, 100, 120, 120, {
     restitution: 0.0,
     friction: 0.0,
     frictionAir: 0.0,
@@ -221,12 +221,18 @@ const player = {
   let forces = [];
   let force_graphics = [];
 
+  let bullet_boxes = [];
+  let bullet_box_graphics = [];
+
+  let bullets = [];
+  let bullet_graphics = [];
+
   let room_label = new PIXI.Text({
     text: "room_1",
-    style: { fontSize: 10, fill: 0xffffff },
+    style: { fontSize: 20, fill: 0xffffff },
   });
   room_label.zIndex = 11;
-  room_label.position.set(420, 10);
+  room_label.position.set(1420, 20);
   app.stage.addChild(room_label);
 
   let canTransition = true;
@@ -349,169 +355,64 @@ const player = {
     });
   }
 
-  //room data
-  let room_data = {
-    //btw room x and y pos measured from their center
-    room_1: {
-      label: "room 1",
-      walls: [
-        { x: 800, y: 20, w: 1600, h: 40 },
-        { x: 800, y: 880, w: 1600, h: 40 },
-        { x: 20, y: 450, w: 40, h: 900 },
-        { x: 1580, y: 450, w: 40, h: 900 },
-      ],
-      trashes: [{ x: 800, y: 450, w: 180, h: 180 }],
-      doors: [
-        {
-          x: 20,
-          y: 450,
-          w: 50,
-          h: 120,
-          target_room: "room_3",
-          target_x: 1420,
-          target_y: 450,
-        },
-        {
-          x: 1580,
-          y: 450,
-          w: 50,
-          h: 120,
-          target_room: "room_2",
-          target_x: 180,
-          target_y: 450,
-        },
-      ],
-      hearts: [{ x: 50, y: 50 }],
-      snails: [{}],
-      force_blocks: [
-        {x: 300, y: 300, w: 100, h: 100, velocity: {x: 10, y: 10}},
-        {x: 400, y: 400, w: 100, h: 100, velocity: {x: 10, y: -10}},
-        {x: 500, y: 300, w: 100, h: 100, velocity: {x: -10, y: -10}},
-        {x: 400, y: 200, w: 100, h: 100, velocity: {x: -10, y: 10}}
-      ]
-    },
-    room_2: {
-      label: "room 2",
-      walls: [
-        { x: 800, y: 20, w: 1600, h: 40 },
-        { x: 800, y: 880, w: 1600, h: 40 },
-        { x: 20, y: 450, w: 40, h: 900 },
-        { x: 1580, y: 450, w: 40, h: 900 },
+  /*bullet array
+    class Bullet {
+        constructor(x, y, vx, vy, world, stage) {
+            this.sprite = new PIXI.Graphics()
+        .rect(-10, -10, 20, 20)
+        .fill(0xffffff);
+            this.sprite.zIndex = 5;
+            this.sprite.position.set(x, y);
+            
+            this.body = Matter.Bodies.rectangle(x, y, 20, 20, { isSensor: true });
+        Matter.World.add(world, this.body);
+        stage.addChild(this.sprite);
 
-        { x: 400, y: 600, w: 120, h: 600 },
-        { x: 900, y: 360, w: 960, h: 120 },
-        { x: 1380, y: 500, w: 120, h: 400 }
-      ],
-      trashes: [{}],
-      doors: [
-        {
-          x: 20,
-          y: 450,
-          w: 50,
-          h: 120,
-          target_room: "room_1",
-          target_x: 1420,
-          target_y: 450,
-        },
-        {
-          x: 800,
-          y: 880,
-          w: 120,
-          h: 50,
-          target_room: "room_4",
-          target_x: 800,
-          target_y: 180,
-        },
-      ],
-      hearts: [{}],
-      snails: [
-        {x: 50, y: 50, x_vel: 1, y_vel: 2},
-        {x: 800, y: 800, x_vel: 2, y_vel: 1},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-      ],
-      force_blocks:[{}]
-    },
-    room_3: {
-      label: "room 3",
-      walls: [
-        { x: 800, y: 20, w: 1600, h: 40 },
-        { x: 800, y: 880, w: 1600, h: 40 },
-        { x: 20, y: 450, w: 40, h: 900 },
-        { x: 1580, y: 450, w: 40, h: 900 },
-      ],
-      trashes: [{ x: 800, y: 600, w: 50, h: 50 }],
-      doors: [
-        {
-          x: 1580,
-          y: 450,
-          w: 50,
-          h: 120,
-          target_room: "room_1",
-          target_x: 180,
-          target_y: 450,
-        },
-      ],
-      hearts: [
-        { x: 50, y: 50 },
-        { x: 100, y: 50 },
-        { x: 150, y: 50 },
-        { x: 200, y: 50 },
-        { x: 250, y: 50 },
-        { x: 50, y: 100 },
-        { x: 50, y: 150 },
-        { x: 50, y: 200 },
-        { x: 50, y: 250 },
-      ],
-      snails: [{}],
-      force_blocks:[{}]
-    },
-    room_4: {
-      label: "room 4",
-      walls: [
-        { x: 800, y: 20, w: 1600, h: 40 },
-        { x: 800, y: 880, w: 1600, h: 40 },
-        { x: 20, y: 450, w: 40, h: 900 },
-        { x: 1580, y: 450, w: 40, h: 900 },
-      ],
-      trashes: [{}],
-      doors: [
-        {
-          x: 800,
-          y: 20,
-          w: 120,
-          h: 50,
-          target_room: "room_2",
-          target_x: 800,
-          target_y: 720,
-        },
-      ],
-      hearts: [
-        { x: 50, y: 50 },
-        { x: 1000, y: 600 },
-      ],
-      snails: [{}],
-      force_blocks:[{}]
-    },
-  };
+        this.vx = vx;
+        this.vy = vy;
+        this.dead = false;
+      }
+      update(dt) {
+        Matter.Body.setVelocity(this.body, { x: this.vx, y: this.vy });
+        this.sprite.position.x = this.body.position.x;
+        this.sprite.position.y = this.body.position.y;
+      }
+
+      destroy(world, stage) {
+        Matter.World.remove(world, this.body);
+        stage.removeChild(this.sprite);
+        this.dead = true;
+      }
+    }
+
+  //bullet patterns
+    const simple_pattern = function(x, y) {
+      const pattern = [
+        new Bullet(x, y, 5, 0, engine.world, world), 
+        new Bullet(x, y, -5, 0, engine.world, world), 
+        new Bullet(x, y, 0, 5, engine.world, world),
+        new Bullet(x, y, 0, -5, engine.world, world)];
+
+      bullets.push(...pattern);
+      return pattern;
+    }
+
+    function destroyBullets() {
+      bullets.forEach((bullet) => {
+        if (!bullet) return;
+        if (bullet.destroy) {
+          bullet.destroy(engine.world, world);
+        } else if (bullet.body) {
+          Matter.World.remove(engine.world, bullet.body);
+        }
+      });
+
+      bullets = [];
+      bullet_graphics = [];
+    }
+      */
+
+
 
   //everything loader
   function load_rooms(roomKey, spawnX, spawnY) {
@@ -548,6 +449,16 @@ const player = {
     forces.forEach((t) => Composite.remove(engine.world, t));
     force_graphics = [];
     forces = [];
+
+    bullet_box_graphics.forEach((g) => world.removeChild(g));
+    bullet_boxes.forEach((t) => Composite.remove(engine.world, t));
+    bullet_box_graphics = [];
+    bullet_boxes = [];
+
+    bullet_graphics.forEach((g) => world.removeChild(g));
+    bullets.forEach((t) => Composite.remove(engine.world, t));
+    bullet_graphics = [];
+    bullets = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -635,6 +546,67 @@ const player = {
       Composite.add(engine.world, heart_body);
     });
 
+    data.force_blocks.forEach((force_obj) => {
+      const texture = force_obj.texture ?? arrowTextures[force_obj.textureKey];
+      const force_body = Bodies.rectangle(
+        force_obj.x,
+        force_obj.y,
+        force_obj.w,
+        force_obj.h,
+        { isStatic: true , collisionFilter: { group: -1, mask: 0 }}
+      );
+      const force_graphic = new PIXI.Sprite(texture);
+      force_graphic.width = force_obj.w;
+      force_graphic.height = force_obj.h;
+      force_graphic.anchor.set(0.5);
+      force_graphic.zIndex = "7";
+
+      force_graphic.position.set(force_obj.x, force_obj.y);
+      world.addChild(force_graphic);
+
+      forces.push(force_body);
+      force_graphics.push(force_graphic);
+      Composite.add(engine.world, force_body);
+    });
+
+    data.bullet_boxes.forEach((bullet_box_obj) => {
+      const bullet_box_body = Bodies.rectangle(
+        bullet_box_obj.x,
+        bullet_box_obj.y,
+        bullet_box_obj.w,
+        bullet_box_obj.h,
+        { isStatic: true }
+      );
+
+      bullet_boxes.push(bullet_box_body);
+      Composite.add(engine.world, bullet_box_body);
+
+      const bullet_box_graphic = new PIXI.Graphics()
+        .rect(-25, -25, 50, 50)
+        .fill(0xAAAAAA);
+
+      bullet_box_graphic.position.set(bullet_box_obj.x, bullet_box_obj.y);
+      bullet_box_graphic.zIndex = 5;
+      bullet_box_graphics.push(bullet_box_graphic);
+      world.addChild(bullet_box_graphic);
+
+      bullet_box_obj._nextShotAt = 0;
+      bullet_box_obj.bullets.forEach((bullet_obj) => {
+        const speed = Number(bullet_box_obj.bullet_speed ?? 1);
+        const bullet = new defaultBullet(
+          bullet_box_obj.x,
+          bullet_box_obj.y,
+          Number(bullet_obj.vx) * speed,
+          Number(bullet_obj.vy) * speed,
+          engine.world,
+          world
+        );
+        bullet.sprite.zIndex = 6;
+        bullets.push(bullet);
+        bullet_graphics.push(bullet.sprite);
+      });
+    });
+
     data.snails.forEach((snail_obj) => {
       const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50, 50, {
         isStatic: false,
@@ -659,27 +631,7 @@ const player = {
       });
     });
 
-    data.force_blocks.forEach((force_obj) => {
-      const force_body = Bodies.rectangle(
-        force_obj.x,
-        force_obj.y,
-        force_obj.w,
-        force_obj.h,
-        { isStatic: true },
-      );
 
-      const force_graphic = new PIXI.Graphics()
-        .rect(-force_obj.w / 2, -force_obj.h / 2, force_obj.w, force_obj.h)
-        .fill(0x00AAAA);
-      force_graphic.zIndex = "7";
-
-      force_graphic.position.set(force_obj.x, force_obj.y);
-      world.addChild(force_graphic);
-
-      forces.push(force_body);
-      force_graphics.push(force_graphic);
-      Composite.add(engine.world, force_body);
-    });
 
     //end of loading objects
 
@@ -724,7 +676,7 @@ const player = {
   healthbar_graphic.zIndex = 10;
   app.stage.addChild(healthbar_graphic);
 
-  healthbar_bg_graphic.rect(5, 5, 100, 10).fill(0xff0000);
+  healthbar_bg_graphic.rect(50, 50, 500, 10).fill(0xff0000);
   healthbar_bg_graphic.zIndex = 9;
   app.stage.addChild(healthbar_bg_graphic);
 
@@ -733,7 +685,7 @@ const player = {
     if (player.health > 100) player.health = 100;
     if (player.health < 0) player.health = 0;
     healthbar_graphic.clear();
-    healthbar_graphic.rect(5, 5, player.health, 10).fill(0xa090ff);
+    healthbar_graphic.rect(50, 50, player.health * 5, 10).fill(0xa090ff);
   }
 
   //snail movement
@@ -746,27 +698,24 @@ const player = {
 
       if (!snail_body || !snail_graphic) return;
 
-      // Check boundaries and reverse direction if needed
       if (snail_obj.x <= 60) {
-        snail_obj.x_vel = Math.abs(snail_obj.x_vel); // Move right
+        snail_obj.x_vel = Math.abs(snail_obj.x_vel);
       }
       if (snail_obj.x >= 1540) {
-        snail_obj.x_vel = -Math.abs(snail_obj.x_vel); // Move left
+        snail_obj.x_vel = -Math.abs(snail_obj.x_vel); 
       }
       if (snail_obj.y >= 840) {
-        snail_obj.y_vel = -Math.abs(snail_obj.y_vel); // Move up
+        snail_obj.y_vel = -Math.abs(snail_obj.y_vel); 
       }
       if (snail_obj.y <= 60) {
-        snail_obj.y_vel = Math.abs(snail_obj.y_vel); // Move down
+        snail_obj.y_vel = Math.abs(snail_obj.y_vel); 
       }
 
-      // Apply velocity once (after boundary checks)
       Matter.Body.setVelocity(snail_body, {
         x: snail_obj.x_vel,
         y: snail_obj.y_vel,
       });
 
-      // Sync position
       snail_obj.x = snail_body.position.x;
       snail_obj.y = snail_body.position.y;
       snail_graphic.position.set(snail_obj.x, snail_obj.y);
@@ -775,6 +724,24 @@ const player = {
 
   function snail_movement() {
     update_snail(current_room);
+  }
+
+  function would_collide_with_wall(x, y) {
+    const half_size = (PLAYER_WIDTH * 0.5) - 2;
+    const new_l = x - half_size;
+    const new_r = x + half_size;
+    const new_t = y - half_size;
+    const new_b = y + half_size;
+
+    return walls.some((wall) => {
+      const wall_bounds = wall.bounds;
+      return (
+        new_r > wall_bounds.min.x &&
+        new_l < wall_bounds.max.x &&
+        new_b > wall_bounds.min.y &&
+        new_t < wall_bounds.max.y
+      );
+    });
   }
 
   //player sprite
@@ -812,7 +779,7 @@ const player = {
     return Math.round(Math.hypot(dx, dy));
   }
 
-  // Key Event Hooks
+
   let keys = {};
   let e;
   window.addEventListener("keydown", (event) => {
@@ -823,22 +790,41 @@ const player = {
     keys[event.code] = false;
   });
 
+  
   //important start or main game loop
   app.ticker.add((ticker) => {
-    Matter.Engine.update(engine, 1000 / 60);
-    bulletManager.update();
-
-    bulletManager.bullets.forEach(b => {
-      if (!b.dead && b.damage > 0 && check_collision(box, b.body)) {
-        player.health -= b.damage;
-        b.destroy(engine.world, world);
-      }
-    });
 
     if (!boxGraphic) return;
 
     let v1x = box.velocity.x;
     let v1y = box.velocity.y;
+
+    //WASD
+    if (keys["KeyD"] && player.can_move == true)
+      v1x = Math.min(v1x + player.acceleration, player.max_speed);
+    else if (keys["KeyA"] && player.can_move == true)
+      v1x = Math.max(v1x - player.acceleration, -player.max_speed);
+    else v1x = v1x * 0.9;
+
+    if (keys["KeyS"] && player.can_move == true)
+      v1y = Math.min(v1y + player.acceleration, player.max_speed);
+    else if (keys["KeyW"] && player.can_move == true)
+      v1y = Math.max(v1y - player.acceleration, -player.max_speed);
+    else v1y = v1y * 0.9;
+
+    const nextX = box.position.x + v1x;
+    const nextY = box.position.y + v1y;
+
+    if (would_collide_with_wall(nextX, box.position.y)) {
+      v1x = 0;
+    }
+
+    if (would_collide_with_wall(box.position.x, nextY)) {
+      v1y = 0;
+    }
+
+    Matter.Body.setVelocity(box, { x: v1x, y: v1y });
+    Matter.Engine.update(engine, 1000 / 60);
 
     //dash mechanic
     if (keys["Space"]) {
@@ -875,7 +861,6 @@ const player = {
 
         snails.forEach((snail_body, index) => {
           if (distance_between(box, snail_body) < 150) {
-            console.log('true')
             const snail_obj = room_data[current_room].snails[index];
 
             frozen_snails.push({
@@ -939,6 +924,51 @@ const player = {
     //healthbar update
     update_healthbar();
 
+    const now = performance.now();
+
+    room_data[current_room]?.bullet_boxes?.forEach((bullet_box_obj, boxIndex) => {
+      const boxBody = bullet_boxes[boxIndex];
+      if (!boxBody || !bullet_box_obj || !bullet_box_obj.bullets) return;
+
+      if (!bullet_box_obj._nextShotAt) {
+        bullet_box_obj._nextShotAt = now + Math.max(1, Number(bullet_box_obj.interval ?? 1000));
+      }
+
+      if (now >= bullet_box_obj._nextShotAt) {
+        bullet_box_obj.bullets.forEach((bullet_obj) => {
+          const speed = Number(bullet_box_obj.bullet_speed ?? 1);
+          const bullet = new defaultBullet(
+            bullet_box_obj.x,
+            bullet_box_obj.y,
+            Number(bullet_obj.vx) * speed,
+            Number(bullet_obj.vy) * speed,
+            engine.world,
+            world
+          );
+          bullet.sprite.zIndex = 6;
+          bullets.push(bullet);
+          bullet_graphics.push(bullet.sprite);
+        });
+
+        bullet_box_obj._nextShotAt = now + Math.max(1, Number(bullet_box_obj.interval ?? 1000));
+      }
+    });
+
+    //update all bullets each tick
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      bullets[i].update(1000 / 60);
+
+      if (
+        bullets[i].body.position.x < MAP_WIDTH_MIN ||
+        bullets[i].body.position.x > MAP_WIDTH_MAX ||
+        bullets[i].body.position.y < MAP_HEIGHT_MIN ||
+        bullets[i].body.position.y > MAP_HEIGHT_MAX
+      ) {
+        bullets[i].destroy(engine.world, world);
+        bullets.splice(i, 1);
+      }
+    }
+
     //snail moves
     snail_movement();
 
@@ -965,13 +995,11 @@ const player = {
 
     forces.forEach((e, index) => {
       if (check_collision(box, e)) {
-        touching_booster = true;
-
-        applied_x = room_data[current_room].force_blocks[index].velocity.x;
-        applied_y = room_data[current_room].force_blocks[index].velocity.y;
+        let applied_x = room_data[current_room].force_blocks[index].velocity.x;
+        let applied_y = room_data[current_room].force_blocks[index].velocity.y;
       
-        v1x = applied_x + v1x;
-        v1y = applied_y + v1y;
+        v1x += applied_x;
+        v1y += applied_y;
       }
     });
 
@@ -989,21 +1017,7 @@ const player = {
       }
     }
 
-
-    //WASD
-    if (keys["KeyD"])
-      v1x = Math.min(v1x + player.acceleration, player.max_speed);
-    else if (keys["KeyA"])
-      v1x = Math.max(v1x - player.acceleration, -player.max_speed);
-    else v1x = v1x * 0.9;
-
-    if (keys["KeyS"])
-      v1y = Math.min(v1y + player.acceleration, player.max_speed);
-    else if (keys["KeyW"])
-      v1y = Math.max(v1y - player.acceleration, -player.max_speed);
-    else v1y = v1y * 0.9;
     Matter.Body.setVelocity(box, { x: v1x, y: v1y });
-
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.rotation = box.angle;
 
