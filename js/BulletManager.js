@@ -29,7 +29,23 @@ export class bullet {
     }
 }
 export class defaultBullet extends bullet {
+    constructor(x, y, vx, vy, world, stage, texture = PIXI.Texture.WHITE) {
+        super(texture, x, y, vx, vy, world);
+        this.body = Matter.Bodies.rectangle(x, y, 20, 20, { isSensor: true });
 
+        if (world) {
+            Matter.World.add(world, this.body);
+        }
+
+        if (stage && stage.addChild) {
+            stage.addChild(this.sprite);
+        } else if (world && world.addChild) {
+            world.addChild(this.sprite);
+        }
+        this.sprite.width = 20;
+        this.sprite.height = 20;
+        this.sprite.position.set(x, y);
+    }
 }
 export class Bullet extends bullet {
     
