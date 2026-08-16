@@ -63,6 +63,7 @@
         interval: 100,
         bullet_speed: 4,
         colour: 0xffffff,
+        bullets: [{vx: 1, vy: 0}, {vx: -1, vy: 0}, {vx: 0, vy: 1}, {vx: 0, vy: -1}]
       }]
     },
 
@@ -101,31 +102,26 @@
       ],
       hearts: [],
       snails: [
-        {x: 50, y: 50, x_vel: 1, y_vel: 2},
-        {x: 800, y: 800, x_vel: 2, y_vel: 1},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
-        {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
       ],
       force_blocks:[],
-      bullet_boxes:[]
+      bullet_boxes:[{
+        x: 500,
+        y: 500,
+        w: 40,
+        h: 40,
+        interval: 1000,
+        bullet_speed: 1,
+        colour: 0xffffff,
+        bullets: [
+          { vx: 1, vy: 0 },
+          { vx: -1, vy: 0 },
+          { vx: 0, vy: 1 },
+          { vx: 0, vy: -1 }
+        ]
+      }]
     },
 
     room_3: {
@@ -172,6 +168,7 @@
         { x: 20, y: 450, w: 40, h: 900 },
         { x: 1580, y: 450, w: 40, h: 900 },
       ],
+      trashes: [],
       doors: [
         {
           x: 800,
@@ -183,6 +180,7 @@
           target_y: 720,
         }
         ],
+        hearts: [],
         snails: [],
       force_blocks:[],
       bullet_boxes:[]

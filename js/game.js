@@ -352,7 +352,7 @@ const player = {
     });
   }
 
-  //bullet array{
+  /*bullet array
     class Bullet {
         constructor(x, y, vx, vy, world, stage) {
             this.sprite = new PIXI.Graphics()
@@ -394,7 +394,20 @@ const player = {
       return pattern;
     }
 
+    function destroyBullets() {
+      bullets.forEach((bullet) => {
+        if (!bullet) return;
+        if (bullet.destroy) {
+          bullet.destroy(engine.world, world);
+        } else if (bullet.body) {
+          Matter.World.remove(engine.world, bullet.body);
+        }
+      });
 
+      bullets = [];
+      bullet_graphics = [];
+    }
+      */
 
 
 
@@ -449,7 +462,7 @@ const player = {
 
     const data = room_data[roomKey];
 
-    data.walls?.forEach((wall) => {
+    data.walls.forEach((wall) => {
       const wallBody = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, {
         isStatic: true,
         restitution: 1,
@@ -468,7 +481,7 @@ const player = {
       Composite.add(engine.world, wallBody);
     });
 
-    data.doors?.forEach((door) => {
+    data.doors.forEach((door) => {
       const doorBody = Bodies.rectangle(door.x, door.y, door.w, door.h, {
         isStatic: true,
         isSensor: true,
@@ -490,7 +503,7 @@ const player = {
       Composite.add(engine.world, doorBody);
     });
 
-    data.trashes?.forEach((trash_obj) => {
+    data.trashes.forEach((trash_obj) => {
       const trash_body = Bodies.rectangle(
         trash_obj.x,
         trash_obj.y,
@@ -511,7 +524,7 @@ const player = {
       Composite.add(engine.world, trash_body);
     });
 
-    data.hearts?.forEach((heart_obj) => {
+    data.hearts.forEach((heart_obj) => {
       const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, {
         isStatic: true,
         collisionFilter: { group: -1, mask: 0 },
@@ -530,7 +543,7 @@ const player = {
       Composite.add(engine.world, heart_body);
     });
 
-    data.force_blocks?.forEach((force_obj) => {
+    data.force_blocks.forEach((force_obj) => {
       const texture = force_obj.texture ?? arrowTextures[force_obj.textureKey];
       const force_body = Bodies.rectangle(
         force_obj.x,
@@ -553,24 +566,45 @@ const player = {
       Composite.add(engine.world, force_body);
     });
 
-    data.bullet_boxes?.forEach((bullet_box_obj) => {
+    data.bullet_boxes.forEach((bullet_box_obj) => {
       const bullet_box_body = Bodies.rectangle(
         bullet_box_obj.x,
         bullet_box_obj.y,
         bullet_box_obj.w,
         bullet_box_obj.h,
-        { isStatic: true}
+        { isStatic: true }
       );
+
+      bullet_boxes.push(bullet_box_body);
+      Composite.add(engine.world, bullet_box_body);
 
       const bullet_box_graphic = new PIXI.Graphics()
         .rect(-25, -25, 50, 50)
         .fill(0xAAAAAA);
 
       bullet_box_graphic.position.set(bullet_box_obj.x, bullet_box_obj.y);
+      bullet_box_graphic.zIndex = 5;
+      bullet_box_graphics.push(bullet_box_graphic);
       world.addChild(bullet_box_graphic);
+
+      bullet_box_obj._nextShotAt = 0;
+      bullet_box_obj.bullets.forEach((bullet_obj) => {
+        const speed = Number(bullet_box_obj.bullet_speed ?? 1);
+        const bullet = new defaultBullet(
+          bullet_box_obj.x,
+          bullet_box_obj.y,
+          Number(bullet_obj.vx) * speed,
+          Number(bullet_obj.vy) * speed,
+          engine.world,
+          world
+        );
+        bullet.sprite.zIndex = 6;
+        bullets.push(bullet);
+        bullet_graphics.push(bullet.sprite);
+      });
     });
 
-    data.snails?.forEach((snail_obj) => {
+    data.snails.forEach((snail_obj) => {
       const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50, 50, {
         isStatic: false,
         restitution: 1,
@@ -689,6 +723,24 @@ const player = {
     update_snail(current_room);
   }
 
+  function would_collide_with_wall(x, y) {
+    const half_size = (PLAYER_WIDTH * 0.5) - 2;
+    const new_l = x - half_size;
+    const new_r = x + half_size;
+    const new_t = y - half_size;
+    const new_b = y + half_size;
+
+    return walls.some((wall) => {
+      const wall_bounds = wall.bounds;
+      return (
+        new_r > wall_bounds.min.x &&
+        new_l < wall_bounds.max.x &&
+        new_b > wall_bounds.min.y &&
+        new_t < wall_bounds.max.y
+      );
+    });
+  }
+
   //player sprite
   async function createPlayerSprite() {
     boxGraphic = new PIXI.Sprite(ralsei_texture);
@@ -700,10 +752,6 @@ const player = {
 
     Composite.add(engine.world, [box]);
     load_rooms("room_2", 200, window.innerHeight / 2);
-    
-    // Spawn bullets AFTER room loads so they don't get cleared
-    simple_pattern(100, 400);
-    simple_pattern(500, 500);
   }
   await createPlayerSprite();
 
@@ -761,6 +809,18 @@ const player = {
       v1y = Math.max(v1y - player.acceleration, -player.max_speed);
     else v1y = v1y * 0.9;
 
+    const nextX = box.position.x + v1x;
+    const nextY = box.position.y + v1y;
+
+    if (would_collide_with_wall(nextX, box.position.y)) {
+      v1x = 0;
+    }
+
+    if (would_collide_with_wall(box.position.x, nextY)) {
+      v1y = 0;
+    }
+
+    Matter.Body.setVelocity(box, { x: v1x, y: v1y });
     Matter.Engine.update(engine, 1000 / 60);
 
     //dash mechanic
@@ -861,13 +921,46 @@ const player = {
     //healthbar update
     update_healthbar();
 
+    const now = performance.now();
+
+    room_data[current_room]?.bullet_boxes?.forEach((bullet_box_obj, boxIndex) => {
+      const boxBody = bullet_boxes[boxIndex];
+      if (!boxBody || !bullet_box_obj || !bullet_box_obj.bullets) return;
+
+      if (!bullet_box_obj._nextShotAt) {
+        bullet_box_obj._nextShotAt = now + Math.max(1, Number(bullet_box_obj.interval ?? 1000));
+      }
+
+      if (now >= bullet_box_obj._nextShotAt) {
+        bullet_box_obj.bullets.forEach((bullet_obj) => {
+          const speed = Number(bullet_box_obj.bullet_speed ?? 1);
+          const bullet = new defaultBullet(
+            bullet_box_obj.x,
+            bullet_box_obj.y,
+            Number(bullet_obj.vx) * speed,
+            Number(bullet_obj.vy) * speed,
+            engine.world,
+            world
+          );
+          bullet.sprite.zIndex = 6;
+          bullets.push(bullet);
+          bullet_graphics.push(bullet.sprite);
+        });
+
+        bullet_box_obj._nextShotAt = now + Math.max(1, Number(bullet_box_obj.interval ?? 1000));
+      }
+    });
+
     //update all bullets each tick
     for (let i = bullets.length - 1; i >= 0; i--) {
       bullets[i].update(1000 / 60);
-      
-      // Remove bullets that go out of bounds
-      if (bullets[i].body.position.x < MAP_WIDTH_MIN || bullets[i].body.position.x > MAP_WIDTH_MAX ||
-          bullets[i].body.position.y < MAP_HEIGHT_MIN || bullets[i].body.position.y > MAP_HEIGHT_MAX) {
+
+      if (
+        bullets[i].body.position.x < MAP_WIDTH_MIN ||
+        bullets[i].body.position.x > MAP_WIDTH_MAX ||
+        bullets[i].body.position.y < MAP_HEIGHT_MIN ||
+        bullets[i].body.position.y > MAP_HEIGHT_MAX
+      ) {
         bullets[i].destroy(engine.world, world);
         bullets.splice(i, 1);
       }
@@ -920,7 +1013,7 @@ const player = {
         }
       }
     }
-    
+
     Matter.Body.setVelocity(box, { x: v1x, y: v1y });
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.rotation = box.angle;
