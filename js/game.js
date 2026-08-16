@@ -35,6 +35,9 @@ const PLAYER_HEIGHT = 32;
 const PLAYER_MAX_HEALTH = 100;
 const PLAYER_IFRAME_DURATION = 100;
 
+//player rotate smooth stuff
+const rotationSpeed = 0.1; //Lower = slower turning, Higher = faster turning (0.0 to 1.0)
+
 //damage
 const TRASH_DAMAGE = 5;
 const SNAIL_DAMAGE = 1;
@@ -780,7 +783,7 @@ const player = {
     boxGraphic.zIndex = "8";
     boxGraphic.width = PLAYER_WIDTH;
     boxGraphic.height = PLAYER_HEIGHT;
-    boxGraphic.anchor.set(0.5);
+    boxGraphic.anchor.set(0.5, 0.5);
     world.addChild(boxGraphic);
 
     Composite.add(engine.world, [box]);
@@ -1001,6 +1004,24 @@ const player = {
     else v1y = v1y * 0.9;
     Matter.Body.setVelocity(box, { x: v1x, y: v1y });
 
+    boxGraphic.position.set(box.position.x, box.position.y);
+    boxGraphic.rotation = box.angle;
+
+    const speed = Math.sqrt(v1x * v1x + v1y * v1y);
+    if (speed > 0.1) {
+      const targetAngle = Math.atan2(v1y, v1x);
+
+      const nextAngle = Matter.Vector.angle(
+        {x: Math.cos(box.angle), y: Math.sin(box.angle)},
+        {x: Math.cos(targetAngle), y: Math.sin(targetAngle)}
+      );
+
+      let angleDiff = targetAngle - box.angle;
+      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+
+      Matter.Body.setAngle(box, box.angle + angleDiff * rotationSpeed);
+    }
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.rotation = box.angle;
 
