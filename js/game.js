@@ -33,8 +33,8 @@ const PLAYER_MAX_SPEED = 7;
 const PLAYER_HEAL_SPEED = 1;
 
 //player body size
-const PLAYER_WIDTH = 120;
-const PLAYER_HEIGHT = 120;
+const PLAYER_WIDTH = 100;
+const PLAYER_HEIGHT = 100;
 
 //player health and damage
 const PLAYER_MAX_HEALTH = 100;
@@ -161,8 +161,9 @@ const player = {
 
   canvas.style.imageRendering = "pixelated";
 
-  canvas.style.width = "auto";
-  canvas.style.height = "auto";
+  canvas.style.width = "100vw";
+  canvas.style.height = "100vh";
+  canvas.style.objectFit = "contain";
 
   canvas.style.position = "absolute";
   canvas.style.top = "50%";
@@ -191,7 +192,7 @@ const player = {
   let healthbar_bg_graphic = new PIXI.Graphics();
 
   //box graphic
-  const box = Bodies.rectangle(100, 100, 120, 120, {
+  const box = Bodies.rectangle(100, 100, PLAYER_WIDTH, PLAYER_HEIGHT, {
     restitution: 0.0,
     friction: 0.0,
     frictionAir: 0.0,
