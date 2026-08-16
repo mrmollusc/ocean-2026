@@ -1,29 +1,19 @@
 
 export class bullet {
-    constructor(x, y, vx, vy, world, stage, texture = PIXI.Texture.WHITE) {
+    constructor(texture, x, y, vx, vy, world) {
         this.sprite = new PIXI.Sprite(texture);
+        this.x = x;
+        this.y = y;
+        
+        this.body = Matter.Bodies.rectangle(x, y, 20, 20, { isSensor: true });
+        Matter.World.add(world, this.body);
         this.sprite.anchor.set(0.5);
-        this.sprite.width = 20;
-        this.sprite.height = 20;
-        this.sprite.position.set(x, y);
 
         this.x = x;
         this.y = y;
         this.vx = vx;
         this.vy = vy;
         this.dead = false;
-
-        this.body = Matter.Bodies.rectangle(x, y, 20, 20, { isSensor: true });
-
-        if (world) {
-            Matter.World.add(world, this.body);
-        }
-
-        if (stage && stage.addChild) {
-            stage.addChild(this.sprite);
-        } else if (world && world.addChild) {
-            world.addChild(this.sprite);
-        }
     }
 
     update(dt) {
@@ -33,14 +23,8 @@ export class bullet {
     }
 
     destroy(world, stage) {
-        if (world) {
-            Matter.World.remove(world, this.body);
-        }
-        if (stage && stage.removeChild) {
-            stage.removeChild(this.sprite);
-        } else if (this.sprite.parent) {
-            this.sprite.parent.removeChild(this.sprite);
-        }
+        Matter.World.remove(world, this.body);
+        stage.removeChild(this.sprite);
         this.dead = true;
     }
 }
@@ -58,7 +42,7 @@ export class bossFishBullet extends bullet {
         const speed = 5;
         const vx = speed * Math.cos(-Math.PI / 4);
         const vy = speed * Math.sin(-Math.PI / 4);
-        super(x, y, vx, vy, world, world, texture);
+        super(texture, x, y, vx, vy, world);
     }
 
     update(dt) {
@@ -71,7 +55,7 @@ export class bossTurtleBullet extends bullet {
         const speed = 10;
         const vx = speed * Math.cos(-Math.PI / 4);
         const vy = speed * Math.sin(-Math.PI / 4);
-        super(x, y, vx, vy, world, world, texture);
+        super(texture, x, y, vx, vy, world);
 
         this.damage = 20;
     }
