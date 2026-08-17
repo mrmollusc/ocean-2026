@@ -1,11 +1,14 @@
 body {
-  background-color: powderblue;
+    background-image: linear-gradient(to right, rgb(27, 0, 86), rgb(97, 3, 81), rgb(4, 81, 119));
 }
-
-h1 {
+.button:hover {
+    transform: scale(1.5);
+}
+h10 {
     top: 50%;
     left: 75%;
 
+    font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
@@ -13,13 +16,16 @@ h1 {
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
-    transform: translate(-50%, -50%);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
 }
 
-h2 {
+h12 {
     top: 75%;
     left: 50%;
 
+    font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
@@ -27,13 +33,16 @@ h2 {
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
-    transform: translate(-50%, -50%);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
 }
 
-h3 {
+h223 {
     top: 50%;
     left: 25%;
 
+    font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
@@ -41,13 +50,16 @@ h3 {
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
-    transform: translate(-50%, -50%);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
 }
 
 h2267284643634 { 
     top: 25%;
     left: 50%;
 
+    font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
@@ -55,6 +67,8 @@ h2267284643634 {
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
-    transform: translate(-50%, -50%);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
 }
 
