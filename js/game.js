@@ -163,7 +163,7 @@ const player = {
     frames.length = 0;
     for (let i = 0; i < totalFrames; i++) {
       const frameX = i * fullFrameWidth + fullFrameWidth / 2 - playerFrameWidth / 2;
-      const frameY = animation * playerFrameHeight + fullFrameHeight / 2 - playerFrameHeight;
+      const frameY = Animation * playerFrameHeight + fullFrameHeight / 2 - playerFrameHeight;
 
       const rect = new PIXI.Rectangle(frameX, frameY, playerFrameWidth, playerFrameHeight);
 
@@ -175,7 +175,7 @@ const player = {
     };
   };
   
-  load_player_animation(0);
+  loadPlayerAnimation(0);
 
   function changeAnimation(row, loopMode = true, speed = 0.2, forcedLock = false) {
     // 1. CRITICAL: If an animation is locked, reject all incoming changes unless forced
