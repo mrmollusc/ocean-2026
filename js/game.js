@@ -96,6 +96,7 @@ let world;
 let boxGraphic;
 let current_room = "room_2";
 let current_room_id = "1";
+let playerState;
 
 ///////////////////////////////////////////
 //PLAYER DATA
@@ -124,13 +125,14 @@ const player = {
 };
   
 //TEXTURES
-  const ralsei_texture = await PIXI.Assets.load("ralsei.webp");
-  const heart_texture = await PIXI.Assets.load("heart.png");
+  const ralsei_texture = await PIXI.Assets.load("assets/ralsei.webp");
+  const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
+  const heart_texture = await PIXI.Assets.load("assets/heart.png");
 
-  const up_arrow_texture = await PIXI.Assets.load("up_dir.png");
-  const right_arrow_texture = await PIXI.Assets.load("right_dir.png");
-  const left_arrow_texture = await PIXI.Assets.load("left_dir.png");
-  const down_arrow_texture =  await PIXI.Assets.load("down_dir.png");
+  const up_arrow_texture = await PIXI.Assets.load("assets/up_dir.png");
+  const right_arrow_texture = await PIXI.Assets.load("assets/right_dir.png");
+  const left_arrow_texture = await PIXI.Assets.load("assets/left_dir.png");
+  const down_arrow_texture =  await PIXI.Assets.load("assets/down_dir.png");
 
   const arrowTextures = {
     up: up_arrow_texture,
@@ -140,6 +142,32 @@ const player = {
   };
   
   export {up_arrow_texture, right_arrow_texture, left_arrow_texture, down_arrow_texture};
+
+  //PIXI ANIMATION FRAMES (CRIMSON)
+  const playerFrameWidth = 32;
+  const playerFrameHeight = 32;
+  const fullFrameWidth = 128;
+  const fullFrameHeight = 128;
+  const totalFrames = 5;
+
+  const frames = [];
+
+  function loadPlayerAnimation(Animation) {
+    for (let i = 0; i < totalFrames; i++) {
+      const frameX = i * fullFrameWidth + fullFrameWidth / 2 - playerFrameWidth / 2;
+      const frameY = Animation * playerFrameHeight + fullFrameHeight / 2 - playerFrameHeight;
+
+      const rect = new PIXI.Rectangle(frameX, frameY, playerFrameWidth, playerFrameHeight);
+
+      const texture = new PIXI.Texture({
+        source: crimson_texture,
+        frame: rect
+      });
+      frames.push(texture);
+    };
+  };
+  
+  loadPlayerAnimation(0);
 
 ////////////////////////////////////////
 //PIXI INIT + WORLD CONTAINER
@@ -747,11 +775,14 @@ const player = {
 
   //player sprite
   async function createPlayerSprite() {
-    boxGraphic = new PIXI.Sprite(ralsei_texture);
+    //boxGraphic = new PIXI.Sprite(ralsei_texture);
+    boxGraphic = new PIXI.AnimatedSprite(frames);
+    boxGraphic.animationSpeed = 0.1;
+    boxGraphic.play();
     boxGraphic.zIndex = "8";
     boxGraphic.width = PLAYER_WIDTH;
     boxGraphic.height = PLAYER_HEIGHT;
-    boxGraphic.anchor.set(0.5, 0.5);
+    boxGraphic.anchor.set(0.5, 0.25);
     world.addChild(boxGraphic);
 
     Composite.add(engine.world, [box]);
@@ -922,6 +953,27 @@ const player = {
       }     
     }
 
+    //PLAYERSTATE
+    
+    //PLAYERSTATE LOGIC
+    if (playerState == "idle") {
+      loadPlayerAnimation(0);
+      boxGraphic.animationSpeed = 0.1;
+    }
+    if (playerState == "moving") {
+      //loadPlayerAnimation(0);
+      boxGraphic.animationSpeed = 0.2;
+    }
+    if (playerState == "dashing") {
+      loadPlayerAnimation(1);
+    }
+    if (player.is_zapping) {
+      // Handle zapping state logic
+    }
+    if (player.is_healing) {
+      // Handle healing state logic
+    }
+
     //healthbar update
     update_healthbar();
 
@@ -1020,7 +1072,7 @@ const player = {
 
     Matter.Body.setVelocity(box, { x: v1x, y: v1y });
     boxGraphic.position.set(box.position.x, box.position.y);
-    boxGraphic.rotation = box.angle;
+    boxGraphic.rotation = box.angle + Math.PI / 2;
 
     const speed = Math.sqrt(v1x * v1x + v1y * v1y);
     if (speed > 0.1) {
@@ -1037,8 +1089,21 @@ const player = {
 
       Matter.Body.setAngle(box, box.angle + angleDiff * rotationSpeed);
     }
+      //PLAYERSTATE
+
+      //SETTING PLAYERSTATE
+    if (player.is_dashing) {
+      playerState = "dashing"
+    } else {
+      if (speed > PLAYER_ACCEL) {
+        playerState = "moving"
+      } else {
+        playerState = "idle"
+      };
+    };
+    console.log(`${playerState}`)
     boxGraphic.position.set(box.position.x, box.position.y);
-    boxGraphic.rotation = box.angle;
+    boxGraphic.rotation = box.angle + Math.PI / 2;
 
     /////////////////////////////////////////
     //CAMERA FOLLOW SYSTEM
