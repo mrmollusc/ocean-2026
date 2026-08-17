@@ -13,6 +13,9 @@ import {
 //import room data
 import { room_data } from "./room_data.js";
 
+//import text
+import { dialogues } from "./Dialogue.js";
+
 //////////////////////////////////////////////
   // for all bullet manager and bullet graphics, scroll down
 ///////////////////////////////////////////
@@ -33,15 +36,15 @@ const PLAYER_MAX_SPEED = 7;
 const PLAYER_HEAL_SPEED = 1;
 
 //player body size
-const PLAYER_WIDTH = 100;
-const PLAYER_HEIGHT = 100;
+const PLAYER_WIDTH = 96;
+const PLAYER_HEIGHT = 96;
 
 //player health and damage
 const PLAYER_MAX_HEALTH = 100;
 const PLAYER_IFRAME_DURATION = 100;
 
 //player rotate smooth stuff
-const rotationSpeed = 0.001; //Lower = slower turning, Higher = faster turning (0.0 to 1.0)
+const rotationSpeed = 0.001; 
 
 //damage
 const TRASH_DAMAGE = 5;
@@ -55,7 +58,7 @@ const DASH_COOLDOWN = 1500;
 
 //zap
 const ZAP_DURATION = 1500;
-const ZAP_COOLDOWN = 3000;
+const ZAP_COOLDOWN = 2000;
 
 //regen
 const HEAL_DURATION = 2000;
@@ -125,6 +128,7 @@ const player = {
 };
   
 //TEXTURES
+  PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
   const ralsei_texture = await PIXI.Assets.load("assets/ralsei.webp");
   const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
   const heart_texture = await PIXI.Assets.load("assets/heart.png");
@@ -152,10 +156,10 @@ const player = {
 
   const frames = [];
 
-  function loadPlayerAnimation(Animation) {
+  function load_player_animation(animation) {
     for (let i = 0; i < totalFrames; i++) {
       const frameX = i * fullFrameWidth + fullFrameWidth / 2 - playerFrameWidth / 2;
-      const frameY = Animation * playerFrameHeight + fullFrameHeight / 2 - playerFrameHeight;
+      const frameY = animation * playerFrameHeight + fullFrameHeight / 2 - playerFrameHeight;
 
       const rect = new PIXI.Rectangle(frameX, frameY, playerFrameWidth, playerFrameHeight);
 
@@ -167,7 +171,7 @@ const player = {
     };
   };
   
-  loadPlayerAnimation(0);
+  load_player_animation(0);
 
 ////////////////////////////////////////
 //PIXI INIT + WORLD CONTAINER
@@ -178,7 +182,7 @@ const player = {
     width: APP_WIDTH,
     height: APP_HEIGHT,
     backgroundColor: APP_BG_COLOR,
-    antialias: true,
+    antialias: false,
   });
 
   world = new PIXI.Container();
@@ -255,6 +259,9 @@ const player = {
 
   let bullets = [];
   let bullet_graphics = [];
+
+  let text_boxes = [];
+  let text_box_graphics = [];
 
   let room_label = new PIXI.Text({
     text: "room_1",
@@ -424,6 +431,11 @@ const player = {
     bullet_boxes.forEach((t) => Composite.remove(engine.world, t));
     bullet_box_graphics = [];
     bullet_boxes = [];
+
+    text_box_graphics.forEach((g) => world.removeChild(g));
+    text_boxes.forEach((t) => Composite.remove(engine.world, t));
+    text_box_graphics = [];
+    text_boxes = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -711,7 +723,7 @@ const player = {
   }
 
   //player sprite
-  async function createPlayerSprite() {
+  async function create_player() {
     //boxGraphic = new PIXI.Sprite(ralsei_texture);
     boxGraphic = new PIXI.AnimatedSprite(frames);
     boxGraphic.animationSpeed = 0.1;
@@ -719,13 +731,13 @@ const player = {
     boxGraphic.zIndex = "8";
     boxGraphic.width = PLAYER_WIDTH;
     boxGraphic.height = PLAYER_HEIGHT;
-    boxGraphic.anchor.set(0.5, 0.25);
+    boxGraphic.anchor.set(0.5, 0.5);
     world.addChild(boxGraphic);
 
     Composite.add(engine.world, [box]);
     load_rooms("room_2", 200, window.innerHeight / 2);
   }
-  await createPlayerSprite();
+  await create_player();
 
   //collisiion checker
   function check_collision(player, object) {
@@ -894,21 +906,21 @@ const player = {
     
     //PLAYERSTATE LOGIC
     if (playerState == "idle") {
-      loadPlayerAnimation(0);
+      load_player_animation(0);
       boxGraphic.animationSpeed = 0.1;
     }
     if (playerState == "moving") {
-      //loadPlayerAnimation(0);
+      //load_player_animation(0);
       boxGraphic.animationSpeed = 0.2;
     }
     if (playerState == "dashing") {
-      loadPlayerAnimation(1);
+      load_player_animation(1);
     }
     if (player.is_zapping) {
-      // Handle zapping state logic
+      
     }
     if (player.is_healing) {
-      // Handle healing state logic
+      
     }
 
     //healthbar update
@@ -1010,7 +1022,7 @@ const player = {
 
     Matter.Body.setVelocity(box, { x: v1x, y: v1y });
     boxGraphic.position.set(box.position.x, box.position.y);
-    boxGraphic.rotation = box.angle + Math.PI / 2;
+    boxGraphic.angle = 180;
 
     const speed = Math.hypot(v1x, v1y);
     /*
@@ -1042,9 +1054,6 @@ const player = {
     };
     console.log(`${playerState}`)
     */
-
-    boxGraphic.position.set(box.position.x, box.position.y);
-    boxGraphic.rotation = box.angle + Math.PI / 2;
 
     /////////////////////////////////////////
     //CAMERA FOLLOW SYSTEM
