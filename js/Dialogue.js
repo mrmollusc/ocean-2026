@@ -1,4 +1,4 @@
-export const dialogue = {
+export const dialogues = {
     name_1: [
         { speaker: "Crimson", text: "test text" },
         { speaker: "Test Dialogue", text: "It works!"},
