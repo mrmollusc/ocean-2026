@@ -1,60 +1,74 @@
 body {
-  background-color: powderblue;
+    background-image: linear-gradient(to right, rgb(27, 0, 86), rgb(97, 3, 81), rgb(4, 81, 119));
 }
-
-h1 {
-    top: 50%;
-    left: 75%;
-
-    font-family: "Mozilla Headline";
-    color: #ff11AA;
-    position: absolute;
-    background-color: rgb(66, 11, 184);
-    padding: 20px 20px 20px 20px;
-    border-radius: 20px;
-    font-size: 100px;
-    transform: translate(-50%, -50%);
+.button:hover {
+    transform: scale(1.5);
 }
-
-h2 {
-    top: 75%;
-    left: 50%;
-
-    font-family: "Mozilla Headline";
-    color: #ff11AA;
-    position: absolute;
-    background-color: rgb(66, 11, 184);
-    padding: 20px 20px 20px 20px;
-    border-radius: 20px;
-    font-size: 100px;
-    transform: translate(-50%, -50%);
-}
-
-h3 {
-    top: 50%;
+h10 {
+    top: 25%;
     left: 25%;
 
+    font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184);
+    background-color: rgb(66, 11, 184,0.3);
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
-    transform: translate(-50%, -50%);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
+}
+
+h12 {
+    top: 50%;
+    left: 42%;
+
+    font-weight: bold;
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    background-color: rgb(66, 11, 184,0.3);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 100px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
+}
+
+h223 {
+    top: 50%;
+    right: 66%;
+
+    font-weight: bold;
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    background-color: rgb(66, 11, 184,0.3);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 100px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
 }
 
 h2267284643634 { 
-    top: 25%;
-    left: 50%;
+    top: 50%;
+    left: 66%;
 
+    font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184);
+    background-color: rgb(66, 11, 184,0.3);
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
-    transform: translate(-50%, -50%);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
 }
 

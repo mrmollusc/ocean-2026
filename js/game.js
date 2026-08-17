@@ -41,7 +41,7 @@ const PLAYER_MAX_HEALTH = 100;
 const PLAYER_IFRAME_DURATION = 100;
 
 //player rotate smooth stuff
-const rotationSpeed = 0.1; //Lower = slower turning, Higher = faster turning (0.0 to 1.0)
+const rotationSpeed = 0.001; //Lower = slower turning, Higher = faster turning (0.0 to 1.0)
 
 //damage
 const TRASH_DAMAGE = 5;
@@ -384,65 +384,6 @@ const player = {
     });
   }
 
-  /*bullet array
-    class Bullet {
-        constructor(x, y, vx, vy, world, stage) {
-            this.sprite = new PIXI.Graphics()
-        .rect(-10, -10, 20, 20)
-        .fill(0xffffff);
-            this.sprite.zIndex = 5;
-            this.sprite.position.set(x, y);
-            
-            this.body = Matter.Bodies.rectangle(x, y, 20, 20, { isSensor: true });
-        Matter.World.add(world, this.body);
-        stage.addChild(this.sprite);
-
-        this.vx = vx;
-        this.vy = vy;
-        this.dead = false;
-      }
-      update(dt) {
-        Matter.Body.setVelocity(this.body, { x: this.vx, y: this.vy });
-        this.sprite.position.x = this.body.position.x;
-        this.sprite.position.y = this.body.position.y;
-      }
-
-      destroy(world, stage) {
-        Matter.World.remove(world, this.body);
-        stage.removeChild(this.sprite);
-        this.dead = true;
-      }
-    }
-
-  //bullet patterns
-    const simple_pattern = function(x, y) {
-      const pattern = [
-        new Bullet(x, y, 5, 0, engine.world, world), 
-        new Bullet(x, y, -5, 0, engine.world, world), 
-        new Bullet(x, y, 0, 5, engine.world, world),
-        new Bullet(x, y, 0, -5, engine.world, world)];
-
-      bullets.push(...pattern);
-      return pattern;
-    }
-
-    function destroyBullets() {
-      bullets.forEach((bullet) => {
-        if (!bullet) return;
-        if (bullet.destroy) {
-          bullet.destroy(engine.world, world);
-        } else if (bullet.body) {
-          Matter.World.remove(engine.world, bullet.body);
-        }
-      });
-
-      bullets = [];
-      bullet_graphics = [];
-    }
-      */
-
-
-
   //everything loader
   function load_rooms(roomKey, spawnX, spawnY) {
     current_room = roomKey;
@@ -483,11 +424,6 @@ const player = {
     bullet_boxes.forEach((t) => Composite.remove(engine.world, t));
     bullet_box_graphics = [];
     bullet_boxes = [];
-
-    bullet_graphics.forEach((g) => world.removeChild(g));
-    bullets.forEach((t) => Composite.remove(engine.world, t));
-    bullet_graphics = [];
-    bullets = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -619,7 +555,7 @@ const player = {
       bullet_box_graphics.push(bullet_box_graphic);
       world.addChild(bullet_box_graphic);
 
-      bullet_box_obj._nextShotAt = 0;
+      /*bullet_box_obj._nextShotAt = 0;
       bullet_box_obj.bullets.forEach((bullet_obj) => {
         const speed = Number(bullet_box_obj.bullet_speed ?? 1);
         const bullet = new defaultBullet(
@@ -633,7 +569,8 @@ const player = {
         bullet.sprite.zIndex = 6;
         bullets.push(bullet);
         bullet_graphics.push(bullet.sprite);
-      });
+        
+      });*/
     });
 
     data.snails.forEach((snail_obj) => {
@@ -976,7 +913,8 @@ const player = {
 
     //healthbar update
     update_healthbar();
-
+    //bullet stuff
+    /*
     const now = performance.now();
 
     room_data[current_room]?.bullet_boxes?.forEach((bullet_box_obj, boxIndex) => {
@@ -1021,7 +959,7 @@ const player = {
         bullets.splice(i, 1);
       }
     }
-
+*/
     //snail moves
     snail_movement();
 
@@ -1074,7 +1012,8 @@ const player = {
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.rotation = box.angle + Math.PI / 2;
 
-    const speed = Math.sqrt(v1x * v1x + v1y * v1y);
+    const speed = Math.hypot(v1x, v1y);
+    /*
     if (speed > 0.1) {
       const targetAngle = Math.atan2(v1y, v1x);
 
@@ -1102,6 +1041,8 @@ const player = {
       };
     };
     console.log(`${playerState}`)
+    */
+
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.rotation = box.angle + Math.PI / 2;
 
