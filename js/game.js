@@ -99,13 +99,13 @@ let world;
 let boxGraphic;
 let current_room = "room_2";
 let current_room_id = "1";
-let playerState;
 
 ///////////////////////////////////////////
 //PLAYER DATA
 ////////////////////////////////////////////
 
 const player = {
+  state: "",
   chapter: 1,
   dealt_nuts: false,
 
@@ -609,6 +609,25 @@ const player = {
       });
     });
 
+    data.text_boxes.forEach((text_obj) => {
+      const text_body = Bodies.rectangle(text_obj.x, text_obj.y, text_obj.w, text_obj.h, {
+        isStatic: true,
+        restitution: 1,
+        friction: 0,
+      });
+
+      const text_graphic = new PIXI.Graphics()
+        .rect(-text_obj.w / 2, -text_obj.h / 2, text_obj.w, text_obj.h)
+        .fill(0xFF0000);
+
+      text_graphic.position.set(text_obj.x, text_obj.y);
+      world.addChild(text_graphic);
+
+      walls.push(text_body);
+      wall_graphics.push(text_graphic);
+      Composite.add(engine.world, text_body);
+    });
+
 
 
     //end of loading objects
@@ -781,17 +800,35 @@ const player = {
     let v1y = box.velocity.y;
 
     //WASD
-    if (keys["KeyD"] && player.can_move == true)
+    if (keys["KeyD"] && player.can_move == true){
       v1x = Math.min(v1x + player.acceleration, player.max_speed);
-    else if (keys["KeyA"] && player.can_move == true)
+      player.state = "moving";
+    }
+    else if (keys["KeyA"] && player.can_move == true){
       v1x = Math.max(v1x - player.acceleration, -player.max_speed);
-    else v1x = v1x * 0.9;
+      player.state = "moving";
+    }
+      
+    else{
+      v1x = v1x * 0.9;
+      player.state = "idle";
 
-    if (keys["KeyS"] && player.can_move == true)
+    } 
+
+    if (keys["KeyS"] && player.can_move == true){
       v1y = Math.min(v1y + player.acceleration, player.max_speed);
-    else if (keys["KeyW"] && player.can_move == true)
+      player.state = "moving";
+    }
+      
+    else if (keys["KeyW"] && player.can_move == true){
       v1y = Math.max(v1y - player.acceleration, -player.max_speed);
-    else v1y = v1y * 0.9;
+      player.state = "moving"
+    }
+
+    else{
+      v1y = v1y * 0.9;
+      player.state = "idle";
+    }
 
     const nextX = box.position.x + v1x;
     const nextY = box.position.y + v1y;
@@ -813,7 +850,7 @@ const player = {
         if (player.is_dashing) return;
 
         player.can_heal = false;
-
+        player.state = "dashing";
         player.max_speed = DASH_SPEED;
         player.acceleration = DASH_ACCEL;
         player.can_dash = false;
@@ -827,6 +864,7 @@ const player = {
         }, DASH_DURATION);
 
         setTimeout(() => {
+          player.state = "idle";
           player.can_dash = true;
         }, DASH_COOLDOWN);
       }
@@ -902,18 +940,18 @@ const player = {
       }     
     }
 
-    //PLAYERSTATE
+    //player.state
     
-    //PLAYERSTATE LOGIC
-    if (playerState == "idle") {
+    //player.state LOGIC
+    if (player.state == "idle") {
       load_player_animation(0);
+      boxGraphic.animationSpeed = 0;
+    }
+    if (player.state == "moving") {
+      //load_player_animation(0);
       boxGraphic.animationSpeed = 0.1;
     }
-    if (playerState == "moving") {
-      //load_player_animation(0);
-      boxGraphic.animationSpeed = 0.2;
-    }
-    if (playerState == "dashing") {
+    if (player.state == "dashing") {
       load_player_animation(1);
     }
     if (player.is_zapping) {
@@ -1040,19 +1078,19 @@ const player = {
 
       Matter.Body.setAngle(box, box.angle + angleDiff * rotationSpeed);
     }
-      //PLAYERSTATE
+      //player.state
 
-      //SETTING PLAYERSTATE
+      //SETTING player.state
     if (player.is_dashing) {
-      playerState = "dashing"
+      player.state = "dashing"
     } else {
       if (speed > PLAYER_ACCEL) {
-        playerState = "moving"
+        player.state = "moving"
       } else {
-        playerState = "idle"
+        player.state = "idle"
       };
     };
-    console.log(`${playerState}`)
+    console.log(`${player.state}`)
     */
 
     /////////////////////////////////////////

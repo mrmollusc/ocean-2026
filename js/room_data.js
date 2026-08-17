@@ -1,5 +1,5 @@
 //room data
-
+  import {dialogues} from "./Dialogue.js";
   let room_data = {
     //default room example template
     /* 
@@ -15,7 +15,8 @@
         hearts: [],
         snails: [],
         force_blocks:[],
-        bullet_boxes:[]
+        bullet_boxes:[],
+        text_boxes:[]
     }*/
     //btw room x and y pos measured from their center
     room_1: {
@@ -64,7 +65,8 @@
         bullet_speed: 4,
         colour: 0xffffff,
         bullets: [{vx: 1, vy: 0}, {vx: -1, vy: 0}, {vx: 0, vy: 1}, {vx: 0, vy: -1}]
-      }]
+      }],
+      text_boxes:[{x: 200, y: 200, w: 100, h: 100, text: 'not yet'}]
     },
 
     room_2: {
@@ -121,7 +123,8 @@
           { vx: 0, vy: 1 },
           { vx: 0, vy: -1 }
         ]
-      }]
+      }],
+      text_boxes:[]
     },
 
     room_3: {
@@ -157,7 +160,8 @@
       ],
       snails: [],
       force_blocks:[],
-      bullet_boxes:[]
+      bullet_boxes:[],
+      text_boxes:[]
     },
 
     room_4: {
@@ -183,7 +187,8 @@
         hearts: [],
         snails: [],
       force_blocks:[],
-      bullet_boxes:[]
+      bullet_boxes:[],
+      text_boxes:[]
     }
   };
 
