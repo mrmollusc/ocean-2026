@@ -41,7 +41,7 @@ const PLAYER_MAX_HEALTH = 100;
 const PLAYER_IFRAME_DURATION = 100;
 
 //player rotate smooth stuff
-const rotationSpeed = 0.001; //Lower = slower turning, Higher = faster turning (0.0 to 1.0)
+const rotationSpeed = 0.1; //Lower = slower turning, Higher = faster turning (0.0 to 1.0)
 
 //damage
 const TRASH_DAMAGE = 5;
@@ -97,6 +97,8 @@ let boxGraphic;
 let current_room = "room_2";
 let current_room_id = "1";
 let playerState;
+let isAnimationLocked = false;
+let currentPlayingRow = -1;
 
 ///////////////////////////////////////////
 //PLAYER DATA
@@ -153,6 +155,7 @@ const player = {
   const frames = [];
 
   function loadPlayerAnimation(Animation) {
+    frames.length = 0;
     for (let i = 0; i < totalFrames; i++) {
       const frameX = i * fullFrameWidth + fullFrameWidth / 2 - playerFrameWidth / 2;
       const frameY = Animation * playerFrameHeight + fullFrameHeight / 2 - playerFrameHeight;
@@ -168,6 +171,28 @@ const player = {
   };
   
   loadPlayerAnimation(0);
+
+  function changeAnimation(row, loopMode = true, speed = 0.2, forcedLock = false) {
+    // 1. CRITICAL: If an animation is locked, reject all incoming changes unless forced
+    if (isAnimationLocked && !forcedLock) {
+      return; 
+    }
+
+    // 2. Prevent resetting if the exact same animation is already running
+    if (currentPlayingRow === row) return; 
+    currentPlayingRow = row;
+
+    // 3. Apply the forced lock flag if this is a dash/special move
+    if (forcedLock) {
+      isAnimationLocked = true;
+    }
+
+    loadPlayerAnimation(row);       
+    boxGraphic.textures = frames;   
+    boxGraphic.loop = loopMode;     
+    boxGraphic.animationSpeed = speed; 
+    boxGraphic.gotoAndPlay(0);      
+  }
 
 ////////////////////////////////////////
 //PIXI INIT + WORLD CONTAINER
@@ -807,6 +832,8 @@ const player = {
         player.can_dash = false;
         player.is_dashing = true;
 
+        triggerDash();
+
         setTimeout(() => {
           player.max_speed = PLAYER_MAX_SPEED;
           player.acceleration = PLAYER_ACCEL;
@@ -890,27 +917,7 @@ const player = {
       }     
     }
 
-    //PLAYERSTATE
     
-    //PLAYERSTATE LOGIC
-    if (playerState == "idle") {
-      loadPlayerAnimation(0);
-      boxGraphic.animationSpeed = 0.1;
-    }
-    if (playerState == "moving") {
-      //loadPlayerAnimation(0);
-      boxGraphic.animationSpeed = 0.2;
-    }
-    if (playerState == "dashing") {
-      loadPlayerAnimation(1);
-    }
-    if (player.is_zapping) {
-      // Handle zapping state logic
-    }
-    if (player.is_healing) {
-      // Handle healing state logic
-    }
-
     //healthbar update
     update_healthbar();
     //bullet stuff
@@ -1013,7 +1020,6 @@ const player = {
     boxGraphic.rotation = box.angle + Math.PI / 2;
 
     const speed = Math.hypot(v1x, v1y);
-    /*
     if (speed > 0.1) {
       const targetAngle = Math.atan2(v1y, v1x);
 
@@ -1031,17 +1037,68 @@ const player = {
       //PLAYERSTATE
 
       //SETTING PLAYERSTATE
-    if (player.is_dashing) {
-      playerState = "dashing"
-    } else {
-      if (speed > PLAYER_ACCEL) {
-        playerState = "moving"
+    //PLAYERSTATE
+    
+    //PLAYERSTATE LOGIC
+    if (!isAnimationLocked) {
+      if (player.is_zapping) {
+        playerState = "zapping";
+      } else if (player.is_healing) {
+        playerState = "healing";
+      } else if (speed > 1.0) { 
+        playerState = "moving";
       } else {
-        playerState = "idle"
+        playerState = "idle";
+      }
+      
+      updatePlayerAnimation();
+    }
+
+    console.log(`State: ${playerState} | Locked: ${isAnimationLocked}`);
+
+    // ==========================================
+    // ANIMATION ARCHITECTURE FUNCTIONS
+    // ==========================================
+    function updatePlayerAnimation() {
+      if (isAnimationLocked) return; 
+
+      if (player.is_zapping) {
+        changeAnimation(2, true, 0.2);
+        return;
+      }
+      if (player.is_healing) {
+        changeAnimation(3, true, 0.2);
+        return;
+      }
+
+      if (playerState === "moving") {
+        changeAnimation(0, true, 0.2); 
+      } else if (playerState === "idle") {
+        changeAnimation(0, true, 0.1); 
+      }
+    }
+
+    function triggerDash() {
+      if (isAnimationLocked) return; 
+
+      playerState = "dashing";
+      changeAnimation(1, false, 0.2, true); 
+
+      boxGraphic.onComplete = () => {
+        isAnimationLocked = false; 
+        boxGraphic.onComplete = null; 
+        currentPlayingRow = -1; 
+        
+        if (speed > 1.0) {
+          playerState = "moving";
+        } else {
+          playerState = "idle";
+        }
+        
+        updatePlayerAnimation();
       };
-    };
+    }
     console.log(`${playerState}`)
-    */
 
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.rotation = box.angle + Math.PI / 2;
