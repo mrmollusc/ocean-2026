@@ -134,7 +134,7 @@ const player = {
   PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
   const ralsei_texture = await PIXI.Assets.load("assets/ralsei.webp");
   const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
-  const heart_texture = await PIXI.Assets.load("assets/heart.png");
+  const heart_texture = await PIXI.Assets.load("assets/bottle.png");
 
   const up_arrow_texture = await PIXI.Assets.load("assets/up_dir.png");
   const right_arrow_texture = await PIXI.Assets.load("assets/right_dir.png");
