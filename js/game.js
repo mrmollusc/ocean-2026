@@ -277,6 +277,9 @@ const player = {
   let snails = [];
   let snail_graphics = [];
 
+  let jellys = [];
+  let jelly_graphics = [];
+
   let forces = [];
   let force_graphics = [];
 
