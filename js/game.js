@@ -451,6 +451,11 @@ const player = {
     snail_graphics = [];
     snails = [];
 
+    jelly_graphics.forEach((g) => world.removeChild(g));
+    jellys.forEach((t) => Composite.remove(engine.world, t));
+    jelly_graphics = [];
+    jellys = [];
+
     force_graphics.forEach((g) => world.removeChild(g));
     forces.forEach((t) => Composite.remove(engine.world, t));
     force_graphics = [];
@@ -635,6 +640,30 @@ const player = {
       Matter.Body.setVelocity(snail_body, {
         x: snail_obj.x_vel,
         y: snail_obj.y_vel,
+      });
+    });
+
+    data.jellys.forEach((jelly_obj) => {
+      const jelly_body = Bodies.rectangle(jelly_obj.x, jelly_obj.y, 50, 50, {
+        isStatic: false,
+        restitution: 1,
+        friction: 0,
+        collisionFilter: { group: -1, mask: 0 },
+      });
+
+      const jelly_graphic = new PIXI.Graphics()
+        .rect(-25, -25, 50, 50)
+        .fill(0xf0a0f0);
+
+      jelly_graphic.position.set(jelly_obj.x, jelly_obj.y);
+      world.addChild(jelly_graphic);
+
+      jellys.push(jelly_body);
+      jelly_graphics.push(jelly_graphic);
+      Composite.add(engine.world, jelly_body);
+      Matter.Body.setVelocity(jelly_body, {
+        x: jelly_obj.x_vel,
+        y: jelly_obj.y_vel,
       });
     });
 
