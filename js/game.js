@@ -102,6 +102,7 @@ let current_room_id = "1";
 let playerState;
 let isAnimationLocked = false;
 let currentPlayingRow = -1;
+let inconspicuous_variable_that_counts_how_long_between_snail_movement_has_elapsed_uwu = performance.now();
 
 ///////////////////////////////////////////
 //PLAYER DATA
@@ -648,7 +649,10 @@ const player = {
         isStatic: false,
         restitution: 1,
         friction: 0,
-        collisionFilter: { group: -1, mask: 0 },
+        collisionFilter: { 
+      category: 0, 
+      mask: 0 
+    },
       });
 
       const jelly_graphic = new PIXI.Graphics()
@@ -661,10 +665,6 @@ const player = {
       jellys.push(jelly_body);
       jelly_graphics.push(jelly_graphic);
       Composite.add(engine.world, jelly_body);
-      Matter.Body.setVelocity(jelly_body, {
-        x: jelly_obj.x_vel,
-        y: jelly_obj.y_vel,
-      });
     });
 
     data.text_boxes.forEach((text_obj) => {
@@ -780,6 +780,29 @@ const player = {
   function snail_movement() {
     update_snail(current_room);
   }
+
+  function update_jelly(roomKey) {
+  const data = room_data[roomKey];
+
+  data.jellys.forEach((jelly_obj, index) => {
+    const jelly_body = jellys[index];
+    const jelly_graphic = jelly_graphics[index];
+
+    const dx = box.position.x - jelly_body.position.x;
+    const dy = box.position.y - jelly_body.position.y;
+    const angle = Math.atan2(dy, dx);
+    
+    const speed = Math.sqrt(distance_between(box, jelly_body))/10;
+    const move_x = Math.cos(angle) * speed;
+    const move_y = Math.sin(angle) * speed;
+
+    Matter.Body.setVelocity(jelly_body, { x: move_x, y: move_y });
+
+    jelly_obj.x = jelly_body.position.x;
+    jelly_obj.y = jelly_body.position.y;
+    jelly_graphic.position.set(jelly_body.position.x, jelly_body.position.y);
+  });
+}
 
   function would_collide_with_wall(x, y) {
     const half_size = (PLAYER_WIDTH * 0.5) - 2;
@@ -1053,6 +1076,11 @@ const player = {
     //snail moves
     snail_movement();
 
+    //jelly moves
+    update_jelly(current_room)
+    
+
+
     //register damage and activate iframes
     trashes.forEach((trash_body) => {
       if (player.iframe == false && check_collision(box, trash_body)) {
@@ -1134,7 +1162,7 @@ const player = {
       updatePlayerAnimation();
     }
 
-    console.log(`State: ${playerState} | Locked: ${isAnimationLocked}`);
+    //console.log(`State: ${playerState} | Locked: ${isAnimationLocked}`);
 
     
     //swap anims
@@ -1179,7 +1207,7 @@ const player = {
         updatePlayerAnimation();
       };
     }
-    console.log(`${playerState}`)
+    //console.log(`${playerState}`)
 
     /////////////////////////////////////////
     //CAMERA FOLLOW SYSTEM

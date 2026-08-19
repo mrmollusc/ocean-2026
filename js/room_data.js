@@ -110,7 +110,7 @@
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
       ],
-      jellys: [],
+      jellys: [{x: 100, y: 100}],
       force_blocks:[],
       bullet_boxes:[{
         x: 500,
