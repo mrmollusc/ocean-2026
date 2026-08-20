@@ -4,6 +4,9 @@ body {
 .button:hover {
     transform: scale(1.5);
 }
+div:hover {
+    transform: scale(1.1);
+}
 a {
   text-decoration: none; 
   color: inherit;       
@@ -24,6 +27,11 @@ div {
     transition: all 0.25s ease-in-out;
     width: 9%;
     height: 16%;
+    text-align: center;
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 #controls {
     left: 10%;
@@ -42,7 +50,7 @@ div {
     width: 12%;
 }
 h9 {
-    top: 25%;
+    top: 15%;
     left: 37%;
 
     font-weight: bold;
@@ -126,30 +134,33 @@ h2267284643634 {
 }
 
 #w {
-    top:50%;
+    top:34%;
     left:20%;
 }
 #a {
-    top:65%;
-    left:5%;
+    top:55%;
+    left:8.5%;
 }
 #s {
-    top:65%;
+    top:55%;
     left:20%
 }
 #d {
-    top:65%;
-    left:35%;
+    top:55%;
+    left:31.5%;
 }
 #space {
-    top:50%;
-    left:70%;
+    flex-direction:row;
+    height:10%;
+    width:20%;
+    top:80%;
+    left:37%;
 }
 #k {
     top:80%;
     left:10%
 }
-#l {
+#o {
     top:90%;
     left:10%;
 }
