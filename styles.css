@@ -4,6 +4,42 @@ body {
 .button:hover {
     transform: scale(1.5);
 }
+a {
+  text-decoration: none; 
+  color: inherit;       
+  all: unset;
+  cursor: pointer;
+}
+div {
+    font-weight: normal;
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    background-color: rgb(66, 11, 184,0.3);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 48px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
+    width: 12%;
+}
+h9 {
+    top: 25%;
+    left: 37%;
+
+    font-weight: bold;
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    background-color: rgb(66, 11, 184,0.3);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 100px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
+}
 h10 {
     top: 25%;
     left: 25%;
@@ -72,3 +108,31 @@ h2267284643634 {
     transition: all 0.25s ease-in-out;
 }
 
+#w {
+    top:50%;
+    left:20%;
+}
+#a {
+    top:60%;
+    left:10%;
+}
+#s {
+    top:60%;
+    left:00%
+}
+#d {
+    top:60%;
+    left:30%;
+}
+#space {
+    top:60%;
+    left:10%;
+}
+#k {
+    top:80%;
+    left:10%
+}
+#l {
+    top:90%;
+    left:10%;
+}
