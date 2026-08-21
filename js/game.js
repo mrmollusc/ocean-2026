@@ -781,10 +781,6 @@ const player = {
     });
   }
 
-  function snail_movement() {
-    update_snail(current_room);
-  }
-
   function update_jelly(roomKey) {
   const data = room_data[roomKey];
 
