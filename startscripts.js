@@ -3,6 +3,11 @@ const a = document.getElementById('a');
 const s = document.getElementById('s');
 const d = document.getElementById('d');
 
+const wa = document.getElementById('wa');
+const aa = document.getElementById('aa');
+const sa = document.getElementById('sa');
+const da = document.getElementById('da');
+
 const space = document.getElementById('space');
 const k = document.getElementById('k');
 const o = document.getElementById('o');
@@ -39,6 +44,22 @@ addEventListener('keydown',(e) =>{
          
       case 'o':
          o.style.color = 'red'
+         break;
+         
+      case 'ArrowUp':
+         wa.style.color = 'red'
+         break;
+
+      case 'ArrowDown':
+         sa.style.color = 'red'
+         break;
+      
+      case 'ArrowLeft':
+         aa.style.color = 'red'
+         break;
+      
+      case 'ArrowRight':
+         da.style.color = 'red'
          break;
 
       default:
@@ -77,6 +98,22 @@ addEventListener('keyup',(e)=>{
          o.style.color = 'black'
          break;
 
+      case 'ArrowUp':
+         wa.style.color = 'black'
+         break;
+
+      case 'ArrowDown':
+         sa.style.color = 'black'
+         break;
+      
+      case 'ArrowLeft':
+         aa.style.color = 'black'
+         break;
+      
+      case 'ArrowRight':
+         da.style.color = 'black'
+         break;
+
       default:
          break;
    }
@@ -88,9 +125,17 @@ function toggle(){
       toggle_flag = false;
 
       w.style.opacity = 0;
-      a.style.display = 'block';
-      s.style.display = 'block';
-      d.style.display = 'block';
+      a.style.opacity = 0;
+      s.style.opacity = 0;
+      d.style.opacity = 0;
+      k.style.opacity = 0;
+      o.style.opacity = 0;
+
+      wa.style.opacity = 1;
+      aa.style.opacity = 1;
+      sa.style.opacity = 1;
+      da.style.opacity = 1;
+
 
       return;
    }
@@ -99,9 +144,17 @@ function toggle(){
       toggle_flag = true;
 
       w.style.opacity = 1;
-      a.style.display = 'none';
-      s.style.display = 'none';
-      d.style.display = 'none';
+      a.style.opacity = 1;
+      s.style.opacity = 1;
+      d.style.opacity = 1;
+      k.style.opacity = 1;
+      o.style.opacity = 1;
+
+      wa.style.opacity = 0;
+      aa.style.opacity = 0;
+      sa.style.opacity = 0;
+      da.style.opacity = 0;
+
 
       return;
    }
