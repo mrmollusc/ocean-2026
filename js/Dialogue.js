@@ -7,5 +7,6 @@ export const dialogues = {
 };
 
 export function dialogue(npc, number) {
-    
+    const line = dialogues[npc][number];
+    console.log(`${line.speaker}: ${line.text}`);
 }

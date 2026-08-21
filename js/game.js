@@ -14,7 +14,10 @@ import {
 import { room_data } from "./room_data.js";
 
 //import text
-import { dialogues } from "./Dialogue.js";
+import { 
+  dialogues,
+  dialogue 
+} from "./Dialogue.js";
 
 //////////////////////////////////////////////
   // for all bullet manager and bullet graphics, scroll down
@@ -44,7 +47,7 @@ const PLAYER_MAX_HEALTH = 100;
 const PLAYER_IFRAME_DURATION = 100;
 
 //player rotate smooth stuff
-const rotationSpeed = 0.0; //Lower = slower turning, Higher = faster turning (0.0 to 1.0)
+const rotationSpeed = 0.1; //Lower = slower turning, Higher = faster turning (0.0 to 1.0)
 
 //damage
 const TRASH_DAMAGE = 5;
@@ -162,8 +165,8 @@ const player = {
   function loadPlayerAnimation(Animation) {
     frames.length = 0;
     for (let i = 0; i < totalFrames; i++) {
-      const frameX = i * fullFrameWidth + fullFrameWidth / 2 - playerFrameWidth / 2;
-      const frameY = Animation * playerFrameHeight + fullFrameHeight / 2 - playerFrameHeight;
+      const frameX = i * fullFrameWidth;
+      const frameY = Animation * playerFrameHeight;
 
       const rect = new PIXI.Rectangle(frameX, frameY, playerFrameWidth, playerFrameHeight);
 
@@ -177,17 +180,17 @@ const player = {
   
   loadPlayerAnimation(0);
 
-  function changeAnimation(row, loopMode = true, speed = 0.2, forcedLock = false) {
-    // 1. CRITICAL: If an animation is locked, reject all incoming changes unless forced
+  function changeAnimation(row, loopMode = true, animationSpeed = 0.2, forcedLock = false) {
+    //if anim locked then reject
     if (isAnimationLocked && !forcedLock) {
       return; 
     }
 
-    // 2. Prevent resetting if the exact same animation is already running
-    if (currentPlayingRow === row) return; 
+    //if same anim is playing then reject
+    if (currentPlayingRow === row && boxGraphic.animationSpeed === animationSpeed) return; 
     currentPlayingRow = row;
 
-    // 3. Apply the forced lock flag if this is a dash/special move
+    //will lock if special ability
     if (forcedLock) {
       isAnimationLocked = true;
     }
@@ -195,8 +198,9 @@ const player = {
     loadPlayerAnimation(row);       
     boxGraphic.textures = frames;   
     boxGraphic.loop = loopMode;     
-    boxGraphic.animationSpeed = speed; 
-    boxGraphic.gotoAndPlay(0);      
+    boxGraphic.animationSpeed = animationSpeed;
+    boxGraphic.gotoAndPlay(0);
+    console.log(`${animationSpeed}`)
   }
 
 ////////////////////////////////////////
@@ -712,7 +716,7 @@ const player = {
   }
 
   //snail movement
-  function update_snail(roomKey) {
+  function snail_movement(roomKey) {
     const data = room_data[roomKey];
 
     data.snails.forEach((snail_obj, index) => {
@@ -743,10 +747,6 @@ const player = {
       snail_obj.y = snail_body.position.y;
       snail_graphic.position.set(snail_obj.x, snail_obj.y);
     });
-  }
-
-  function snail_movement() {
-    update_snail(current_room);
   }
 
   function would_collide_with_wall(x, y) {
@@ -816,7 +816,7 @@ const player = {
     keys[event.code] = false;
   });
 
-  
+  dialogue("name_1", 0)
   //important start or main game loop
   app.ticker.add((ticker) => {
 
@@ -826,34 +826,38 @@ const player = {
     let v1y = box.velocity.y;
 
     //WASD
+    let isMovingHorizontally;
+    let isMovingVertically;
+    let isMoving;
+
     if (keys["KeyD"] && player.can_move == true){
       v1x = Math.min(v1x + player.acceleration, player.max_speed);
-      player.state = "moving";
+      isMovingHorizontally = true;
     }
     else if (keys["KeyA"] && player.can_move == true){
       v1x = Math.max(v1x - player.acceleration, -player.max_speed);
-      player.state = "moving";
+      isMovingHorizontally = true;
     }
       
-    else{
-      v1x = v1x * 0.9;
-      player.state = "idle";
-
-    } 
-
     if (keys["KeyS"] && player.can_move == true){
       v1y = Math.min(v1y + player.acceleration, player.max_speed);
-      player.state = "moving";
+      isMovingVertically = true;
     }
       
     else if (keys["KeyW"] && player.can_move == true){
       v1y = Math.max(v1y - player.acceleration, -player.max_speed);
-      player.state = "moving"
+      isMovingVertically = true;
     }
 
-    else{
-      v1y = v1y * 0.9;
-      player.state = "idle";
+    if (isMovingHorizontally || isMovingVertically) {
+      isMoving = true;
+    }
+    player.state = isMoving ? "moving" : "idle";
+    if (!isMovingHorizontally) {
+      v1x *= 0.9;
+    }
+    if (!isMovingVertically) {
+      v1y *= 0.9;
     }
 
     const nextX = box.position.x + v1x;
@@ -1019,7 +1023,7 @@ const player = {
     }
 */
     //snail moves
-    snail_movement();
+    snail_movement(current_room);
 
     //register damage and activate iframes
     trashes.forEach((trash_body) => {
@@ -1068,23 +1072,18 @@ const player = {
 
     Matter.Body.setVelocity(box, { x: v1x, y: v1y });
     boxGraphic.position.set(box.position.x, box.position.y);
-    boxGraphic.angle = 180;
+    boxGraphic.angle = box.angle;
 
-    const speed = Math.hypot(v1x, v1y);
+    const speed = Math.sqrt(v1x * v1x + v1y * v1y);
     if (speed > 0.1) {
       const targetAngle = Math.atan2(v1y, v1x);
-
-      const nextAngle = Matter.Vector.angle(
-        {x: Math.cos(box.angle), y: Math.sin(box.angle)},
-        {x: Math.cos(targetAngle), y: Math.sin(targetAngle)}
-      );
-
       let angleDiff = targetAngle - box.angle;
       while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
       while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-
       Matter.Body.setAngle(box, box.angle + angleDiff * rotationSpeed);
     }
+    boxGraphic.position.set(box.position.x, box.position.y);
+    boxGraphic.rotation = box.angle + Math.PI / 2;
     //PLAYERSTATE
     
     //PLAYERSTATE LOGIC
@@ -1093,7 +1092,7 @@ const player = {
         playerState = "zapping";
       } else if (player.is_healing) {
         playerState = "healing";
-      } else if (speed > 1.0) { 
+      } else if (player.state > 0.1) { 
         playerState = "moving";
       } else {
         playerState = "idle";
@@ -1102,7 +1101,7 @@ const player = {
       updatePlayerAnimation();
     }
 
-    console.log(`State: ${playerState} | Locked: ${isAnimationLocked}`);
+
 
     
     //swap anims
@@ -1119,7 +1118,7 @@ const player = {
         return;
       }
 
-      if (playerState === "moving") {
+      if (player.state === "moving") {
         changeAnimation(0, true, 0.2); 
       } else if (playerState === "idle") {
         changeAnimation(0, true, 0.1); 
@@ -1137,8 +1136,10 @@ const player = {
         isAnimationLocked = false; 
         boxGraphic.onComplete = null; 
         currentPlayingRow = -1; 
+
         
-        if (speed > 1.0) {
+        
+        if (player.state === "moving") {
           playerState = "moving";
         } else {
           playerState = "idle";
@@ -1147,7 +1148,7 @@ const player = {
         updatePlayerAnimation();
       };
     }
-    console.log(`${playerState}`)
+    console.log(`${playerState}, ${player.state}`)
 
     /////////////////////////////////////////
     //CAMERA FOLLOW SYSTEM
