@@ -4,6 +4,67 @@ body {
 .button:hover {
     transform: scale(1.5);
 }
+div:hover {
+    transform: scale(1.1);
+}
+a {
+  text-decoration: none; 
+  color: inherit;       
+  all: unset;
+  cursor: pointer;
+}
+div {
+    font-weight: normal;
+    font-family: "Mozilla Headline";
+    color: #000000;
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.3);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 48px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(255, 223, 223, 0.3);
+    transition: all 0.25s ease-in-out;
+    width: 9%;
+    height: 16%;
+    text-align: center;
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#controls {
+    left: 42%;
+    top: 20%;
+    font-weight: bold;
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    background-color: rgb(66, 11, 184,0.3);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 48px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
+    width: 12%;
+}
+h9 {
+    top: 5%;
+    left: 37%;
+
+    font-weight: bold;
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    background-color: rgb(66, 11, 184,0.3);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 100px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
+}
 h10 {
     top: 25%;
     left: 25%;
@@ -72,3 +133,34 @@ h2267284643634 {
     transition: all 0.25s ease-in-out;
 }
 
+#w {
+    top:34.5%;
+    left:15%;
+}
+#a {
+    top:55%;
+    left:3.5%;
+}
+#s {
+    top:55%;
+    left:15%
+}
+#d {
+    top:55%;
+    left:26.5%;
+}
+#space {
+    flex-direction:row;
+    height:10%;
+    width:20%;
+    top:80%;
+    left:38%;
+}
+#o {
+    top:34.5%;
+    left:72%;
+}
+#k {
+    top:55%;
+    left:60.5%;
+}

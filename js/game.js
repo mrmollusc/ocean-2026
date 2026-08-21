@@ -105,6 +105,7 @@ let current_room_id = "1";
 let playerState;
 let isAnimationLocked = false;
 let currentPlayingRow = -1;
+let inconspicuous_variable_that_counts_how_long_between_snail_movement_has_elapsed_uwu = performance.now();
 
 ///////////////////////////////////////////
 //PLAYER DATA
@@ -137,7 +138,7 @@ const player = {
   PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
   const ralsei_texture = await PIXI.Assets.load("assets/ralsei.webp");
   const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
-  const heart_texture = await PIXI.Assets.load("assets/heart.png");
+  const heart_texture = await PIXI.Assets.load("assets/bottle.png");
 
   const up_arrow_texture = await PIXI.Assets.load("assets/up_dir.png");
   const right_arrow_texture = await PIXI.Assets.load("assets/right_dir.png");
@@ -280,6 +281,9 @@ const player = {
 
   let snails = [];
   let snail_graphics = [];
+
+  let jellys = [];
+  let jelly_graphics = [];
 
   let forces = [];
   let force_graphics = [];
@@ -451,6 +455,11 @@ const player = {
     snails.forEach((t) => Composite.remove(engine.world, t));
     snail_graphics = [];
     snails = [];
+
+    jelly_graphics.forEach((g) => world.removeChild(g));
+    jellys.forEach((t) => Composite.remove(engine.world, t));
+    jelly_graphics = [];
+    jellys = [];
 
     force_graphics.forEach((g) => world.removeChild(g));
     forces.forEach((t) => Composite.remove(engine.world, t));
@@ -639,6 +648,29 @@ const player = {
       });
     });
 
+    data.jellys.forEach((jelly_obj) => {
+      const jelly_body = Bodies.rectangle(jelly_obj.x, jelly_obj.y, 50, 50, {
+        isStatic: false,
+        restitution: 1,
+        friction: 0,
+        collisionFilter: { 
+      category: 0, 
+      mask: 0 
+    },
+      });
+
+      const jelly_graphic = new PIXI.Graphics()
+        .rect(-25, -25, 50, 50)
+        .fill(0xf0a0f0);
+
+      jelly_graphic.position.set(jelly_obj.x, jelly_obj.y);
+      world.addChild(jelly_graphic);
+
+      jellys.push(jelly_body);
+      jelly_graphics.push(jelly_graphic);
+      Composite.add(engine.world, jelly_body);
+    });
+
     data.text_boxes.forEach((text_obj) => {
       const text_body = Bodies.rectangle(text_obj.x, text_obj.y, text_obj.w, text_obj.h, {
         isStatic: true,
@@ -748,6 +780,33 @@ const player = {
       snail_graphic.position.set(snail_obj.x, snail_obj.y);
     });
   }
+
+  function snail_movement() {
+    update_snail(current_room);
+  }
+
+  function update_jelly(roomKey) {
+  const data = room_data[roomKey];
+
+  data.jellys.forEach((jelly_obj, index) => {
+    const jelly_body = jellys[index];
+    const jelly_graphic = jelly_graphics[index];
+
+    const dx = box.position.x - jelly_body.position.x;
+    const dy = box.position.y - jelly_body.position.y;
+    const angle = Math.atan2(dy, dx);
+    
+    const speed = Math.sqrt(distance_between(box, jelly_body))/10;
+    const move_x = Math.cos(angle) * speed;
+    const move_y = Math.sin(angle) * speed;
+
+    Matter.Body.setVelocity(jelly_body, { x: move_x, y: move_y });
+
+    jelly_obj.x = jelly_body.position.x;
+    jelly_obj.y = jelly_body.position.y;
+    jelly_graphic.position.set(jelly_body.position.x, jelly_body.position.y);
+  });
+}
 
   function would_collide_with_wall(x, y) {
     const half_size = (PLAYER_WIDTH * 0.5) - 2;
@@ -1025,6 +1084,11 @@ const player = {
     //snail moves
     snail_movement(current_room);
 
+    //jelly moves
+    update_jelly(current_room)
+    
+
+
     //register damage and activate iframes
     trashes.forEach((trash_body) => {
       if (player.iframe == false && check_collision(box, trash_body)) {
@@ -1101,7 +1165,7 @@ const player = {
       updatePlayerAnimation();
     }
 
-
+    //console.log(`State: ${playerState} | Locked: ${isAnimationLocked}`);
 
     
     //swap anims
@@ -1149,6 +1213,7 @@ const player = {
       };
     }
     console.log(`${playerState}, ${player.state}`)
+    //console.log(`${playerState}`)
 
     /////////////////////////////////////////
     //CAMERA FOLLOW SYSTEM

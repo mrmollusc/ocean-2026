@@ -14,6 +14,7 @@
         doors: [],
         hearts: [],
         snails: [],
+        jellys: [],
         force_blocks:[],
         bullet_boxes:[],
         text_boxes:[]
@@ -50,6 +51,7 @@
       ],
       hearts: [{ x: 50, y: 50 }],
       snails: [],
+      jellys: [],
       force_blocks: [
         {x: 600, y: 300, w: 100, h: 100, velocity: {x: 7, y: 0}, textureKey: "right"},
         {x: 900, y: 300, w: 100, h: 100, velocity: {x: 0, y: 7}, textureKey: "down"},
@@ -108,6 +110,7 @@
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
       ],
+      jellys: [{x: 100, y: 100}],
       force_blocks:[],
       bullet_boxes:[{
         x: 500,
@@ -159,6 +162,7 @@
         { x: 50, y: 250 },
       ],
       snails: [],
+      jellys: [],
       force_blocks:[],
       bullet_boxes:[],
       text_boxes:[]
@@ -186,6 +190,7 @@
         ],
         hearts: [],
         snails: [],
+        jellys: [],
       force_blocks:[],
       bullet_boxes:[],
       text_boxes:[]
