@@ -7,11 +7,65 @@ body {
 div:hover {
     transform: scale(1.1);
 }
+#return:hover {
+    animation: bounce 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) infinite alternate;
+}
+#toggle {
+    top: 45%;
+    left: 40%;
+    font-weight: normal;
+    font-family: "Mozilla Headline";
+    color: #ffffff;
+    position: absolute;
+    background-color: rgba(0, 255, 30, 0.6);
+    padding: 10px 10px 10px 10px;
+    border-radius: 20px;
+    font-size: 24px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 255, 0, 0.3);
+    transition: all 0.25s ease-in-out;
+    width: 20%;
+    height: 10%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+@keyframes bounce {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-15px);
+    }
+}
 a {
   text-decoration: none; 
   color: inherit;       
   all: unset;
   cursor: pointer;
+}
+#return {
+    top: 1%;
+    left: 1%;
+    font-weight: normal;
+    font-family: "Mozilla Headline";
+    color: #ffffff;
+    position: absolute;
+    background-color: rgba(255, 30, 0, 0.6);
+    padding: 10px 10px 10px 10px;
+    border-radius: 20px;
+    font-size: 48px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(255, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
+    width: 10%;
+    height: 8%;
+    text-align: center;
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 div {
     font-weight: normal;
@@ -158,9 +212,9 @@ h2267284643634 {
 }
 #o {
     top:34.5%;
-    left:72%;
+    left:73.5%;
 }
 #k {
     top:55%;
-    left:60.5%;
+    left:62%;
 }
