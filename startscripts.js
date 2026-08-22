@@ -11,6 +11,8 @@ const da = document.getElementById('da');
 const space = document.getElementById('space');
 const k = document.getElementById('k');
 const o = document.getElementById('o');
+const ee = document.getElementById('e');
+const f = document.getElementById('f');
 const togglebutton = document.getElementById('toggle')
 
 let toggle_flag = true;
@@ -60,6 +62,14 @@ addEventListener('keydown',(e) =>{
       
       case 'ArrowRight':
          da.style.color = 'red'
+         break;
+
+      case 'f':
+         f.style.color = 'red'
+         break; 
+         
+      case 'e':
+         ee.style.color = 'red'
          break;
 
       default:
@@ -114,14 +124,23 @@ addEventListener('keyup',(e)=>{
          da.style.color = 'black'
          break;
 
-      default:
+      case 'f':
+         f.style.color = 'black'
+         break; 
+         
+      case 'e':
+         ee.style.color = 'black'
          break;
+
+      default:
+             break;
    }
 })
 
 function toggle(){
    if(toggle_flag == true){
       togglebutton.style.background = 'red';
+      togglebutton.innerHTML = 'Arrows';
       toggle_flag = false;
 
       w.style.opacity = 0;
@@ -135,12 +154,15 @@ function toggle(){
       aa.style.opacity = 1;
       sa.style.opacity = 1;
       da.style.opacity = 1;
+      f.style.opacity = 1;
+      e.style.opacity = 1;
 
 
       return;
    }
    if(toggle_flag == false){
       togglebutton.style.background = 'green';
+      togglebutton.innerHTML = 'WASD';
       toggle_flag = true;
 
       w.style.opacity = 1;
@@ -154,6 +176,8 @@ function toggle(){
       aa.style.opacity = 0;
       sa.style.opacity = 0;
       da.style.opacity = 0;
+      f.style.opacity = 0;
+      e.style.opacity = 0;
 
 
       return;
