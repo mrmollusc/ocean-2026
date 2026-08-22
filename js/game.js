@@ -1,3 +1,10 @@
+///////////////////////////////////////
+//INITIAL SETUP
+////////////////////////////////////////
+
+const { Engine, Bodies, Composite, Body } = Matter;
+const app = new PIXI.Application();
+
 ////////////////////////////////////////////
 //imports of bullets and manager
 ////////////////////////////////////////////
@@ -15,8 +22,8 @@ import { room_data } from "./room_data.js";
 
 //import text
 import { 
-  dialogues,
-  dialogue 
+  typeDialogueLogic, 
+  getDialogueLines 
 } from "./Dialogue.js";
 
 //////////////////////////////////////////////
@@ -39,8 +46,7 @@ const PLAYER_MAX_SPEED = 7;
 const PLAYER_HEAL_SPEED = 1;
 
 //player body size
-const PLAYER_WIDTH = 96;
-const PLAYER_HEIGHT = 96;
+const PLAYER_DIMENSIONS = 32;
 
 //player health and damage
 const PLAYER_MAX_HEALTH = 100;
@@ -71,8 +77,8 @@ const HEAL_COOLDOWN = 5000;
 const ROOM_TRANSITION_DELAY = 300;
 
 //app settings
-const APP_WIDTH = 1600;
-const APP_HEIGHT = 900;
+const APP_WIDTH = 800;
+const APP_HEIGHT = 450;
 const APP_BG_COLOR = 0x111111;
 
 //map
@@ -86,14 +92,27 @@ const {
   tileheight: tileHeight,
 } = mapData;
 
+//dialogue
+const dialogueBg = new PIXI.Graphics()
+    .rect(100, APP_HEIGHT - 200, APP_WIDTH - 200, 150)
+    .fill(0x000000);
+dialogueBg.alpha = 0.7;
+dialogueBg.visible = false;
+dialogueBg.zIndex = 20;
+app.stage.addChild(dialogueBg);
+
+const dialogueText = new PIXI.Text({
+    text: "",
+    style: { fontSize: 28, fill: 0xffffff, wordWrap: true, wordWrapWidth: APP_WIDTH - 240 }
+});
+dialogueText.position.set(120, APP_HEIGHT - 180);
+dialogueText.visible = false;
+dialogueText.zIndex = 21;
+app.stage.addChild(dialogueText);
+let currentDialogue = null;
+let dialogueIndex = 0;
+let dialogueActive = false;
 console.log(`Loaded a ${mapWidth}x${mapHeight} tilemap!`);
-
-///////////////////////////////////////
-//INITIAL SETUP
-////////////////////////////////////////
-
-const { Engine, Bodies, Composite, Body } = Matter;
-const app = new PIXI.Application();
 
 //////////////////////////////////////////
 // global stuff
@@ -106,6 +125,7 @@ let playerState;
 let isAnimationLocked = false;
 let currentPlayingRow = -1;
 let inconspicuous_variable_that_counts_how_long_between_snail_movement_has_elapsed_uwu = performance.now();
+let enterPressed = false;
 
 ///////////////////////////////////////////
 //PLAYER DATA
@@ -158,7 +178,7 @@ const player = {
   const playerFrameWidth = 32;
   const playerFrameHeight = 32;
   const fullFrameWidth = 128;
-  const fullFrameHeight = 128;
+  //const fullFrameHeight = 128;
   const totalFrames = 5;
 
   const frames = [];
@@ -170,6 +190,24 @@ const player = {
       const frameY = Animation * playerFrameHeight;
 
       const rect = new PIXI.Rectangle(frameX, frameY, playerFrameWidth, playerFrameHeight);
+
+      const texture = new PIXI.Texture({
+        source: crimson_texture,
+        frame: rect
+      });
+      frames.push(texture);
+    };
+  };
+
+  function loadSkillAnimation(Skill) {
+    frames.length = 0;
+    let fullSkillFrameWidth;
+    let skillFrameHeight;
+    for (let i = 0; i < totalFrames; i++) {
+      const skillFrameX = i * fullSkillFrameWidth;
+      const skillFrameY = Skill * skillFrameHeight;
+
+      const rect = new PIXI.Rectangle(skillFrameX, skillFrameY, skillFrameWidth, skillFrameHeight);
 
       const texture = new PIXI.Texture({
         source: crimson_texture,
@@ -202,6 +240,53 @@ const player = {
     boxGraphic.animationSpeed = animationSpeed;
     boxGraphic.gotoAndPlay(0);
     console.log(`${animationSpeed}`)
+  }
+
+  ///////////////////////////////////////////////////////////////////////////
+  //swap anims - for player animations
+  //////////////////////////////////////////////////////////////////////////
+    
+  function updatePlayerAnimation() {
+    if (isAnimationLocked) return; 
+
+    if (player.is_zapping) {
+      changeAnimation(2, true, 0.2);
+      return;
+    }
+    if (player.is_healing) {
+      changeAnimation(3, true, 0.2);
+      return;
+    }
+
+    if (player.state === "moving") {
+      changeAnimation(0, true, 0.2); 
+    } else if (playerState === "idle") {
+      changeAnimation(0, true, 0.1); 
+    }
+  }
+
+  //when dash, lock anim until dash anim is done
+  function triggerDash() {
+    if (isAnimationLocked) return; 
+
+    playerState = "dashing";
+    changeAnimation(1, false, 0.2, true); 
+
+    boxGraphic.onComplete = () => {
+      isAnimationLocked = false; 
+      boxGraphic.onComplete = null; 
+      currentPlayingRow = -1; 
+
+      
+      
+      if (player.state === "moving") {
+        playerState = "moving";
+      } else {
+        playerState = "idle";
+      }
+      
+      updatePlayerAnimation();
+    };
   }
 
 ////////////////////////////////////////
@@ -246,6 +331,45 @@ const player = {
   engine.gravity.y = 0;
   engine.friction = 0;
   engine.airResistance = 0;
+
+  ///////////////////////////////////////////////////////////
+  //dialogue - textures and stuff
+  //listeners for skipping dialogue is in ticker, will be below world/cam follow at bottom
+  ////////////////////////////////////////////////////////////
+  function startDialogue(npc) {
+    currentDialogue = getDialogueLines(npc);
+    dialogueIndex = 0;
+
+    dialogueBg.visible = true;
+    dialogueText.visible = true;
+    player.can_move = false;
+
+    showNextDialogueLine();
+  }
+  function showNextDialogueLine() {
+    if (!currentDialogue || dialogueIndex >= currentDialogue.length) {
+        endDialogue();
+        return;
+    }
+
+    const line = currentDialogue[dialogueIndex];
+    const fullText = `${line.speaker}: ${line.text}`;
+
+    dialogueText._typingInterval = typeDialogueLogic(
+        fullText,
+        25, // typing speed
+        (text) => dialogueText.text = text, // update callback
+        () => dialogueText._typingInterval = null // finish callback
+    );
+  }
+  function endDialogue() {
+    dialogueBg.visible = false;
+    dialogueText.visible = false;
+    player.can_move = true;
+
+    currentDialogue = null;
+    dialogueIndex = 0;
+  }
   ///////////////////////////////////////////////////////
   //bullet texture
   ////////////////////////////////////////////
@@ -255,7 +379,11 @@ const player = {
   let healthbar_bg_graphic = new PIXI.Graphics();
 
   //box graphic
-  const box = Bodies.rectangle(100, 100, PLAYER_WIDTH, PLAYER_HEIGHT, {
+  const targetWidth = PLAYER_DIMENSIONS * 2/3;
+  const targetHeight = PLAYER_DIMENSIONS * 2/3;
+
+  const baselineRadius = PLAYER_DIMENSIONS / 2;
+  const box = Bodies.circle(100, 100, baselineRadius, {
     restitution: 0.0,
     friction: 0.0,
     frictionAir: 0.0,
@@ -263,6 +391,12 @@ const player = {
     slop: 0.05,
     inertia: Infinity,
   });
+
+  const scaleX = targetWidth / (baselineRadius * 2);
+  const scaleY = targetHeight / (baselineRadius * 2);
+
+  Matter.Body.scale(box, scaleX, scaleY)
+  Matter.Body.setInertia(box, Infinity)
 
   //room manager
   const baseTexture = await PIXI.Assets.load("js/levels/spritesheet.png");
@@ -302,7 +436,7 @@ const player = {
     style: { fontSize: 20, fill: 0xffffff },
   });
   room_label.zIndex = 11;
-  room_label.position.set(1420, 20);
+  room_label.position.set(APP_WIDTH - 100, APP_HEIGHT / 12);
   app.stage.addChild(room_label);
 
   let canTransition = true;
@@ -685,8 +819,8 @@ const player = {
       text_graphic.position.set(text_obj.x, text_obj.y);
       world.addChild(text_graphic);
 
-      walls.push(text_body);
-      wall_graphics.push(text_graphic);
+      text_boxes.push(text_body);
+      text_box_graphics.push(text_graphic);
       Composite.add(engine.world, text_body);
     });
 
@@ -735,7 +869,7 @@ const player = {
   healthbar_graphic.zIndex = 10;
   app.stage.addChild(healthbar_graphic);
 
-  healthbar_bg_graphic.rect(50, 50, 500, 10).fill(0xff0000);
+  healthbar_bg_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, PLAYER_MAX_HEALTH * 2, 10).fill(0xff0000);
   healthbar_bg_graphic.zIndex = 9;
   app.stage.addChild(healthbar_bg_graphic);
 
@@ -744,7 +878,7 @@ const player = {
     if (player.health > 100) player.health = 100;
     if (player.health < 0) player.health = 0;
     healthbar_graphic.clear();
-    healthbar_graphic.rect(50, 50, player.health * 5, 10).fill(0xa090ff);
+    healthbar_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, player.health * 2, 10).fill(0xa090ff);
   }
 
   //snail movement
@@ -805,7 +939,7 @@ const player = {
 }
 
   function would_collide_with_wall(x, y) {
-    const half_size = (PLAYER_WIDTH * 0.5) - 2;
+    const half_size = (/*PLAYER_DIMENSIONS*/2 * 0.5) - 2;
     const new_l = x - half_size;
     const new_r = x + half_size;
     const new_t = y - half_size;
@@ -829,8 +963,8 @@ const player = {
     boxGraphic.animationSpeed = 0.1;
     boxGraphic.play();
     boxGraphic.zIndex = "8";
-    boxGraphic.width = PLAYER_WIDTH;
-    boxGraphic.height = PLAYER_HEIGHT;
+    boxGraphic.width = PLAYER_DIMENSIONS;
+    boxGraphic.height = PLAYER_DIMENSIONS;
     boxGraphic.anchor.set(0.5, 0.5);
     world.addChild(boxGraphic);
 
@@ -871,7 +1005,21 @@ const player = {
     keys[event.code] = false;
   });
 
-  dialogue("name_1", 0)
+  const test_body = Bodies.rectangle(300, 200, 50, 50, {
+    isStatic: true,
+    isSensor: true
+  });
+  test_body.id = "test_box";
+  const text_graphic = new PIXI.Graphics()
+  .rect(-25, -25, 50, 50)
+  .fill(0x00FF00); // green box so you can see it
+
+  text_graphic.position.set(300, 200);
+  text_graphic.zIndex = 5;
+  world.addChild(text_graphic);
+
+  text_boxes.push(test_body);
+  Composite.add(engine.world, test_body);
   //important start or main game loop
   app.ticker.add((ticker) => {
 
@@ -1163,51 +1311,6 @@ const player = {
 
     //console.log(`State: ${playerState} | Locked: ${isAnimationLocked}`);
 
-    
-    //swap anims
-    
-    function updatePlayerAnimation() {
-      if (isAnimationLocked) return; 
-
-      if (player.is_zapping) {
-        changeAnimation(2, true, 0.2);
-        return;
-      }
-      if (player.is_healing) {
-        changeAnimation(3, true, 0.2);
-        return;
-      }
-
-      if (player.state === "moving") {
-        changeAnimation(0, true, 0.2); 
-      } else if (playerState === "idle") {
-        changeAnimation(0, true, 0.1); 
-      }
-    }
-
-    //when dash, lock anim until dash anim is done
-    function triggerDash() {
-      if (isAnimationLocked) return; 
-
-      playerState = "dashing";
-      changeAnimation(1, false, 0.2, true); 
-
-      boxGraphic.onComplete = () => {
-        isAnimationLocked = false; 
-        boxGraphic.onComplete = null; 
-        currentPlayingRow = -1; 
-
-        
-        
-        if (player.state === "moving") {
-          playerState = "moving";
-        } else {
-          playerState = "idle";
-        }
-        
-        updatePlayerAnimation();
-      };
-    }
     console.log(`${playerState}, ${player.state}`)
     //console.log(`${playerState}`)
 
@@ -1231,6 +1334,41 @@ const player = {
 
     world.x = halfW;
     world.y = halfH;
+    /////////////////////////////////////////////////////////////////////////////
+    //collide into test text box maker
+    ///////////////////////////////////////////////////////////////
+    text_boxes.forEach((tb) => {
+      if (!dialogueActive && check_collision(box, tb)) {
+          dialogueActive = true;
+          startDialogue("name_1");
+      }
+    });
+    ////////////////////////////////////////////////////////////////////////////
+    //for dialogue checker (skip)
+    /////////////////////////////////////////////////////////////////////////////////
+    if (keys["Enter"]) {
+
+      if (!enterPressed) {  // only trigger ONCE per press
+          enterPressed = true;
+
+          // 1. Skip typing if still typing
+          if (dialogueText._typingInterval) {
+              clearInterval(dialogueText._typingInterval);
+              dialogueText._typingInterval = null;
+
+              const line = currentDialogue[dialogueIndex];
+              dialogueText.text = `${line.speaker}: ${line.text}`;
+          } else {
+              // 2. Typing finished → advance
+              dialogueIndex++;
+              showNextDialogueLine(); // calls endDialogue() if needed
+          }
+      }
+
+    } else {
+        // reset when key is released
+        enterPressed = false;
+    }
 
     world.children.forEach((child) => {
       if (child.label && child.label.startsWith("parallax_")) {
