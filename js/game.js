@@ -17,6 +17,9 @@ import {
   bossTurtlePattern
 } from './BulletManager.js';
 
+import {get_toggle_flag, get_mute_flag} from "../startscripts.js";
+console.log(get_toggle_flag(), get_mute_flag());
+
 //import room data
 import { room_data } from "./room_data.js";
 
