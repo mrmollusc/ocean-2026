@@ -74,9 +74,6 @@ export class BulletManager {
             // Custom update
             if (b.updateFn) b.updateFn(b, dt);
 
-            // sync 2d texture to body
-            b.sprite.position.set(b.body.position.x, b.body.position.y);
-
             const x = b.body.position.x;
             const y = b.body.position.y;
 
@@ -89,6 +86,13 @@ export class BulletManager {
         }
 
         this.active = this.active.filter(b => b && !b.dead);
+    }
+    syncSprites() {
+        for (const b of this.active) {
+            if (!b || !b.body || b.dead) continue;
+
+            b.sprite.position.set(b.body.position.x, b.body.position.y);
+        }
     }
     serializeBullet(b) {
         return {
