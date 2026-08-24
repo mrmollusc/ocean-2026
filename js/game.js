@@ -49,7 +49,7 @@ const PLAYER_MAX_SPEED = 7;
 const PLAYER_HEAL_SPEED = 1;
 
 //player body size
-const PLAYER_DIMENSIONS = 32;
+const PLAYER_DIMENSIONS = 64;
 
 //player health and damage
 const PLAYER_MAX_HEALTH = 100;
@@ -112,23 +112,23 @@ dialogueText.position.set(120, APP_HEIGHT - 180);
 dialogueText.visible = false;
 dialogueText.zIndex = 21;
 app.stage.addChild(dialogueText);
-let currentDialogue = null;
-let dialogueIndex = 0;
-let dialogueActive = false;
-console.log(`Loaded a ${mapWidth}x${mapHeight} tilemap!`);
 
 //////////////////////////////////////////
 // global stuff
 /////////////////////////////////////////
+let current_dialogue = null;
+let dialogue_index = 0;
+let dialogueActive = false;
 let world;
 let boxGraphic;
 let current_room = "room_2";
 let current_room_id = "1";
 let playerState;
-let isAnimationLocked = false;
-let currentPlayingRow = -1;
-let inconspicuous_variable_that_counts_how_long_between_snail_movement_has_elapsed_uwu = performance.now();
-let enterPressed = false;
+let is_animation_locked = false;
+let currently_playing = -1;
+let inconspicuous_variable_that_counts_how_long_between_snail_movement_has_elapsed_uwu_that_isnt_used = 'mrmollusc';
+let did_you_know_that_the_t1_line_in_sydney_rail_used_to_own_half_the_cityrail_network_but_is_now_nerfed_without_epping_question_mark = 't1'
+let enter_pressed = false;
 
 ///////////////////////////////////////////
 //PLAYER DATA
@@ -224,17 +224,17 @@ const player = {
 
   function changeAnimation(row, loopMode = true, animationSpeed = 0.2, forcedLock = false) {
     //if anim locked then reject
-    if (isAnimationLocked && !forcedLock) {
+    if (is_animation_locked && !forcedLock) {
       return; 
     }
 
     //if same anim is playing then reject
-    if (currentPlayingRow === row && boxGraphic.animationSpeed === animationSpeed) return; 
-    currentPlayingRow = row;
+    if (currently_playing === row && boxGraphic.animationSpeed === animationSpeed) return; 
+    currently_playing = row;
 
     //will lock if special ability
     if (forcedLock) {
-      isAnimationLocked = true;
+      is_animation_locked = true;
     }
 
     loadPlayerAnimation(row);       
@@ -250,7 +250,7 @@ const player = {
   //////////////////////////////////////////////////////////////////////////
     
   function updatePlayerAnimation() {
-    if (isAnimationLocked) return; 
+    if (is_animation_locked) return; 
 
     if (player.is_zapping) {
       changeAnimation(2, true, 0.2);
@@ -270,15 +270,15 @@ const player = {
 
   //when dash, lock anim until dash anim is done
   function triggerDash() {
-    if (isAnimationLocked) return; 
+    if (is_animation_locked) return; 
 
     playerState = "dashing";
     changeAnimation(1, false, 0.2, true); 
 
     boxGraphic.onComplete = () => {
-      isAnimationLocked = false; 
+      is_animation_locked = false; 
       boxGraphic.onComplete = null; 
-      currentPlayingRow = -1; 
+      currently_playing = -1; 
 
       
       
@@ -340,22 +340,22 @@ const player = {
   //listeners for skipping dialogue is in ticker, will be below world/cam follow at bottom
   ////////////////////////////////////////////////////////////
   function startDialogue(npc) {
-    currentDialogue = getDialogueLines(npc);
-    dialogueIndex = 0;
+    current_dialogue = getDialogueLines(npc);
+    dialogue_index = 0;
 
     dialogueBg.visible = true;
     dialogueText.visible = true;
     player.can_move = false;
 
-    showNextDialogueLine();
+    show_next_dialogue_line();
   }
-  function showNextDialogueLine() {
-    if (!currentDialogue || dialogueIndex >= currentDialogue.length) {
+  function show_next_dialogue_line() {
+    if (!current_dialogue || dialogue_index >= current_dialogue.length) {
         endDialogue();
         return;
     }
 
-    const line = currentDialogue[dialogueIndex];
+    const line = current_dialogue[dialogue_index];
     const fullText = `${line.speaker}: ${line.text}`;
 
     dialogueText._typingInterval = typeDialogueLogic(
@@ -370,8 +370,8 @@ const player = {
     dialogueText.visible = false;
     player.can_move = true;
 
-    currentDialogue = null;
-    dialogueIndex = 0;
+    current_dialogue = null;
+    dialogue_index = 0;
   }
   ///////////////////////////////////////////////////////
   //bullet texture
@@ -1298,7 +1298,7 @@ const player = {
     //PLAYERSTATE
     
     //PLAYERSTATE LOGIC
-    if (!isAnimationLocked) {
+    if (!is_animation_locked) {
       if (player.is_zapping) {
         playerState = "zapping";
       } else if (player.is_healing) {
@@ -1312,10 +1312,6 @@ const player = {
       updatePlayerAnimation();
     }
 
-    //console.log(`State: ${playerState} | Locked: ${isAnimationLocked}`);
-
-    console.log(`${playerState}, ${player.state}`)
-    //console.log(`${playerState}`)
 
     /////////////////////////////////////////
     //CAMERA FOLLOW SYSTEM
@@ -1351,26 +1347,24 @@ const player = {
     /////////////////////////////////////////////////////////////////////////////////
     if (keys["Enter"]) {
 
-      if (!enterPressed) {  // only trigger ONCE per press
-          enterPressed = true;
+      if (!enter_pressed) { 
+          enter_pressed = true;
 
-          // 1. Skip typing if still typing
           if (dialogueText._typingInterval) {
               clearInterval(dialogueText._typingInterval);
               dialogueText._typingInterval = null;
 
-              const line = currentDialogue[dialogueIndex];
+              const line = current_dialogue[dialogue_index];
               dialogueText.text = `${line.speaker}: ${line.text}`;
           } else {
-              // 2. Typing finished → advance
-              dialogueIndex++;
-              showNextDialogueLine(); // calls endDialogue() if needed
+              dialogue_index++;
+              show_next_dialogue_line();
           }
       }
 
     } else {
         // reset when key is released
-        enterPressed = false;
+        enter_pressed = false;
     }
 
     world.children.forEach((child) => {
