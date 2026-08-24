@@ -8,29 +8,33 @@ const app = new PIXI.Application();
 ////////////////////////////////////////////
 //imports of bullets and manager
 ////////////////////////////////////////////
-import { 
+import {
   BulletManager,
-  bossFishBullet, 
+  bossFishBullet,
   bossTurtleBullet,
   defaultBullet,
   bossFishPattern,
   bossTurtlePattern
 } from './BulletManager.js';
 
-import {get_toggle_flag, get_mute_flag} from "../startscripts.js";
-console.log(get_toggle_flag(), get_mute_flag());
+import { get_toggle_flag, get_mute_flag } from "../startscripts.js";
+try {
+  console.log(get_toggle_flag(), get_mute_flag());
+} catch (error) {
+  console.error("An error occurred:", error.message);
+}
 
 //import room data
 import { room_data } from "./room_data.js";
 
 //import text
-import { 
-  typeDialogueLogic, 
-  getDialogueLines 
+import {
+  typeDialogueLogic,
+  getDialogueLines
 } from "./Dialogue.js";
 
 //////////////////////////////////////////////
-  // for all bullet manager and bullet graphics, scroll down
+// for all bullet manager and bullet graphics, scroll down
 ///////////////////////////////////////////
 //constants
 ///////////////////////////////////////////
@@ -49,14 +53,14 @@ const PLAYER_MAX_SPEED = 7;
 const PLAYER_HEAL_SPEED = 1;
 
 //player body size
-const PLAYER_DIMENSIONS = 64;
+const PLAYER_DIMENSIONS = 32;
 
 //player health and damage
 const PLAYER_MAX_HEALTH = 100;
 const PLAYER_IFRAME_DURATION = 100;
 
 //player rotate smooth stuff
-const rotationSpeed = 0.1; //Lower = slower turning, Higher = faster turning (0.0 to 1.0)
+const rotationSpeed = 0.1;
 
 //damage
 const TRASH_DAMAGE = 5;
@@ -97,21 +101,21 @@ const {
 
 //dialogue
 const dialogueBg = new PIXI.Graphics()
-    .rect(100, APP_HEIGHT - 200, APP_WIDTH - 200, 150)
-    .fill(0x000000);
+  .rect(100, APP_HEIGHT - 200, APP_WIDTH - 200, 150)
+  .fill(0x000000);
 dialogueBg.alpha = 0.7;
 dialogueBg.visible = false;
 dialogueBg.zIndex = 20;
 app.stage.addChild(dialogueBg);
 
-const dialogueText = new PIXI.Text({
-    text: "",
-    style: { fontSize: 28, fill: 0xffffff, wordWrap: true, wordWrapWidth: APP_WIDTH - 240 }
+const dialogue_text = new PIXI.Text({
+  text: "",
+  style: { fontSize: 28, fill: 0xffffff, wordWrap: true, wordWrapWidth: APP_WIDTH - 240 }
 });
-dialogueText.position.set(120, APP_HEIGHT - 180);
-dialogueText.visible = false;
-dialogueText.zIndex = 21;
-app.stage.addChild(dialogueText);
+dialogue_text.position.set(120, APP_HEIGHT - 180);
+dialogue_text.visible = false;
+dialogue_text.zIndex = 21;
+app.stage.addChild(dialogue_text);
 
 //////////////////////////////////////////
 // global stuff
@@ -156,141 +160,141 @@ const player = {
   can_heal: true,
   is_healing: false
 };
-  
+
 //TEXTURES
-  PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
-  const ralsei_texture = await PIXI.Assets.load("assets/ralsei.webp");
-  const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
-  const heart_texture = await PIXI.Assets.load("assets/bottle.png");
+PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
+const ralsei_texture = await PIXI.Assets.load("assets/ralsei.webp");
+const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
+const heart_texture = await PIXI.Assets.load("assets/bottle.png");
 
-  const up_arrow_texture = await PIXI.Assets.load("assets/up_dir.png");
-  const right_arrow_texture = await PIXI.Assets.load("assets/right_dir.png");
-  const left_arrow_texture = await PIXI.Assets.load("assets/left_dir.png");
-  const down_arrow_texture =  await PIXI.Assets.load("assets/down_dir.png");
+const up_arrow_texture = await PIXI.Assets.load("assets/up_dir.png");
+const right_arrow_texture = await PIXI.Assets.load("assets/right_dir.png");
+const left_arrow_texture = await PIXI.Assets.load("assets/left_dir.png");
+const down_arrow_texture = await PIXI.Assets.load("assets/down_dir.png");
 
-  const arrowTextures = {
-    up: up_arrow_texture,
-    right: right_arrow_texture,
-    left: left_arrow_texture,
-    down: down_arrow_texture,
+const arrowTextures = {
+  up: up_arrow_texture,
+  right: right_arrow_texture,
+  left: left_arrow_texture,
+  down: down_arrow_texture,
+};
+
+export { up_arrow_texture, right_arrow_texture, left_arrow_texture, down_arrow_texture };
+
+//PIXI ANIMATION FRAMES (CRIMSON)
+const playerFrameWidth = 32;
+const playerFrameHeight = 32;
+const fullFrameWidth = 128;
+//const fullFrameHeight = 128;
+const totalFrames = 5;
+
+const frames = [];
+
+function loadPlayerAnimation(animation) {
+  frames.length = 0;
+  for (let i = 0; i < totalFrames; i++) {
+    const frameX = i * fullFrameWidth;
+    const frameY = animation * playerFrameHeight;
+
+    const rect = new PIXI.Rectangle(frameX, frameY, playerFrameWidth, playerFrameHeight);
+
+    const texture = new PIXI.Texture({
+      source: crimson_texture,
+      frame: rect
+    });
+    frames.push(texture);
   };
-  
-  export {up_arrow_texture, right_arrow_texture, left_arrow_texture, down_arrow_texture};
+};
 
-  //PIXI ANIMATION FRAMES (CRIMSON)
-  const playerFrameWidth = 32;
-  const playerFrameHeight = 32;
-  const fullFrameWidth = 128;
-  //const fullFrameHeight = 128;
-  const totalFrames = 5;
+function loadSkillAnimation(skill) {
+  frames.length = 0;
+  let fullSkillFrameWidth;
+  let skillFrameHeight;
+  for (let i = 0; i < totalFrames; i++) {
+    const skillFrameX = i * fullSkillFrameWidth;
+    const skillFrameY = skill * skillFrameHeight;
 
-  const frames = [];
+    const rect = new PIXI.Rectangle(skillFrameX, skillFrameY, skillFrameWidth, skillFrameHeight);
 
-  function loadPlayerAnimation(Animation) {
-    frames.length = 0;
-    for (let i = 0; i < totalFrames; i++) {
-      const frameX = i * fullFrameWidth;
-      const frameY = Animation * playerFrameHeight;
-
-      const rect = new PIXI.Rectangle(frameX, frameY, playerFrameWidth, playerFrameHeight);
-
-      const texture = new PIXI.Texture({
-        source: crimson_texture,
-        frame: rect
-      });
-      frames.push(texture);
-    };
+    const texture = new PIXI.Texture({
+      source: crimson_texture,
+      frame: rect
+    });
+    frames.push(texture);
   };
+};
 
-  function loadSkillAnimation(Skill) {
-    frames.length = 0;
-    let fullSkillFrameWidth;
-    let skillFrameHeight;
-    for (let i = 0; i < totalFrames; i++) {
-      const skillFrameX = i * fullSkillFrameWidth;
-      const skillFrameY = Skill * skillFrameHeight;
+loadPlayerAnimation(0);
 
-      const rect = new PIXI.Rectangle(skillFrameX, skillFrameY, skillFrameWidth, skillFrameHeight);
-
-      const texture = new PIXI.Texture({
-        source: crimson_texture,
-        frame: rect
-      });
-      frames.push(texture);
-    };
-  };
-  
-  loadPlayerAnimation(0);
-
-  function changeAnimation(row, loopMode = true, animationSpeed = 0.2, forcedLock = false) {
-    //if anim locked then reject
-    if (is_animation_locked && !forcedLock) {
-      return; 
-    }
-
-    //if same anim is playing then reject
-    if (currently_playing === row && boxGraphic.animationSpeed === animationSpeed) return; 
-    currently_playing = row;
-
-    //will lock if special ability
-    if (forcedLock) {
-      is_animation_locked = true;
-    }
-
-    loadPlayerAnimation(row);       
-    boxGraphic.textures = frames;   
-    boxGraphic.loop = loopMode;     
-    boxGraphic.animationSpeed = animationSpeed;
-    boxGraphic.gotoAndPlay(0);
-    console.log(`${animationSpeed}`)
+function changeAnimation(row, loopMode = true, animationSpeed = 0.1, forcedLock = false) {
+  //if anim locked then reject
+  if (is_animation_locked && !forcedLock) {
+    return;
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  //swap anims - for player animations
-  //////////////////////////////////////////////////////////////////////////
-    
-  function updatePlayerAnimation() {
-    if (is_animation_locked) return; 
+  //if same anim is playing then reject
+  if (currently_playing === row && boxGraphic.animationSpeed === animationSpeed) return;
+  currently_playing = row;
 
-    if (player.is_zapping) {
-      changeAnimation(2, true, 0.2);
-      return;
-    }
-    if (player.is_healing) {
-      changeAnimation(3, true, 0.2);
-      return;
-    }
+  //will lock if special ability
+  if (forcedLock) {
+    is_animation_locked = true;
+  }
+
+  loadPlayerAnimation(row);
+  boxGraphic.textures = frames;
+  boxGraphic.loop = loopMode;
+  boxGraphic.animationSpeed = animationSpeed;
+  boxGraphic.gotoAndPlay(0);
+  console.log(`${animationSpeed}`)
+}
+
+///////////////////////////////////////////////////////////////////////////
+//swap anims - for player animations
+//////////////////////////////////////////////////////////////////////////
+
+function updatePlayerAnimation() {
+  if (is_animation_locked) return;
+
+  if (player.is_zapping) {
+    changeAnimation(2, true, 0.2);
+    return;
+  }
+  if (player.is_healing) {
+    changeAnimation(3, true, 0.2);
+    return;
+  }
+
+  if (player.state === "moving") {
+    changeAnimation(0, true, 0.2);
+  } else if (playerState === "idle") {
+    changeAnimation(0, true, 0.1);
+  }
+}
+
+//when dash, lock anim until dash anim is done
+function triggerDash() {
+  if (is_animation_locked) return;
+
+  playerState = "dashing";
+  changeAnimation(1, false, 0.2, true);
+
+  boxGraphic.onComplete = () => {
+    is_animation_locked = false;
+    boxGraphic.onComplete = null;
+    currently_playing = -1;
+
+
 
     if (player.state === "moving") {
-      changeAnimation(0, true, 0.2); 
-    } else if (playerState === "idle") {
-      changeAnimation(0, true, 0.1); 
+      playerState = "moving";
+    } else {
+      playerState = "idle";
     }
-  }
 
-  //when dash, lock anim until dash anim is done
-  function triggerDash() {
-    if (is_animation_locked) return; 
-
-    playerState = "dashing";
-    changeAnimation(1, false, 0.2, true); 
-
-    boxGraphic.onComplete = () => {
-      is_animation_locked = false; 
-      boxGraphic.onComplete = null; 
-      currently_playing = -1; 
-
-      
-      
-      if (player.state === "moving") {
-        playerState = "moving";
-      } else {
-        playerState = "idle";
-      }
-      
-      updatePlayerAnimation();
-    };
-  }
+    updatePlayerAnimation();
+  };
+}
 
 ////////////////////////////////////////
 //PIXI INIT + WORLD CONTAINER
@@ -344,30 +348,30 @@ const player = {
     dialogue_index = 0;
 
     dialogueBg.visible = true;
-    dialogueText.visible = true;
+    dialogue_text.visible = true;
     player.can_move = false;
 
     show_next_dialogue_line();
   }
   function show_next_dialogue_line() {
     if (!current_dialogue || dialogue_index >= current_dialogue.length) {
-        endDialogue();
-        return;
+      endDialogue();
+      return;
     }
 
     const line = current_dialogue[dialogue_index];
     const fullText = `${line.speaker}: ${line.text}`;
 
-    dialogueText._typingInterval = typeDialogueLogic(
-        fullText,
-        25, // typing speed
-        (text) => dialogueText.text = text, // update callback
-        () => dialogueText._typingInterval = null // finish callback
+    dialogue_text._typingInterval = typeDialogueLogic(
+      fullText,
+      25, // typing speed
+      (text) => dialogue_text.text = text, // update callback
+      () => dialogue_text._typingInterval = null // finish callback
     );
   }
   function endDialogue() {
     dialogueBg.visible = false;
-    dialogueText.visible = false;
+    dialogue_text.visible = false;
     player.can_move = true;
 
     current_dialogue = null;
@@ -382,8 +386,8 @@ const player = {
   let healthbar_bg_graphic = new PIXI.Graphics();
 
   //box graphic
-  const targetWidth = PLAYER_DIMENSIONS * 2/3;
-  const targetHeight = PLAYER_DIMENSIONS * 2/3;
+  const targetWidth = PLAYER_DIMENSIONS * 2 / 3;
+  const targetHeight = PLAYER_DIMENSIONS * 2 / 3;
 
   const baselineRadius = PLAYER_DIMENSIONS / 2;
   const box = Bodies.circle(100, 100, baselineRadius, {
@@ -503,7 +507,7 @@ const player = {
         });
         // non-static tile/sprite with animation
         sprite = new PIXI.AnimatedSprite(textures);
-        sprite.animationSpeed = 0.15;
+        sprite.animationSpeed = 0.1;
         sprite.play();
       } else {
         // static tile/sprite no animation
@@ -706,7 +710,7 @@ const player = {
         force_obj.y,
         force_obj.w,
         force_obj.h,
-        { isStatic: true , collisionFilter: { group: -1, mask: 0 }}
+        { isStatic: true, collisionFilter: { group: -1, mask: 0 } }
       );
       const force_graphic = new PIXI.Sprite(texture);
       force_graphic.width = force_obj.w;
@@ -790,10 +794,10 @@ const player = {
         isStatic: false,
         restitution: 1,
         friction: 0,
-        collisionFilter: { 
-      category: 0, 
-      mask: 0 
-    },
+        collisionFilter: {
+          category: 0,
+          mask: 0
+        },
       });
 
       const jelly_graphic = new PIXI.Graphics()
@@ -898,13 +902,13 @@ const player = {
         snail_obj.x_vel = Math.abs(snail_obj.x_vel);
       }
       if (snail_obj.x >= 1540) {
-        snail_obj.x_vel = -Math.abs(snail_obj.x_vel); 
+        snail_obj.x_vel = -Math.abs(snail_obj.x_vel);
       }
       if (snail_obj.y >= 840) {
-        snail_obj.y_vel = -Math.abs(snail_obj.y_vel); 
+        snail_obj.y_vel = -Math.abs(snail_obj.y_vel);
       }
       if (snail_obj.y <= 60) {
-        snail_obj.y_vel = Math.abs(snail_obj.y_vel); 
+        snail_obj.y_vel = Math.abs(snail_obj.y_vel);
       }
 
       Matter.Body.setVelocity(snail_body, {
@@ -919,27 +923,27 @@ const player = {
   }
 
   function update_jelly(roomKey) {
-  const data = room_data[roomKey];
+    const data = room_data[roomKey];
 
-  data.jellys.forEach((jelly_obj, index) => {
-    const jelly_body = jellys[index];
-    const jelly_graphic = jelly_graphics[index];
+    data.jellys.forEach((jelly_obj, index) => {
+      const jelly_body = jellys[index];
+      const jelly_graphic = jelly_graphics[index];
 
-    const dx = box.position.x - jelly_body.position.x;
-    const dy = box.position.y - jelly_body.position.y;
-    const angle = Math.atan2(dy, dx);
-    
-    const speed = Math.sqrt(distance_between(box, jelly_body))/10;
-    const move_x = Math.cos(angle) * speed;
-    const move_y = Math.sin(angle) * speed;
+      const dx = box.position.x - jelly_body.position.x;
+      const dy = box.position.y - jelly_body.position.y;
+      const angle = Math.atan2(dy, dx);
 
-    Matter.Body.setVelocity(jelly_body, { x: move_x, y: move_y });
+      const speed = Math.sqrt(distance_between(box, jelly_body)) / 10;
+      const move_x = Math.cos(angle) * speed;
+      const move_y = Math.sin(angle) * speed;
 
-    jelly_obj.x = jelly_body.position.x;
-    jelly_obj.y = jelly_body.position.y;
-    jelly_graphic.position.set(jelly_body.position.x, jelly_body.position.y);
-  });
-}
+      Matter.Body.setVelocity(jelly_body, { x: move_x, y: move_y });
+
+      jelly_obj.x = jelly_body.position.x;
+      jelly_obj.y = jelly_body.position.y;
+      jelly_graphic.position.set(jelly_body.position.x, jelly_body.position.y);
+    });
+  }
 
   function would_collide_with_wall(x, y) {
     const half_size = (/*PLAYER_DIMENSIONS*/2 * 0.5) - 2;
@@ -1014,8 +1018,8 @@ const player = {
   });
   test_body.id = "test_box";
   const text_graphic = new PIXI.Graphics()
-  .rect(-25, -25, 50, 50)
-  .fill(0x00FF00); // green box so you can see it
+    .rect(-25, -25, 50, 50)
+    .fill(0x00FF00); // green box so you can see it
 
   text_graphic.position.set(300, 200);
   text_graphic.zIndex = 5;
@@ -1036,21 +1040,21 @@ const player = {
     let isMovingVertically;
     let isMoving;
 
-    if (keys["KeyD"] && player.can_move == true){
+    if (keys["KeyD"] && player.can_move == true) {
       v1x = Math.min(v1x + player.acceleration, player.max_speed);
       isMovingHorizontally = true;
     }
-    else if (keys["KeyA"] && player.can_move == true){
+    else if (keys["KeyA"] && player.can_move == true) {
       v1x = Math.max(v1x - player.acceleration, -player.max_speed);
       isMovingHorizontally = true;
     }
-      
-    if (keys["KeyS"] && player.can_move == true){
+
+    if (keys["KeyS"] && player.can_move == true) {
       v1y = Math.min(v1y + player.acceleration, player.max_speed);
       isMovingVertically = true;
     }
-      
-    else if (keys["KeyW"] && player.can_move == true){
+
+    else if (keys["KeyW"] && player.can_move == true) {
       v1y = Math.max(v1y - player.acceleration, -player.max_speed);
       isMovingVertically = true;
     }
@@ -1113,7 +1117,7 @@ const player = {
       if (player.can_zap && !player.is_zapping) {
         player.can_zap = false;
         player.is_zapping = true;
-        
+
         const frozen_snails = [];
 
         snails.forEach((snail_body, index) => {
@@ -1158,10 +1162,10 @@ const player = {
         player.can_heal = false;
         player.is_healing = true;
         player.max_speed = PLAYER_HEAL_SPEED;
-        
+
         const heal_interval = setInterval(() => {
-          if(player.is_healing){
-            player.health += Math.min(15/player.health, 1.5);
+          if (player.is_healing) {
+            player.health += Math.min(15 / player.health, 1.5);
           }
         }, 10);
 
@@ -1175,10 +1179,10 @@ const player = {
         setTimeout(() => {
           player.can_heal = true;
         }, HEAL_COOLDOWN);
-      }     
+      }
     }
 
-    
+
     //healthbar update
     update_healthbar();
     //bullet stuff
@@ -1233,7 +1237,7 @@ const player = {
 
     //jelly moves
     update_jelly(current_room)
-    
+
 
 
     //register damage and activate iframes
@@ -1261,7 +1265,7 @@ const player = {
       if (check_collision(box, e)) {
         let applied_x = room_data[current_room].force_blocks[index].velocity.x;
         let applied_y = room_data[current_room].force_blocks[index].velocity.y;
-      
+
         v1x += applied_x;
         v1y += applied_y;
       }
@@ -1296,19 +1300,19 @@ const player = {
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.rotation = box.angle + Math.PI / 2;
     //PLAYERSTATE
-    
+
     //PLAYERSTATE LOGIC
     if (!is_animation_locked) {
       if (player.is_zapping) {
         playerState = "zapping";
       } else if (player.is_healing) {
         playerState = "healing";
-      } else if (player.state > 0.1) { 
+      } else if (player.state > 0.1) {
         playerState = "moving";
       } else {
         playerState = "idle";
       }
-      
+
       updatePlayerAnimation();
     }
 
@@ -1338,8 +1342,8 @@ const player = {
     ///////////////////////////////////////////////////////////////
     text_boxes.forEach((tb) => {
       if (!dialogueActive && check_collision(box, tb)) {
-          dialogueActive = true;
-          startDialogue("name_1");
+        dialogueActive = true;
+        startDialogue("name_1");
       }
     });
     ////////////////////////////////////////////////////////////////////////////
@@ -1347,60 +1351,48 @@ const player = {
     /////////////////////////////////////////////////////////////////////////////////
     if (keys["Enter"]) {
 
-      if (!enter_pressed) { 
-          enter_pressed = true;
+      if (!enter_pressed) {
+        enter_pressed = true;
 
-          if (dialogueText._typingInterval) {
-              clearInterval(dialogueText._typingInterval);
-              dialogueText._typingInterval = null;
+        if (dialogue_text._typingInterval) {
+          clearInterval(dialogue_text._typingInterval);
+          dialogue_text._typingInterval = null;
 
-              const line = current_dialogue[dialogue_index];
-              dialogueText.text = `${line.speaker}: ${line.text}`;
-          } else {
-              dialogue_index++;
-              show_next_dialogue_line();
-          }
+          const line = current_dialogue[dialogue_index];
+          dialogue_text.text = `${line.speaker}: ${line.text}`;
+        } else {
+          dialogue_index++;
+          show_next_dialogue_line();
+        }
       }
 
     } else {
-        // reset when key is released
-        enter_pressed = false;
+      // reset when key is released
+      enter_pressed = false;
     }
 
     world.children.forEach((child) => {
       if (child.label && child.label.startsWith("parallax_")) {
-        //get the parallax factor from the label, e.g., "parallax_1.5" would give a factor of 1.5
-        const parallaxFactor = parseFloat(child.label.split("_")[1]);
+        const parallax_amt = parseFloat(child.label.split("_")[1]);
 
-        //scroll the parallax layer based on the camera's pivot and the parallax factor
-        child.x = world.pivot.x * (1 - 1 / parallaxFactor);
-        child.y = world.pivot.y * (1 - 1 / parallaxFactor);
+        child.x = world.pivot.x * (1 - 1 / parallax_amt);
+        child.y = world.pivot.y * (1 - 1 / parallax_amt);
       }
     });
 
     for (let i = 0; i < walls.length; i++) {
       wall_graphics[i].position.set(walls[i].position.x, walls[i].position.y);
     }
-
     if (canTransition) {
-      const playerBounds = {
-        x: box.position.x - 80,
-        y: box.position.y - 80,
-        w: 160,
-        h: 160,
-      };
-
-      if (canTransition) {
-        for (let doorBody of doors) {
-          if (check_collision(box, doorBody)) {
-            doors = [];
-            load_rooms(
-              doorBody.target_room,
-              doorBody.target_x,
-              doorBody.target_y,
-            );
-            break;
-          }
+      for (let doorBody of doors) {
+        if (check_collision(box, doorBody)) {
+          doors = [];
+          load_rooms(
+            doorBody.target_room,
+            doorBody.target_x,
+            doorBody.target_y,
+          );
+          break;
         }
       }
     }

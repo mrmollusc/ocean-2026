@@ -1,15 +1,19 @@
 body {
     background-image: linear-gradient(to right, rgb(27, 0, 86), rgb(97, 3, 81), rgb(4, 81, 119));
 }
+
 .button:hover {
     transform: scale(1.5);
 }
+
 div:hover {
     transform: scale(1.1);
 }
+
 #return:hover {
     animation: bounce 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) infinite alternate;
 }
+
 #toggle {
     top: 2%;
     right: 7%;
@@ -20,7 +24,7 @@ div:hover {
     background-color: rgba(0, 255, 30, 0.6);
     padding: 10px 10px 10px 10px;
     border-radius: 20px;
-    border:transparent;
+    border: transparent;
     font-size: 24px;
     backdrop-filter: blur(10px);
     box-shadow: 0 0px 20px rgba(0, 255, 0, 0.3);
@@ -32,6 +36,7 @@ div:hover {
     justify-content: center;
     align-items: center;
 }
+
 #mute {
     top: 2%;
     right: 1%;
@@ -42,7 +47,7 @@ div:hover {
     background-color: rgba(0, 255, 30, 0.6);
     padding: 10px 10px 10px 10px;
     border-radius: 20px;
-    border:transparent;
+    border: transparent;
     font-size: 48px;
     backdrop-filter: blur(10px);
     box-shadow: 0 0px 20px rgba(0, 255, 0, 0.3);
@@ -54,23 +59,27 @@ div:hover {
     justify-content: center;
     align-items: center;
 }
+
 @keyframes bounce {
     0% {
         transform: translateY(0);
     }
+
     100% {
         transform: translateY(-15px);
     }
 }
+
 a {
-  text-decoration: none; 
-  color: inherit;       
-  all: unset;
-  cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    all: unset;
+    cursor: pointer;
 }
+
 #return {
     top: -3%;
-    left: 1%;
+    left: 0.5%;
     font-weight: normal;
     font-family: "Mozilla Headline";
     color: #ffffff;
@@ -82,14 +91,15 @@ a {
     backdrop-filter: blur(10px);
     box-shadow: 0 0px 20px rgba(255, 0, 0, 0.3);
     transition: all 0.25s ease-in-out;
-    width: 180px;
-    height: 72px;
+    width: 60px;
+    height: 60px;
     text-align: center;
     flex-direction: column;
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
 div {
     font-weight: normal;
     font-family: "Mozilla Headline";
@@ -110,6 +120,7 @@ div {
     justify-content: center;
     align-items: center;
 }
+
 #controls {
     left: 42.5%;
     top: 50%;
@@ -117,7 +128,7 @@ div {
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184,0.3);
+    background-color: rgb(66, 11, 184, 0.3);
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 48px;
@@ -131,6 +142,7 @@ div {
     justify-content: center;
     align-items: center;
 }
+
 h9 {
     top: 5%;
     left: 39%;
@@ -139,7 +151,7 @@ h9 {
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184,0.3);
+    background-color: rgb(66, 11, 184, 0.3);
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
@@ -147,6 +159,7 @@ h9 {
     box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
     transition: all 0.25s ease-in-out;
 }
+
 h10 {
     top: 25%;
     left: 26%;
@@ -155,7 +168,7 @@ h10 {
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184,0.3);
+    background-color: rgb(66, 11, 184, 0.3);
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
@@ -172,7 +185,7 @@ h12 {
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184,0.3);
+    background-color: rgb(66, 11, 184, 0.3);
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
@@ -189,7 +202,7 @@ h223 {
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184,0.3);
+    background-color: rgb(66, 11, 184, 0.3);
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
@@ -198,7 +211,7 @@ h223 {
     transition: all 0.25s ease-in-out;
 }
 
-h2267284643634 { 
+h2267284643634 {
     top: 50%;
     left: 66%;
 
@@ -206,7 +219,7 @@ h2267284643634 {
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184,0.3);
+    background-color: rgb(66, 11, 184, 0.3);
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 100px;
@@ -216,61 +229,133 @@ h2267284643634 {
 }
 
 #w {
-    top:331px;
-    left:15%;
+    top: 331px;
+    left: 15%;
 }
+
 #a {
-    top:55%;
-    left:3.5%;
+    top: 55%;
+    left: 3.5%;
 }
+
 #s {
-    top:55%;
-    left:15%
+    top: 55%;
+    left: 15%
 }
+
 #d {
-    top:55%;
-    left:26.5%;
+    top: 55%;
+    left: 26.5%;
 }
+
 #space {
-    flex-direction:row;
-    height:10%;
-    width:20%;
-    top:75.5%;
-    left:38.5%;
+    flex-direction: row;
+    height: 10%;
+    width: 20%;
+    top: 75.5%;
+    left: 38.5%;
 }
+
 #o {
-    top:34%;
-    left:73.5%;
+    top: 34%;
+    left: 73.5%;
 }
+
 #k {
-    top:55%;
-    left:62%;
+    top: 55%;
+    left: 62%;
 }
+
 #f {
-    top:55%;
-    left:26.5%;
+    top: 55%;
+    left: 26.5%;
 }
+
 #e {
-    top:331px;
-    left:15%;
+    top: 331px;
+    left: 15%;
 }
+
 #wa {
-    top:34%;
-    left:73.5%;
+    top: 34%;
+    left: 73.5%;
     opacity: 0;
 }
+
 #aa {
-    top:55%;
-    left:62%;
+    top: 55%;
+    left: 62%;
     opacity: 0;
 }
+
 #sa {
-    top:55%;
-    left:73.5%;
+    top: 55%;
+    left: 73.5%;
     opacity: 0;
 }
+
 #da {
-    top:55%;
-    left:85%;
+    top: 55%;
+    left: 85%;
     opacity: 0;
+}
+
+#roy {
+    top: 25%;
+    left: 3%;
+}
+
+#aaron {
+    top: 25%;
+    left: 18%;
+}
+
+#eason {
+    top: 25%;
+    left: 33%
+}
+
+#akshi {
+    top: 25%;
+    left: 48%
+}
+
+#by {
+    font-family: "Indie Flower";
+    color: white;
+    position: absolute;
+    right: 1%;
+    bottom: 0.6%;
+    font-size: larger;
+}
+
+
+#devs>div>p {
+    color:#ffffff;
+    position: absolute;
+    width: max-content;
+    margin: 0.25rem 0 0;
+    transform: translateY(150%);
+    text-align: center;
+}
+
+#software{
+    left: 69%;
+    top: 5%;
+    font-weight: bold;
+    font-family: "Mozilla Headline";
+    color: #ff11AA;
+    position: absolute;
+    background-color: rgb(66, 11, 184, 0.3);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 48px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease-in-out;
+    width: 20%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
