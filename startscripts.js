@@ -1,4 +1,19 @@
 export {toggle_flag, mute_flag, get_toggle_flag, get_mute_flag};
+
+const toggle_storage_key = 'ocean-controls-toggle';
+const mute_storage_key = 'ocean-controls-muted';
+let toggle_flag = localStorage.getItem(toggle_storage_key) !== 'false';
+let mute_flag = localStorage.getItem(mute_storage_key) === 'true';
+
+function get_toggle_flag() {
+   return localStorage.getItem(toggle_storage_key) !== 'false';
+}
+
+function get_mute_flag() {
+   return localStorage.getItem(mute_storage_key) === 'true';
+}
+
+// 1. Get the elements
 const w = document.getElementById('w');
 const a = document.getElementById('a');
 const s = document.getElementById('s');
@@ -16,200 +31,120 @@ const ee = document.getElementById('e');
 const f = document.getElementById('f');
 const togglebutton = document.getElementById('toggle');
 const mutebutton = document.getElementById('mute');
-const toggle_storage_key = 'ocean-controls-toggle';
-const mute_storage_key = 'ocean-controls-muted';
-let toggle_flag = localStorage.getItem(toggle_storage_key) !== 'false';
-let mute_flag = localStorage.getItem(mute_storage_key) === 'true';
 
-function get_toggle_flag() {
-   return localStorage.getItem(toggle_storage_key) !== 'false';
+// 2. Only run UI features if the elements actually exist on the current page
+const holdsKeyboardUI = !!w; 
+
+if (holdsKeyboardUI) {
+   addEventListener('keydown',(e) =>{
+      const keycode = e.key;
+      switch (keycode) {
+         case 'w': w.style.color = 'red'; break;
+         case 'a': a.style.color = 'red'; break;
+         case 's': s.style.color = 'red'; break;
+         case 'd': d.style.color = 'red'; break; 
+         case ' ': space.style.color = 'red'; break;   
+         case 'k': k.style.color = 'red'; break; 
+         case 'o': o.style.color = 'red'; break;
+         case 'ArrowUp': wa.style.color = 'red'; break;
+         case 'ArrowDown': sa.style.color = 'red'; break;
+         case 'ArrowLeft': aa.style.color = 'red'; break;
+         case 'ArrowRight': da.style.color = 'red'; break;
+         case 'f': f.style.color = 'red'; break; 
+         case 'e': ee.style.color = 'red'; break;
+         default: break;
+      }
+   });
+
+   addEventListener('keyup',(e)=>{
+      const keycode = e.key;
+      switch (keycode) {
+         case 'w': w.style.color = 'black'; break;
+         case 'a': a.style.color = 'black'; break;
+         case 's': s.style.color = 'black'; break;
+         case 'd': d.style.color = 'black'; break; 
+         case ' ': space.style.color = 'black'; break;   
+         case 'k': k.style.color = 'black'; break; 
+         case 'o': o.style.color = 'black'; break;
+         case 'ArrowUp': wa.style.color = 'black'; break;
+         case 'ArrowDown': sa.style.color = 'black'; break;
+         case 'ArrowLeft': aa.style.color = 'black'; break;
+         case 'ArrowRight': da.style.color = 'black'; break;
+         case 'f': f.style.color = 'black'; break; 
+         case 'e': ee.style.color = 'black'; break;
+         default: break;
+      }
+   });
 }
-
-function get_mute_flag() {
-   return localStorage.getItem(mute_storage_key) === 'true';
-}
-
-addEventListener('keydown',(e) =>{
-   const keycode = e.key;
-   switch (keycode) {
-      case 'w':
-         w.style.color = 'red';
-         break;
-      
-      case 'a':
-         a.style.color = 'red'
-         break;
-
-      case 's':
-         s.style.color = 'red'
-         break;
-         
-      case 'd':
-         d.style.color = 'red'
-         break; 
-
-      case ' ':
-         space.style.color = 'red'
-         break;   
-
-      case 'k':
-         k.style.color = 'red'
-         break; 
-         
-      case 'o':
-         o.style.color = 'red'
-         break;
-         
-      case 'ArrowUp':
-         wa.style.color = 'red'
-         break;
-
-      case 'ArrowDown':
-         sa.style.color = 'red'
-         break;
-      
-      case 'ArrowLeft':
-         aa.style.color = 'red'
-         break;
-      
-      case 'ArrowRight':
-         da.style.color = 'red'
-         break;
-
-      case 'f':
-         f.style.color = 'red'
-         break; 
-         
-      case 'e':
-         ee.style.color = 'red'
-         break;
-
-      default:
-         break;
-   }
-});
-
-addEventListener('keyup',(e)=>{
-   const keycode = e.key;
-   switch (keycode) {
-      case 'w':
-         w.style.color = 'black';
-         break;
-      
-      case 'a':
-         a.style.color = 'black'
-         break;
-
-      case 's':
-         s.style.color = 'black'
-         break;
-         
-      case 'd':
-         d.style.color = 'black'
-         break; 
-
-      case ' ':
-         space.style.color = 'black'
-         break;   
-
-      case 'k':
-         k.style.color = 'black'
-         break; 
-         
-      case 'o':
-         o.style.color = 'black'
-         break;
-
-      case 'ArrowUp':
-         wa.style.color = 'black'
-         break;
-
-      case 'ArrowDown':
-         sa.style.color = 'black'
-         break;
-      
-      case 'ArrowLeft':
-         aa.style.color = 'black'
-         break;
-      
-      case 'ArrowRight':
-         da.style.color = 'black'
-         break;
-
-      case 'f':
-         f.style.color = 'black'
-         break; 
-         
-      case 'e':
-         ee.style.color = 'black'
-         break;
-
-      default:
-             break;
-   }
-})
 
 function toggle_function(){
    if(toggle_flag == true){
-      togglebutton.style.background = 'rgba(255, 0, 30, 0.6)';
-      togglebutton.innerHTML = 'Arrows';
+      if(togglebutton) {
+         togglebutton.style.background = 'rgba(255, 0, 30, 0.6)';
+         togglebutton.innerHTML = 'Arrows';
+      }
       toggle_flag = false;
       localStorage.setItem(toggle_storage_key, 'false');
 
-      w.style.opacity = 0;
-      a.style.opacity = 0;
-      s.style.opacity = 0;
-      d.style.opacity = 0;
-      k.style.opacity = 0;
-      o.style.opacity = 0;
+      if (holdsKeyboardUI) {
+         w.style.opacity = 0;
+         a.style.opacity = 0;
+         s.style.opacity = 0;
+         d.style.opacity = 0;
+         k.style.opacity = 0;
+         o.style.opacity = 0;
 
-      wa.style.opacity = 1;
-      aa.style.opacity = 1;
-      sa.style.opacity = 1;
-      da.style.opacity = 1;
-      f.style.opacity = 1;
-      e.style.opacity = 1;
-
-
+         wa.style.opacity = 1;
+         aa.style.opacity = 1;
+         sa.style.opacity = 1;
+         da.style.opacity = 1;
+         f.style.opacity = 1;
+         e.style.opacity = 1;
+      }
       return;
    }
    if(toggle_flag == false){
-      togglebutton.style.background = 'rgba(0, 255, 30, 0.6)';
-      togglebutton.innerHTML = 'WASD';
+      if(togglebutton) {
+         togglebutton.style.background = 'rgba(0, 255, 30, 0.6)';
+         togglebutton.innerHTML = 'WASD';
+      }
       toggle_flag = true;
       localStorage.setItem(toggle_storage_key, 'true');
 
-      w.style.opacity = 1;
-      a.style.opacity = 1;
-      s.style.opacity = 1;
-      d.style.opacity = 1;
-      k.style.opacity = 1;
-      o.style.opacity = 1;
+      if (holdsKeyboardUI) {
+         w.style.opacity = 1;
+         a.style.opacity = 1;
+         s.style.opacity = 1;
+         d.style.opacity = 1;
+         k.style.opacity = 1;
+         o.style.opacity = 1;
 
-      wa.style.opacity = 0;
-      aa.style.opacity = 0;
-      sa.style.opacity = 0;
-      da.style.opacity = 0;
-      f.style.opacity = 0;
-      e.style.opacity = 0;
-
-
+         wa.style.opacity = 0;
+         aa.style.opacity = 0;
+         sa.style.opacity = 0;
+         da.style.opacity = 0;
+         f.style.opacity = 0;
+         e.style.opacity = 0;
+      }
       return;
    }
-   
 }
 
 function mute_function() {
    if(mute_flag == true){
-      mutebutton.style.background = 'rgba(0, 255, 30, 0.6)';      
-      mutebutton.innerHTML = '🔈';
+      if(mutebutton) {
+         mutebutton.style.background = 'rgba(0, 255, 30, 0.6)';      
+         mutebutton.innerHTML = '🔈';
+      }
       mute_flag = false;
       localStorage.setItem(mute_storage_key, 'false');
       return;
    }
    if(mute_flag == false){
-      mutebutton.style.background = 'rgba(255, 0, 30, 0.6)';
-      mutebutton.innerHTML = '🔇';
+      if(mutebutton) {
+         mutebutton.style.background = 'rgba(255, 0, 30, 0.6)';
+         mutebutton.innerHTML = '🔇';
+      }
       mute_flag = true;
       localStorage.setItem(mute_storage_key, 'true');
       return;
@@ -220,33 +155,37 @@ function apply_saved_settings() {
    if (togglebutton && toggle_flag === false) {
       togglebutton.style.background = 'rgba(255, 0, 30, 0.6)';
       togglebutton.innerHTML = 'Arrows';
-      w.style.opacity = 0;
-      a.style.opacity = 0;
-      s.style.opacity = 0;
-      d.style.opacity = 0;
-      k.style.opacity = 0;
-      o.style.opacity = 0;
-      wa.style.opacity = 1;
-      aa.style.opacity = 1;
-      sa.style.opacity = 1;
-      da.style.opacity = 1;
-      f.style.opacity = 1;
-      ee.style.opacity = 1;
+      if (holdsKeyboardUI) {
+         w.style.opacity = 0;
+         a.style.opacity = 0;
+         s.style.opacity = 0;
+         d.style.opacity = 0;
+         k.style.opacity = 0;
+         o.style.opacity = 0;
+         wa.style.opacity = 1;
+         aa.style.opacity = 1;
+         sa.style.opacity = 1;
+         da.style.opacity = 1;
+         f.style.opacity = 1;
+         ee.style.opacity = 1;
+      }
    } else if (togglebutton) {
       togglebutton.style.background = 'rgba(0, 255, 30, 0.6)';
       togglebutton.innerHTML = 'WASD';
-      w.style.opacity = 1;
-      a.style.opacity = 1;
-      s.style.opacity = 1;
-      d.style.opacity = 1;
-      k.style.opacity = 1;
-      o.style.opacity = 1;
-      wa.style.opacity = 0;
-      aa.style.opacity = 0;
-      sa.style.opacity = 0;
-      da.style.opacity = 0;
-      f.style.opacity = 0;
-      ee.style.opacity = 0;
+      if (holdsKeyboardUI) {
+         w.style.opacity = 1;
+         a.style.opacity = 1;
+         s.style.opacity = 1;
+         d.style.opacity = 1;
+         k.style.opacity = 1;
+         o.style.opacity = 1;
+         wa.style.opacity = 0;
+         aa.style.opacity = 0;
+         sa.style.opacity = 0;
+         da.style.opacity = 0;
+         f.style.opacity = 0;
+         ee.style.opacity = 0;
+      }
    }
 
    if (mutebutton) {
@@ -260,4 +199,3 @@ function apply_saved_settings() {
 togglebutton?.addEventListener('click', toggle_function);
 mutebutton?.addEventListener('click', mute_function);
 apply_saved_settings();
-
