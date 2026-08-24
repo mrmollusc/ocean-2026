@@ -1094,6 +1094,7 @@ function triggerDash() {
 
     Matter.Body.setVelocity(box, { x: v1x, y: v1y });
     Matter.Engine.update(engine, 1000 / 60);
+    bulletManager.syncSprites();
 
     //dash mechanic
     if (keys["Space"]) {
