@@ -16,8 +16,6 @@ import {
   BulletManager,
   anemoneBullet,
   bossFishBullet,
-  bossTurtleBullet,
-  defaultBullet,
   bossFishPattern,
 
   bossTurtleBullet,
