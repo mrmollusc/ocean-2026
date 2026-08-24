@@ -24,11 +24,6 @@ import {
 } from './BulletManager.js';
 
 import { get_toggle_flag, get_mute_flag } from "../startscripts.js";
-try {
-  console.log(get_toggle_flag(), get_mute_flag());
-} catch (error) {
-  console.error("An error occurred:", error.message);
-}
 
 //import room data
 import { room_data } from "./room_data.js";
@@ -134,16 +129,57 @@ app.stage.addChild(dialogue_text);
 let current_dialogue = null;
 let dialogue_index = 0;
 let dialogueActive = false;
+
 let world;
 let boxGraphic;
+
 let current_room = "room_2";
 let current_room_id = "1";
+
 let playerState;
 let is_animation_locked = false;
+
 let currently_playing = -1;
 let inconspicuous_variable_that_counts_how_long_between_snail_movement_has_elapsed_uwu_that_isnt_used = 'mrmollusc';
 let did_you_know_that_the_t1_line_in_sydney_rail_used_to_own_half_the_cityrail_network_but_is_now_nerfed_without_epping_question_mark = 't1'
 let enter_pressed = false;
+
+let is_alt_keybind = get_toggle_flag();
+let is_mute = get_mute_flag();
+let keybinds = {
+  up: 'KeyW',
+  left: 'KeyA',
+  down: 'KeyS',
+  right: 'KeyD',
+  dash: 'Space',
+  zap: 'KeyK',
+  rejuv: 'KeyO'
+}
+if(is_alt_keybind == true){
+  console.log('keybind', is_alt_keybind)
+  keybinds = {
+  up: 'ArrowUp',
+  left: 'ArrowLeft',
+  down: 'ArrowDown',
+  right: 'ArrowRight',
+  dash: 'Space',
+  zap: 'KeyE',
+  rejuv: 'KeyF'
+}
+}
+else {
+  console.log('keybind', is_alt_keybind)
+  keybinds = {
+  up: 'KeyW',
+  left: 'KeyA',
+  down: 'KeyS',
+  right: 'KeyD',
+  dash: 'Space',
+  zap: 'KeyK',
+  rejuv: 'KeyO'
+}
+}
+
 
 ///////////////////////////////////////////
 //PLAYER DATA
@@ -1047,37 +1083,37 @@ function triggerDash() {
     let v1y = box.velocity.y;
 
     //WASD
-    let isMovingHorizontally;
-    let isMovingVertically;
-    let isMoving;
+    let is_moving_x;
+    let is_moving_y;
+    let is_moving;
 
-    if (keys["KeyD"] && player.can_move == true) {
+    if (keys[keybinds.right] && player.can_move == true) {
       v1x = Math.min(v1x + player.acceleration, player.max_speed);
-      isMovingHorizontally = true;
+      is_moving_x = true;
     }
-    else if (keys["KeyA"] && player.can_move == true) {
+    else if (keys[keybinds.left] && player.can_move == true) {
       v1x = Math.max(v1x - player.acceleration, -player.max_speed);
-      isMovingHorizontally = true;
+      is_moving_x = true;
     }
 
-    if (keys["KeyS"] && player.can_move == true) {
+    if (keys[keybinds.down] && player.can_move == true) {
       v1y = Math.min(v1y + player.acceleration, player.max_speed);
-      isMovingVertically = true;
+      is_moving_y = true;
     }
 
-    else if (keys["KeyW"] && player.can_move == true) {
+    else if (keys[keybinds.up] && player.can_move == true) {
       v1y = Math.max(v1y - player.acceleration, -player.max_speed);
-      isMovingVertically = true;
+      is_moving_y = true;
     }
 
-    if (isMovingHorizontally || isMovingVertically) {
-      isMoving = true;
+    if (is_moving_x || is_moving_y) {
+      is_moving = true;
     }
-    player.state = isMoving ? "moving" : "idle";
-    if (!isMovingHorizontally) {
+    player.state = is_moving ? "moving" : "idle";
+    if (!is_moving_x) {
       v1x *= 0.9;
     }
-    if (!isMovingVertically) {
+    if (!is_moving_y) {
       v1y *= 0.9;
     }
 
@@ -1096,7 +1132,7 @@ function triggerDash() {
     Matter.Engine.update(engine, 1000 / 60);
 
     //dash mechanic
-    if (keys["Space"]) {
+    if (keys[keybinds.dash]) {
       if (player.can_dash) {
         if (player.is_dashing) return;
 
@@ -1124,7 +1160,7 @@ function triggerDash() {
     }
 
     //bullet freeze
-    if (keys["KeyK"]) {
+    if (keys[keybinds.zap]) {
       if (player.can_zap && !player.is_zapping) {
         player.can_zap = false;
         player.is_zapping = true;
@@ -1165,7 +1201,7 @@ function triggerDash() {
     }
 
     //regenerate health
-    if (keys["KeyL"]) {
+    if (keys[keybinds.rejuv]) {
       if (player.can_heal) {
         if (player.is_healing) return;
 
