@@ -194,6 +194,8 @@ export class bossTurtleBullet {
             b.sprite.tint = '#31eb4a';
             b.sprite.rotation += 0.02;
             b.damage = this.damage;
+            b.harmless = false;
+            b.persistent = false;
         });
     }
 }
