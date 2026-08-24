@@ -5,16 +5,26 @@
 const { Engine, Bodies, Composite, Body } = Matter;
 const app = new PIXI.Application();
 
+const engine = Engine.create();
+engine.gravity.y = 0;
+const physicsWorld = engine.world;
+
 ////////////////////////////////////////////
 //imports of bullets and manager
 ////////////////////////////////////////////
 import {
   BulletManager,
+  anemoneBullet,
   bossFishBullet,
   bossTurtleBullet,
   defaultBullet,
   bossFishPattern,
-  bossTurtlePattern
+
+  bossTurtleBullet,
+  defaultBullet,
+  bossFishPattern,
+  bossTurtlePattern,
+  anemonePattern
 } from './BulletManager.js';
 
 import { get_toggle_flag, get_mute_flag } from "../startscripts.js";
@@ -34,7 +44,12 @@ import {
 } from "./Dialogue.js";
 
 //////////////////////////////////////////////
-// for all bullet manager and bullet graphics, scroll down
+  // for all bullet manager and bullet graphics, scroll down
+  const fishTexture = new PIXI.Graphics()
+    .rect(100, 100, 20, 20)
+    .fill("#FFFF");
+  const anemoneTexture = PIXI.Texture.WHITE;
+  const turtleTexture = PIXI.Texture.WHITE;
 ///////////////////////////////////////////
 //constants
 ///////////////////////////////////////////
@@ -312,6 +327,8 @@ function triggerDash() {
   app.stage.addChild(world);
   world.scale.set(CAMERA_ZOOM);
 
+  const bulletManager = new BulletManager(physicsWorld, world);
+
   const canvas = app.canvas;
 
   canvas.style.imageRendering = "pixelated";
@@ -333,12 +350,6 @@ function triggerDash() {
   document.body.style.backgroundColor = "#000000";
 
   document.getElementById("game").appendChild(app.canvas);
-
-  const engine = Engine.create();
-  engine.gravity.y = 0;
-  engine.friction = 0;
-  engine.airResistance = 0;
-
   ///////////////////////////////////////////////////////////
   //dialogue - textures and stuff
   //listeners for skipping dialogue is in ticker, will be below world/cam follow at bottom
@@ -571,6 +582,8 @@ function triggerDash() {
     current_room = roomKey;
     current_room_id = Number(current_room.replaceAll(/[rom_]/gi, "")) - 1; //regex yummy
     canTransition = false;
+    //clear bullets from prev room
+    bulletManager.clearAll();
 
     wall_graphics.forEach((g) => world.removeChild(g));
     walls.forEach((w) => Composite.remove(engine.world, w));
@@ -1028,7 +1041,9 @@ function triggerDash() {
   text_boxes.push(test_body);
   Composite.add(engine.world, test_body);
   //important start or main game loop
+
   app.ticker.add((ticker) => {
+    bulletManager.update(ticker);
 
     if (!boxGraphic) return;
 
@@ -1182,10 +1197,65 @@ function triggerDash() {
       }
     }
 
-
+    if (keys["KeyB"]) {
+      bossFishPattern(bulletManager, fishTexture, world); // blue fish
+      anemonePattern(bulletManager, anemoneTexture, 100, 100); // white anemone
+      console.log("Spawned pooled bullet");
+      setTimeout(() => {
+        bossTurtlePattern(bulletManager, turtleTexture, world); // green turtle
+      }, 3000);
+    }
     //healthbar update
     update_healthbar();
     //bullet stuff
+    for (let b of bulletManager.active) {
+      if (b.dead) continue;
+
+      // collision check
+      if (check_collision(box, b.body)) {
+        //harmless bullets never deal damage
+        if (b.harmless) {
+            if (!b.persistent) {
+                b.dead = true;
+                b.sprite.visible = false;
+                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+            }
+            continue;
+        }
+        //bullets that ignore i‑frames always deal damage
+        if (b.ignoreIframes) {
+            player.health -= b.damage;
+
+            if (!b.pierce && !b.persistent) {
+                b.dead = true;
+                b.sprite.visible = false;
+                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+            }
+            continue;
+        }
+
+        //normal bullets respect i‑frames
+        if (!player.iframe && b.damage > 0) {
+            player.health -= b.damage;
+
+            player.iframe = true;
+            setTimeout(() => {
+                player.iframe = false;
+            }, PLAYER_IFRAME_DURATION);
+
+            if (!b.pierce && !b.persistent) {
+                b.dead = true;
+                b.sprite.visible = false;
+                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+            }
+          }
+
+          // remove bullet ALWAYS (even if damage = 0)
+          b.dead = true;
+          b.sprite.visible = false;
+          Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+      }
+    }
     /*
     const now = performance.now();
 
@@ -1384,15 +1454,44 @@ function triggerDash() {
       wall_graphics[i].position.set(walls[i].position.x, walls[i].position.y);
     }
     if (canTransition) {
-      for (let doorBody of doors) {
-        if (check_collision(box, doorBody)) {
-          doors = [];
-          load_rooms(
-            doorBody.target_room,
-            doorBody.target_x,
-            doorBody.target_y,
-          );
-          break;
+      const playerBounds = {
+        x: box.position.x - 80,
+        y: box.position.y - 80,
+        w: 160,
+        h: 160,
+      };
+
+      if (canTransition) {
+        for (let doorBody of doors) {
+          if (check_collision(box, doorBody)) {
+            // SAVE bullets from current room
+            room_data[current_room].savedBullets =
+              bulletManager.active.map(b => bulletManager.serializeBullet(b));
+
+            // CLEAR bullets from screen
+            bulletManager.clearAll();
+
+            // LOAD new room
+            doors = [];
+            load_rooms(
+              doorBody.target_room,
+              doorBody.target_x,
+              doorBody.target_y,
+            );
+
+            // RESTORE bullets for new room
+            bulletManager.restoreBullets(
+              room_data[doorBody.target_room].savedBullets,
+              PIXI.Texture.WHITE // or bullet-specific texture
+            );
+
+            // Update current room
+            current_room = doorBody.target_room;
+
+            break;
+          }
+        }
+      }
         }
       }
     }
