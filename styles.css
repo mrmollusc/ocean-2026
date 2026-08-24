@@ -11,8 +11,8 @@ div:hover {
     animation: bounce 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) infinite alternate;
 }
 #toggle {
-    top: 45%;
-    left: 40%;
+    top: 2%;
+    right: 7%;
     font-weight: normal;
     font-family: "Mozilla Headline";
     color: #ffffff;
@@ -20,12 +20,35 @@ div:hover {
     background-color: rgba(0, 255, 30, 0.6);
     padding: 10px 10px 10px 10px;
     border-radius: 20px;
+    border:transparent;
     font-size: 24px;
     backdrop-filter: blur(10px);
     box-shadow: 0 0px 20px rgba(0, 255, 0, 0.3);
     transition: all 0.25s ease-in-out;
-    width: 20%;
-    height: 10%;
+    width: 90px;
+    height: 90px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#mute {
+    top: 2%;
+    right: 1%;
+    font-weight: normal;
+    font-family: "Mozilla Headline";
+    color: #ffffff;
+    position: absolute;
+    background-color: rgba(0, 255, 30, 0.6);
+    padding: 10px 10px 10px 10px;
+    border-radius: 20px;
+    border:transparent;
+    font-size: 48px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(0, 255, 0, 0.3);
+    transition: all 0.25s ease-in-out;
+    width: 90px;
+    height: 90px;
     text-align: center;
     display: flex;
     justify-content: center;
@@ -59,8 +82,8 @@ a {
     backdrop-filter: blur(10px);
     box-shadow: 0 0px 20px rgba(255, 0, 0, 0.3);
     transition: all 0.25s ease-in-out;
-    width: 10%;
-    height: 8%;
+    width: 180px;
+    height: 72px;
     text-align: center;
     flex-direction: column;
     display: flex;
@@ -89,7 +112,7 @@ div {
 }
 #controls {
     left: 42.5%;
-    top: 20%;
+    top: 50%;
     font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
@@ -102,6 +125,11 @@ div {
     box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
     transition: all 0.25s ease-in-out;
     width: 12%;
+    text-align: center;
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 h9 {
     top: 5%;
@@ -121,7 +149,7 @@ h9 {
 }
 h10 {
     top: 25%;
-    left: 25%;
+    left: 26%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
@@ -155,7 +183,7 @@ h12 {
 
 h223 {
     top: 50%;
-    right: 66%;
+    right: 68%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
@@ -207,8 +235,8 @@ h2267284643634 {
     flex-direction:row;
     height:10%;
     width:20%;
-    top:80%;
-    left:38%;
+    top:75.5%;
+    left:38.5%;
 }
 #o {
     top:34%;

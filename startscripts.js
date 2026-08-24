@@ -1,3 +1,4 @@
+export {toggle_flag, mute_flag, get_toggle_flag, get_mute_flag};
 const w = document.getElementById('w');
 const a = document.getElementById('a');
 const s = document.getElementById('s');
@@ -13,9 +14,20 @@ const k = document.getElementById('k');
 const o = document.getElementById('o');
 const ee = document.getElementById('e');
 const f = document.getElementById('f');
-const togglebutton = document.getElementById('toggle')
+const togglebutton = document.getElementById('toggle');
+const mutebutton = document.getElementById('mute');
+const toggle_storage_key = 'ocean-controls-toggle';
+const mute_storage_key = 'ocean-controls-muted';
+let toggle_flag = localStorage.getItem(toggle_storage_key) !== 'false';
+let mute_flag = localStorage.getItem(mute_storage_key) === 'true';
 
-let toggle_flag = true;
+function get_toggle_flag() {
+   return localStorage.getItem(toggle_storage_key) !== 'false';
+}
+
+function get_mute_flag() {
+   return localStorage.getItem(mute_storage_key) === 'true';
+}
 
 addEventListener('keydown',(e) =>{
    const keycode = e.key;
@@ -137,11 +149,12 @@ addEventListener('keyup',(e)=>{
    }
 })
 
-function toggle(){
+function toggle_function(){
    if(toggle_flag == true){
-      togglebutton.style.background = 'red';
+      togglebutton.style.background = 'rgba(255, 0, 30, 0.6)';
       togglebutton.innerHTML = 'Arrows';
       toggle_flag = false;
+      localStorage.setItem(toggle_storage_key, 'false');
 
       w.style.opacity = 0;
       a.style.opacity = 0;
@@ -161,9 +174,10 @@ function toggle(){
       return;
    }
    if(toggle_flag == false){
-      togglebutton.style.background = 'green';
+      togglebutton.style.background = 'rgba(0, 255, 30, 0.6)';
       togglebutton.innerHTML = 'WASD';
       toggle_flag = true;
+      localStorage.setItem(toggle_storage_key, 'true');
 
       w.style.opacity = 1;
       a.style.opacity = 1;
@@ -184,3 +198,66 @@ function toggle(){
    }
    
 }
+
+function mute_function() {
+   if(mute_flag == true){
+      mutebutton.style.background = 'rgba(0, 255, 30, 0.6)';      
+      mutebutton.innerHTML = '🔈';
+      mute_flag = false;
+      localStorage.setItem(mute_storage_key, 'false');
+      return;
+   }
+   if(mute_flag == false){
+      mutebutton.style.background = 'rgba(255, 0, 30, 0.6)';
+      mutebutton.innerHTML = '🔇';
+      mute_flag = true;
+      localStorage.setItem(mute_storage_key, 'true');
+      return;
+   }
+}
+
+function apply_saved_settings() {
+   if (togglebutton && toggle_flag === false) {
+      togglebutton.style.background = 'rgba(255, 0, 30, 0.6)';
+      togglebutton.innerHTML = 'Arrows';
+      w.style.opacity = 0;
+      a.style.opacity = 0;
+      s.style.opacity = 0;
+      d.style.opacity = 0;
+      k.style.opacity = 0;
+      o.style.opacity = 0;
+      wa.style.opacity = 1;
+      aa.style.opacity = 1;
+      sa.style.opacity = 1;
+      da.style.opacity = 1;
+      f.style.opacity = 1;
+      ee.style.opacity = 1;
+   } else if (togglebutton) {
+      togglebutton.style.background = 'rgba(0, 255, 30, 0.6)';
+      togglebutton.innerHTML = 'WASD';
+      w.style.opacity = 1;
+      a.style.opacity = 1;
+      s.style.opacity = 1;
+      d.style.opacity = 1;
+      k.style.opacity = 1;
+      o.style.opacity = 1;
+      wa.style.opacity = 0;
+      aa.style.opacity = 0;
+      sa.style.opacity = 0;
+      da.style.opacity = 0;
+      f.style.opacity = 0;
+      ee.style.opacity = 0;
+   }
+
+   if (mutebutton) {
+      mutebutton.style.background = mute_flag
+         ? 'rgba(255, 0, 30, 0.6)'
+         : 'rgba(0, 255, 30, 0.6)';
+      mutebutton.innerHTML = mute_flag ? '🔇' : '🔈';
+   }
+}
+
+togglebutton?.addEventListener('click', toggle_function);
+mutebutton?.addEventListener('click', mute_function);
+apply_saved_settings();
+
