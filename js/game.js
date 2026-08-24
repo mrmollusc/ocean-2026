@@ -17,10 +17,8 @@ import {
   anemoneBullet,
   bossFishBullet,
   bossFishPattern,
-
   bossTurtleBullet,
   defaultBullet,
-  bossFishPattern,
   bossTurtlePattern,
   anemonePattern
 } from './BulletManager.js';
@@ -1490,8 +1488,8 @@ function triggerDash() {
           }
         }
       }
-        }
-      }
+        
+      
     }
   });
 })();
