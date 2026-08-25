@@ -155,7 +155,7 @@ let keybinds = {
   zap: 'KeyK',
   rejuv: 'KeyO'
 }
-if(is_alt_keybind == true){
+if(is_alt_keybind == false){
   console.log('keybind', is_alt_keybind)
   keybinds = {
   up: 'ArrowUp',
@@ -887,7 +887,13 @@ function triggerDash() {
       canTransition = true;
     }, 300);
   }
-
+  //loss function (not the sigmoid fuh nuh machine learning)
+  function lose(current_room) {
+    player.health = 100;
+    const data = room_data[roomKey];
+    let spawnpoint = data.spawnpoint;
+    load_rooms(current_room, 500, 500)
+  }
   //edit hearts on touching
   function update_hearts(roomKey) {
     heart_graphics.forEach((g) => world.removeChild(g));
@@ -928,7 +934,11 @@ function triggerDash() {
   //healthbar updater
   function update_healthbar() {
     if (player.health > 100) player.health = 100;
-    if (player.health < 0) player.health = 0;
+    if (player.health < 0){
+      player.health = 0;
+      lose(current_room);
+      
+    } 
     healthbar_graphic.clear();
     healthbar_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, player.health * 2, 10).fill(0xa090ff);
   }
