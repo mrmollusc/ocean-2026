@@ -91,7 +91,7 @@ export class BulletManager {
         for (const b of this.active) {
             if (!b || !b.body || b.dead) continue;
 
-            b.sprite.position.set(b.body.position.x, b.body.position.y);
+            b.sprite.position.set(b.body.position.x + b.vx, b.body.position.y + b.vy);
         }
     }
     serializeBullet(b) {
@@ -148,6 +148,8 @@ export class Bullet{
     
 }
 export class anemoneBullet {
+    static speed = 1;
+    static damage = 5;
     static spawnSemicircle(manager, texture, x, y, count = 12, speed = 6) {
         const startAngle = Math.PI;
         const endAngle = 2 * Math.PI;
@@ -158,7 +160,14 @@ export class anemoneBullet {
             const vx = Math.cos(angle) * speed;
             const vy = Math.sin(angle) * speed;
 
-            manager.spawnFromPool(texture, x, y, vx, vy);
+            manager.spawnFromPool(texture, x, y, vx, vy, (b) => {
+                b.sprite.width = 20;
+                b.sprite.height = 20;
+                b.sprite.tint = "#ea1498"; // optional color
+                b.damage = this.damage;
+                b.harmless = false;
+                b.persistent = false;
+            });
         }
     }
 }
@@ -198,6 +207,8 @@ export class bossTurtleBullet {
             b.sprite.tint = '#31eb4a';
             b.sprite.rotation += 0.02;
             b.damage = this.damage;
+            b.harmless = false;
+            b.persistent = false;
         });
     }
 }
@@ -211,9 +222,7 @@ export function anemonePattern(manager, texture, x, y, count = 12, speed = 6) {
         const vx = Math.cos(angle) * speed;
         const vy = Math.sin(angle) * speed;
 
-        manager.spawnFromPool(texture, x, y, vx, vy, (b) => {
-            b.sprite.tint = 0xffffff;
-        });
+        anemoneBullet.spawnSemicircle(manager, texture, x, y)
     }
 }
 export function bossFishPattern(manager, texture, world) {
