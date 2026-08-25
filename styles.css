@@ -27,7 +27,7 @@ div:hover {
     border: transparent;
     font-size: 24px;
     backdrop-filter: blur(10px);
-    box-shadow: 0 0px 20px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0px 20px rgba(255, 255, 255, 0.3);
     transition: all 0.25s ease-in-out;
     width: 90px;
     height: 90px;
@@ -44,7 +44,7 @@ div:hover {
     font-family: "Mozilla Headline";
     color: #ffffff;
     position: absolute;
-    background-color: rgba(0, 255, 30, 0.6);
+    background-color: rgba(255, 255, 255, 0.6);
     padding: 10px 10px 10px 10px;
     border-radius: 20px;
     border: transparent;
@@ -105,12 +105,12 @@ div {
     font-family: "Mozilla Headline";
     color: #000000;
     position: absolute;
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.6);
     padding: 20px 20px 20px 20px;
     border-radius: 20px;
     font-size: 48px;
     backdrop-filter: blur(10px);
-    box-shadow: 0 0px 20px rgba(255, 223, 223, 0.3);
+    box-shadow: 0 0px 20px rgba(255, 223, 223, 0.6);
     transition: all 0.25s ease-in-out;
     width: 9%;
     height: 16%;
@@ -257,7 +257,7 @@ h2267284643634 {
 }
 
 #o {
-    top: 34%;
+    top: 331px;
     left: 73.5%;
 }
 
@@ -277,7 +277,7 @@ h2267284643634 {
 }
 
 #wa {
-    top: 34%;
+    top: 331px;
     left: 73.5%;
     opacity: 0;
 }
