@@ -17,7 +17,8 @@
         jellys: [],
         force_blocks:[],
         bullet_boxes:[],
-        text_boxes:[]
+        text_boxes:[],
+        spawnpoint:{};
     }*/
     //btw room x and y pos measured from their center
     room_1: {
@@ -68,7 +69,8 @@
         colour: 0xffffff,
         bullets: [{vx: 1, vy: 0}, {vx: -1, vy: 0}, {vx: 0, vy: 1}, {vx: 0, vy: -1}]
       }],
-      text_boxes:[{x: 200, y: 200, w: 100, h: 100, text: 'not yet'}]
+      text_boxes:[{x: 200, y: 200, w: 100, h: 100, text: 'not yet'}],
+      spawnpoint:{x: 120, y: 800}
     },
 
     room_2: {
@@ -127,7 +129,8 @@
           { vx: 0, vy: -1 }
         ]
       }],
-      text_boxes:[]
+      text_boxes:[],
+      spawnpoint:{x: 120, y: 800}
     },
 
     room_3: {
@@ -165,7 +168,8 @@
       jellys: [],
       force_blocks:[],
       bullet_boxes:[],
-      text_boxes:[]
+      text_boxes:[],
+      spawnpoint:{x: 120, y: 800}
     },
 
     room_4: {
@@ -193,7 +197,8 @@
         jellys: [],
       force_blocks:[],
       bullet_boxes:[],
-      text_boxes:[]
+      text_boxes:[],
+      spawnpoint:{x: 120, y: 800}
     }
   };
 

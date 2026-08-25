@@ -888,11 +888,11 @@ function triggerDash() {
     }, 300);
   }
   //loss function (not the sigmoid fuh nuh machine learning)
-  function lose(current_room) {
+  function lose(current_room, roomKey) {
     player.health = 100;
     const data = room_data[roomKey];
-    let spawnpoint = data.spawnpoint;
-    load_rooms(current_room, 500, 500)
+    let spawn_point = data.spawnpoint;
+    load_rooms(current_room, spawn_point.x, spawn_point.y)
   }
   //edit hearts on touching
   function update_hearts(roomKey) {
@@ -936,7 +936,7 @@ function triggerDash() {
     if (player.health > 100) player.health = 100;
     if (player.health < 0){
       player.health = 0;
-      lose(current_room);
+      lose(current_room, current_room);
       
     } 
     healthbar_graphic.clear();
