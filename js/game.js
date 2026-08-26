@@ -210,54 +210,74 @@ const player = {
 
 //TEXTURES
 PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
-const ralsei_texture = await PIXI.Assets.load("assets/ralsei.webp");
 const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
 const heart_texture = await PIXI.Assets.load("assets/bottle.png");
 
 const up_arrow_texture = await PIXI.Assets.load("assets/up_dir.png");
 const right_arrow_texture = await PIXI.Assets.load("assets/right_dir.png");
-const left_arrow_texture = await PIXI.Assets.load("assets/left_dir.png");
+const left_arrow_texture = await PIXI.Assets.load("assets/left_dir_anim.png");
 const down_arrow_texture = await PIXI.Assets.load("assets/down_dir.png");
 
-const arrowTextures = {
+const arrow_dirs = {
   up: up_arrow_texture,
   right: right_arrow_texture,
   left: left_arrow_texture,
   down: down_arrow_texture,
 };
 
-export { up_arrow_texture, right_arrow_texture, left_arrow_texture, down_arrow_texture };
+//PIXI ANIMATION PLAYER (CRIMSON)
+const player_frame_w = 32;
+const player_frame_h = 32;
+const full_frame_size = 128;
+const player_anim_frames = 5;
+const player_frames = [];
 
-//PIXI ANIMATION FRAMES (CRIMSON)
-const playerFrameWidth = 32;
-const playerFrameHeight = 32;
-const fullFrameWidth = 128;
-//const fullFrameHeight = 128;
-const totalFrames = 5;
+function load_player_animation(animation) {
+  player_frames.length = 0;
+  for (let i = 0; i < player_anim_frames; i++) {
+    const frameX = i * full_frame_size;
+    const frameY = animation * player_frame_h;
 
-const frames = [];
-
-function loadPlayerAnimation(animation) {
-  frames.length = 0;
-  for (let i = 0; i < totalFrames; i++) {
-    const frameX = i * fullFrameWidth;
-    const frameY = animation * playerFrameHeight;
-
-    const rect = new PIXI.Rectangle(frameX, frameY, playerFrameWidth, playerFrameHeight);
+    const rect = new PIXI.Rectangle(frameX, frameY, player_frame_w, player_frame_h);
 
     const texture = new PIXI.Texture({
       source: crimson_texture,
       frame: rect
     });
-    frames.push(texture);
+    player_frames.push(texture);
   };
 };
 
+//force block animations
+const force_frame_w = 32;
+const force_frame_h = 32;
+const force_anim_frames = 16;
+const force_frames = [];
+
+function load_force_animation(animation) {
+  force_frames.length = 0;
+  for (let i = 0; i < force_anim_frames; i++) {
+    const frameX = i * full_frame_size;
+    const frameY = animation * force_frame_h;
+
+    const rect = new PIXI.Rectangle(frameX, frameY, force_frame_w, force_frame_h);
+
+    const texture = new PIXI.Texture({
+      source: left_arrow_texture,
+      frame: rect
+    });
+    force_frames.push(texture);
+  };
+};
+
+
+
+
 function loadSkillAnimation(skill) {
-  frames.length = 0;
+  player_frames.length = 0;
   let fullSkillFrameWidth;
   let skillFrameHeight;
-  for (let i = 0; i < totalFrames; i++) {
+  for (let i = 0; i < player_anim_frames; i++) {
     const skillFrameX = i * fullSkillFrameWidth;
     const skillFrameY = skill * skillFrameHeight;
 
@@ -267,11 +287,17 @@ function loadSkillAnimation(skill) {
       source: crimson_texture,
       frame: rect
     });
-    frames.push(texture);
+    player_frames.push(texture);
   };
 };
 
-loadPlayerAnimation(0);
+load_player_animation(0);
+load_force_animation(0);
+/*
+force_graphics.textures = force_frames;
+force_graphics.loop = true;
+force_graphics.animationSpeed = 1;
+*/
 
 function changeAnimation(row, loopMode = true, animationSpeed = 0.1, forcedLock = false) {
   //if anim locked then reject
@@ -288,8 +314,8 @@ function changeAnimation(row, loopMode = true, animationSpeed = 0.1, forcedLock 
     is_animation_locked = true;
   }
 
-  loadPlayerAnimation(row);
-  boxGraphic.textures = frames;
+  load_player_animation(row);
+  boxGraphic.textures = player_frames;
   boxGraphic.loop = loopMode;
   boxGraphic.animationSpeed = animationSpeed;
   boxGraphic.gotoAndPlay(0);
@@ -749,7 +775,7 @@ function triggerDash() {
     });
 
     data.force_blocks.forEach((force_obj) => {
-      const texture = force_obj.texture ?? arrowTextures[force_obj.textureKey];
+      const texture = arrow_dirs[force_obj.texture];
       const force_body = Bodies.rectangle(
         force_obj.x,
         force_obj.y,
@@ -1021,7 +1047,7 @@ function triggerDash() {
   //player sprite
   async function create_player() {
     //boxGraphic = new PIXI.Sprite(ralsei_texture);
-    boxGraphic = new PIXI.AnimatedSprite(frames);
+    boxGraphic = new PIXI.AnimatedSprite(player_frames);
     boxGraphic.animationSpeed = 0.1;
     boxGraphic.play();
     boxGraphic.zIndex = "8";
