@@ -293,11 +293,7 @@ function loadSkillAnimation(skill) {
 
 load_player_animation(0);
 load_force_animation(0);
-/*
-force_graphics.textures = force_frames;
-force_graphics.loop = true;
-force_graphics.animationSpeed = 1;
-*/
+
 
 function changeAnimation(row, loopMode = true, animationSpeed = 0.1, forcedLock = false) {
   //if anim locked then reject
@@ -500,9 +496,6 @@ function triggerDash() {
 
   let bullet_boxes = [];
   let bullet_box_graphics = [];
-
-  let bullets = [];
-  let bullet_graphics = [];
 
   let text_boxes = [];
   let text_box_graphics = [];
@@ -783,11 +776,17 @@ function triggerDash() {
         force_obj.h,
         { isStatic: true, collisionFilter: { group: -1, mask: 0 } }
       );
-      const force_graphic = new PIXI.Sprite(texture);
+      const force_graphic = new PIXI.AnimatedSprite(force_frames);
       force_graphic.width = force_obj.w;
       force_graphic.height = force_obj.h;
       force_graphic.anchor.set(0.5);
-      force_graphic.zIndex = "7";
+      force_graphic.zIndex = 7;
+      
+  force_graphic.textures = force_frames;
+  force_graphic.loop = true;
+  force_graphic.animationSpeed = 1;
+  force_graphic.play(); 
+
 
       force_graphic.position.set(force_obj.x, force_obj.y);
       world.addChild(force_graphic);
