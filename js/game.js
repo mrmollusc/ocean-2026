@@ -89,7 +89,7 @@ const HEAL_COOLDOWN = 5000;
 //app settings
 const APP_WIDTH = 800;
 const APP_HEIGHT = 450;
-const APP_BG_COLOR = 0xf6d7b0;
+const APP_BG_COLOR = 0xf6d7b0; //
 
 //map
 const mapData = window.TileMaps[("room_2", "room_1")];
@@ -348,7 +348,7 @@ function updatePlayerAnimation() {
 }
 
 //when dash, lock anim until dash anim is done
-function triggerDash() {
+function dash_anim() {
   if (is_animation_locked) return;
 
   playerState = "dashing";
@@ -505,6 +505,9 @@ function triggerDash() {
 
   let text_boxes = [];
   let text_box_graphics = [];
+
+  let sand_bars = [];
+  let sand_bar_graphics = [];
 
   let room_label = new PIXI.Text({
     text: "room_1",
@@ -677,6 +680,11 @@ function triggerDash() {
     force_graphics = [];
     forces = [];
 
+    sand_bar_graphics.forEach((g) => world.removeChild(g));
+    sand_bars.forEach((t) => Composite.remove(engine.world, t));
+    sand_bar_graphics = [];
+    sand_bars = [];
+
     bullet_box_graphics.forEach((g) => world.removeChild(g));
     bullet_boxes.forEach((t) => Composite.remove(engine.world, t));
     bullet_box_graphics = [];
@@ -798,6 +806,21 @@ function triggerDash() {
       forces.push(force_body);
       force_graphics.push(force_graphic);
       Composite.add(engine.world, force_body);
+    });
+
+    data.sand_bars.forEach((bar) => {
+      const bar_body = Bodies.rectangle(bar.x, bar.y,bar.w, bar.h, { isStatic: true, collisionFilter: { group: -1, mask: 0 } })
+
+      const bar_graphic = new PIXI.Graphics()
+        .rect(-bar.w / 2, -bar.h / 2, bar.w, bar.h)
+        .fill(0xf6f7d0);
+
+      bar_graphic.position.set(bar.x, bar.y);
+      world.addChild(bar_graphic);
+
+      sand_bars.push(bar_body);
+      sand_bar_graphics.push(bar_graphic);
+      Composite.add(engine.world, bar_body);
     });
 
     data.bullet_boxes.forEach((bullet_box_obj) => {
@@ -1183,7 +1206,7 @@ function triggerDash() {
         player.can_dash = false;
         player.is_dashing = true;
 
-        triggerDash();
+        dash_anim();
 
         setTimeout(() => {
           player.max_speed = PLAYER_MAX_SPEED;
@@ -1390,6 +1413,15 @@ function triggerDash() {
         setTimeout(() => {
           player.iframe = false;
         }, PLAYER_IFRAME_DURATION);
+      }
+    });
+
+    sand_bars.forEach((bar) => {
+      if (check_collision(box, bar)) {
+        player.max_speed = 1;
+      }
+      else{
+        player.max_speed = PLAYER_MAX_SPEED;
       }
     });
 
