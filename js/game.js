@@ -35,12 +35,12 @@ import {
 } from "./Dialogue.js";
 
 //////////////////////////////////////////////
-  // for all bullet manager and bullet graphics, scroll down
-  const fishTexture = new PIXI.Graphics()
-    .rect(100, 100, 20, 20)
-    .fill("#FFFF");
-  const anemoneTexture = PIXI.Texture.WHITE;
-  const turtleTexture = PIXI.Texture.WHITE;
+// for all bullet manager and bullet graphics, scroll down
+const fishTexture = new PIXI.Graphics()
+  .rect(100, 100, 20, 20)
+  .fill("#FFFF");
+const anemoneTexture = PIXI.Texture.WHITE;
+const turtleTexture = PIXI.Texture.WHITE;
 ///////////////////////////////////////////
 //constants
 ///////////////////////////////////////////
@@ -86,13 +86,10 @@ const ZAP_COOLDOWN = 2000;
 const HEAL_DURATION = 2000;
 const HEAL_COOLDOWN = 5000;
 
-//room transition
-const ROOM_TRANSITION_DELAY = 300;
-
 //app settings
 const APP_WIDTH = 800;
 const APP_HEIGHT = 450;
-const APP_BG_COLOR = 0x111111;
+const APP_BG_COLOR = 0xf6d7b0;
 
 //map
 const mapData = window.TileMaps[("room_2", "room_1")];
@@ -155,29 +152,29 @@ let keybinds = {
   zap: 'KeyK',
   rejuv: 'KeyO'
 }
-if(is_alt_keybind == false){
+if (is_alt_keybind == false) {
   console.log('keybind', is_alt_keybind)
   keybinds = {
-  up: 'ArrowUp',
-  left: 'ArrowLeft',
-  down: 'ArrowDown',
-  right: 'ArrowRight',
-  dash: 'Space',
-  zap: 'KeyE',
-  rejuv: 'KeyF'
-}
+    up: 'ArrowUp',
+    left: 'ArrowLeft',
+    down: 'ArrowDown',
+    right: 'ArrowRight',
+    dash: 'Space',
+    zap: 'KeyE',
+    rejuv: 'KeyF'
+  }
 }
 else {
   console.log('keybind', is_alt_keybind)
   keybinds = {
-  up: 'KeyW',
-  left: 'KeyA',
-  down: 'KeyS',
-  right: 'KeyD',
-  dash: 'Space',
-  zap: 'KeyK',
-  rejuv: 'KeyO'
-}
+    up: 'KeyW',
+    left: 'KeyA',
+    down: 'KeyS',
+    right: 'KeyD',
+    dash: 'Space',
+    zap: 'KeyK',
+    rejuv: 'KeyO'
+  }
 }
 
 
@@ -213,18 +210,16 @@ PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
 const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
 const heart_texture = await PIXI.Assets.load("assets/bottle.png");
 
-const up_arrow_texture = await PIXI.Assets.load("assets/up_dir.png");
-const right_arrow_texture = await PIXI.Assets.load("assets/right_dir.png");
+const up_arrow_texture = await PIXI.Assets.load("assets/up_dir_anim.png");
+const right_arrow_texture = await PIXI.Assets.load("assets/right_dir_anim.png");
 const left_arrow_texture = await PIXI.Assets.load("assets/left_dir_anim.png");
-const down_arrow_texture = await PIXI.Assets.load("assets/down_dir.png");
-
-const arrow_dirs = {
+const down_arrow_texture = await PIXI.Assets.load("assets/down_dir_anim.png");
+const arrow_textures = {
   up: up_arrow_texture,
   right: right_arrow_texture,
   left: left_arrow_texture,
-  down: down_arrow_texture,
-};
-
+  down: down_arrow_texture
+}
 //PIXI ANIMATION PLAYER (CRIMSON)
 const player_frame_w = 32;
 const player_frame_h = 32;
@@ -249,27 +244,38 @@ function load_player_animation(animation) {
 };
 
 //force block animations
-const force_frame_w = 32;
-const force_frame_h = 32;
 const force_anim_frames = 16;
-const force_frames = [];
-
-function load_force_animation(animation) {
-  force_frames.length = 0;
-  for (let i = 0; i < force_anim_frames; i++) {
-    const frameX = i * full_frame_size;
-    const frameY = animation * force_frame_h;
-
-    const rect = new PIXI.Rectangle(frameX, frameY, force_frame_w, force_frame_h);
-
-    const texture = new PIXI.Texture({
-      source: left_arrow_texture,
-      frame: rect
-    });
-    force_frames.push(texture);
-  };
+const force_frames = {
+  up: [],
+  right: [],
+  down: [],
+  left: []
 };
 
+
+function load_force_animation(key) {
+  force_frames[key].length = 0;
+  
+  for (let i = 0; i < force_anim_frames; i++) {
+    const x = i * 32; 
+    const y = 0;      
+
+    const rect = new PIXI.Rectangle(x, y, 32, 32);
+
+    const texture = new PIXI.Texture({
+      source: arrow_textures[key].source, 
+      frame: rect
+    });
+    
+    force_frames[key].push(texture);
+  }
+  
+}
+
+load_force_animation('up');
+load_force_animation('right');
+load_force_animation('down');
+load_force_animation('left');
 
 
 
@@ -292,7 +298,7 @@ function loadSkillAnimation(skill) {
 };
 
 load_player_animation(0);
-load_force_animation(0);
+
 
 
 function changeAnimation(row, loopMode = true, animationSpeed = 0.1, forcedLock = false) {
@@ -768,7 +774,6 @@ function triggerDash() {
     });
 
     data.force_blocks.forEach((force_obj) => {
-      const texture = arrow_dirs[force_obj.texture];
       const force_body = Bodies.rectangle(
         force_obj.x,
         force_obj.y,
@@ -776,17 +781,16 @@ function triggerDash() {
         force_obj.h,
         { isStatic: true, collisionFilter: { group: -1, mask: 0 } }
       );
-      const force_graphic = new PIXI.AnimatedSprite(force_frames);
+      const force_graphic = new PIXI.AnimatedSprite(force_frames[force_obj.texture]);
       force_graphic.width = force_obj.w;
       force_graphic.height = force_obj.h;
       force_graphic.anchor.set(0.5);
       force_graphic.zIndex = 7;
-      
-  force_graphic.textures = force_frames;
-  force_graphic.loop = true;
-  force_graphic.animationSpeed = 1;
-  force_graphic.play(); 
 
+      force_graphic.textures = force_frames[force_obj.texture];
+      force_graphic.loop = true;
+      force_graphic.animationSpeed = 0.6;
+      force_graphic.gotoAndPlay(0);
 
       force_graphic.position.set(force_obj.x, force_obj.y);
       world.addChild(force_graphic);
@@ -952,20 +956,20 @@ function triggerDash() {
   healthbar_graphic.zIndex = 10;
   app.stage.addChild(healthbar_graphic);
 
-  healthbar_bg_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, PLAYER_MAX_HEALTH * 2, 10).fill(0xff0000);
+  healthbar_bg_graphic.rect(50,20, PLAYER_MAX_HEALTH * 2, 10).fill(0xff00A0);
   healthbar_bg_graphic.zIndex = 9;
   app.stage.addChild(healthbar_bg_graphic);
 
   //healthbar updater
   function update_healthbar() {
     if (player.health > 100) player.health = 100;
-    if (player.health < 0){
+    if (player.health < 0) {
       player.health = 0;
       lose(current_room, current_room);
-      
-    } 
+
+    }
     healthbar_graphic.clear();
-    healthbar_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, player.health * 2, 10).fill(0xa090ff);
+    healthbar_graphic.rect(50,20, player.health * 2, 10).fill(0xa090ff);
   }
 
   //snail movement
@@ -1283,45 +1287,45 @@ function triggerDash() {
       if (check_collision(box, b.body)) {
         //harmless bullets never deal damage
         if (b.harmless) {
-            if (!b.persistent) {
-                b.dead = true;
-                b.sprite.visible = false;
-                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
-            }
-            continue;
+          if (!b.persistent) {
+            b.dead = true;
+            b.sprite.visible = false;
+            Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+          }
+          continue;
         }
         //bullets that ignore i‑frames always deal damage
         if (b.ignoreIframes) {
-            player.health -= b.damage;
+          player.health -= b.damage;
 
-            if (!b.pierce && !b.persistent) {
-                b.dead = true;
-                b.sprite.visible = false;
-                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
-            }
-            continue;
+          if (!b.pierce && !b.persistent) {
+            b.dead = true;
+            b.sprite.visible = false;
+            Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+          }
+          continue;
         }
 
         //normal bullets respect i‑frames
         if (!player.iframe && b.damage > 0) {
-            player.health -= b.damage;
+          player.health -= b.damage;
 
-            player.iframe = true;
-            setTimeout(() => {
-                player.iframe = false;
-            }, PLAYER_IFRAME_DURATION);
+          player.iframe = true;
+          setTimeout(() => {
+            player.iframe = false;
+          }, PLAYER_IFRAME_DURATION);
 
-            if (!b.pierce && !b.persistent) {
-                b.dead = true;
-                b.sprite.visible = false;
-                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
-            }
+          if (!b.pierce && !b.persistent) {
+            b.dead = true;
+            b.sprite.visible = false;
+            Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
           }
+        }
 
-          // remove bullet ALWAYS (even if damage = 0)
-          b.dead = true;
-          b.sprite.visible = false;
-          Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+        // remove bullet ALWAYS (even if damage = 0)
+        b.dead = true;
+        b.sprite.visible = false;
+        Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
       }
     }
     /*
@@ -1560,8 +1564,8 @@ function triggerDash() {
           }
         }
       }
-        
-      
+
+
     }
   });
 })();

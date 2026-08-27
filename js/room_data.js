@@ -54,10 +54,10 @@
       snails: [],
       jellys: [],
       force_blocks: [
-        {x: 600, y: 300, w: 32, h: 100, velocity: {x: 7, y: 0}, texture: "right"},
-        {x: 900, y: 300, w: 32, h: 100, velocity: {x: 0, y: 7}, texture: "down"},
-        {x: 900, y: 600, w: 32, h: 100, velocity: {x: -7, y: 0}, texture: "left"},
-        {x: 600, y: 600, w: 32, h: 100, velocity: {x: 0, y: -7}, texture: "up"}
+        {x: 600, y: 300, w: 64, h: 64, velocity: {x: 7, y: 0}, texture: "right"},
+        {x: 900, y: 300, w: 64, h: 64, velocity: {x: 0, y: 7}, texture: "down"},
+        {x: 900, y: 600, w: 64, h: 64, velocity: {x: -7, y: 0}, texture: "left"},
+        {x: 600, y: 600, w: 64, h: 64, velocity: {x: 0, y: -7}, texture: "up"}
       ],
       bullet_boxes:[{
         x: 200,
