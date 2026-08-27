@@ -202,7 +202,9 @@ const player = {
   is_zapping: false,
 
   can_heal: true,
-  is_healing: false
+  is_healing: false,
+
+  was_on_sand: false
 };
 
 //TEXTURES
@@ -255,21 +257,21 @@ const force_frames = {
 
 function load_force_animation(key) {
   force_frames[key].length = 0;
-  
+
   for (let i = 0; i < force_anim_frames; i++) {
-    const x = i * 32; 
-    const y = 0;      
+    const x = i * 32;
+    const y = 0;
 
     const rect = new PIXI.Rectangle(x, y, 32, 32);
 
     const texture = new PIXI.Texture({
-      source: arrow_textures[key].source, 
+      source: arrow_textures[key].source,
       frame: rect
     });
-    
+
     force_frames[key].push(texture);
   }
-  
+
 }
 
 load_force_animation('up');
@@ -809,7 +811,7 @@ function dash_anim() {
     });
 
     data.sand_bars.forEach((bar) => {
-      const bar_body = Bodies.rectangle(bar.x, bar.y,bar.w, bar.h, { isStatic: true, collisionFilter: { group: -1, mask: 0 } })
+      const bar_body = Bodies.rectangle(bar.x, bar.y, bar.w, bar.h, { isStatic: true, collisionFilter: { group: -1, mask: 0 } })
 
       const bar_graphic = new PIXI.Graphics()
         .rect(-bar.w / 2, -bar.h / 2, bar.w, bar.h)
@@ -979,7 +981,7 @@ function dash_anim() {
   healthbar_graphic.zIndex = 10;
   app.stage.addChild(healthbar_graphic);
 
-  healthbar_bg_graphic.rect(50,20, PLAYER_MAX_HEALTH * 2, 10).fill(0xff00A0);
+  healthbar_bg_graphic.rect(50, 20, PLAYER_MAX_HEALTH * 2, 10).fill(0xff00A0);
   healthbar_bg_graphic.zIndex = 9;
   app.stage.addChild(healthbar_bg_graphic);
 
@@ -992,7 +994,7 @@ function dash_anim() {
 
     }
     healthbar_graphic.clear();
-    healthbar_graphic.rect(50,20, player.health * 2, 10).fill(0xa090ff);
+    healthbar_graphic.rect(50, 20, player.health * 2, 10).fill(0xa090ff);
   }
 
   //snail movement
@@ -1416,14 +1418,15 @@ function dash_anim() {
       }
     });
 
-    sand_bars.forEach((bar) => {
-      if (check_collision(box, bar)) {
-        player.max_speed = 1;
-      }
-      else{
-        player.max_speed = PLAYER_MAX_SPEED;
-      }
-    });
+    const is_on_sand = sand_bars.some((bar) => check_collision(box, bar));
+
+    if (is_on_sand) {
+      player.max_speed = 1;
+      player.was_on_sand = true;
+    } else if (player.was_on_sand) {
+      player.max_speed = PLAYER_MAX_SPEED;
+      player.was_on_sand = false;
+    }
 
     snails.forEach((snail_body) => {
       if (player.iframe == false && check_collision(box, snail_body)) {
