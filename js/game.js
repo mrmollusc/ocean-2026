@@ -36,9 +36,7 @@ import {
 
 //////////////////////////////////////////////
   // for all bullet manager and bullet graphics, scroll down
-  const fishTexture = new PIXI.Graphics()
-    .rect(100, 100, 20, 20)
-    .fill("#FFFF");
+  const fishTexture = PIXI.Texture.WHITE;
   const anemoneTexture = PIXI.Texture.WHITE;
   const turtleTexture = PIXI.Texture.WHITE;
 ///////////////////////////////////////////
@@ -70,7 +68,6 @@ const rotationSpeed = 0.1;
 
 //damage
 const TRASH_DAMAGE = 5;
-const SNAIL_DAMAGE = 1;
 
 //dash mechanic
 const DASH_SPEED = 40;
@@ -81,6 +78,7 @@ const DASH_COOLDOWN = 1500;
 //zap
 const ZAP_DURATION = 1500;
 const ZAP_COOLDOWN = 2000;
+const ZAP_RADIUS = 200;
 
 //regen
 const HEAL_DURATION = 2000;
@@ -132,6 +130,11 @@ let dialogueActive = false;
 
 let world;
 let boxGraphic;
+let skillGraphic;
+let playerEffectGraphic;
+let shieldWasActive = false;
+let shieldVisibleUntil = 0;
+let activeSkill = null;
 
 let current_room = "room_2";
 let current_room_id = "1";
@@ -232,10 +235,19 @@ export { up_arrow_texture, right_arrow_texture, left_arrow_texture, down_arrow_t
 const playerFrameWidth = 32;
 const playerFrameHeight = 32;
 const fullFrameWidth = 128;
+//PIXI ANIMATION FRAMES (SKILLS)
+const skillFrameHeight = 48;
+const skillFrameWidth = 52;
+const offset = 38;
 //const fullFrameHeight = 128;
 const totalFrames = 5;
 
 const frames = [];
+const skillFrames = [];
+const shieldFrames = Array.from({ length: 3 }, (_, index) => new PIXI.Texture({
+  source: crimson_texture,
+  frame: new PIXI.Rectangle(index * playerFrameWidth, 64, playerFrameWidth, playerFrameHeight)
+}));
 
 function loadPlayerAnimation(animation) {
   frames.length = 0;
@@ -254,22 +266,30 @@ function loadPlayerAnimation(animation) {
 };
 
 function loadSkillAnimation(skill) {
-  frames.length = 0;
-  let fullSkillFrameWidth;
-  let skillFrameHeight;
+  skillFrames.length = 0;
   for (let i = 0; i < totalFrames; i++) {
-    const skillFrameX = i * fullSkillFrameWidth;
-    const skillFrameY = skill * skillFrameHeight;
+    const skillFrameX = i * fullFrameWidth + offset;
+    const skillFrameY = (skill - 2) * skillFrameHeight;
 
-    const rect = new PIXI.Rectangle(skillFrameX, skillFrameY, skillFrameWidth, skillFrameHeight);
+    const skillRect = new PIXI.Rectangle(skillFrameX, skillFrameY, skillFrameWidth, skillFrameHeight);
 
-    const texture = new PIXI.Texture({
+    const skillTexture = new PIXI.Texture({
       source: crimson_texture,
-      frame: rect
+      frame: skillRect
     });
-    frames.push(texture);
+    skillFrames.push(skillTexture);
   };
 };
+
+function showSkillAnimation(skill) {
+  if (activeSkill === skill && skillGraphic.visible) return;
+
+  loadSkillAnimation(skill);
+  skillGraphic.textures = skillFrames;
+  skillGraphic.gotoAndPlay(0);
+  skillGraphic.visible = true;
+  activeSkill = skill;
+}
 
 loadPlayerAnimation(0);
 
@@ -304,13 +324,16 @@ function updatePlayerAnimation() {
   if (is_animation_locked) return;
 
   if (player.is_zapping) {
-    changeAnimation(2, true, 0.2);
+    showSkillAnimation(3);
     return;
   }
   if (player.is_healing) {
-    changeAnimation(3, true, 0.2);
+    showSkillAnimation(3);
     return;
   }
+
+  skillGraphic.visible = false;
+  activeSkill = null;
 
   if (player.state === "moving") {
     changeAnimation(0, true, 0.2);
@@ -359,7 +382,7 @@ function triggerDash() {
   app.stage.addChild(world);
   world.scale.set(CAMERA_ZOOM);
 
-  const bulletManager = new BulletManager(physicsWorld, world);
+  const bulletManager = new BulletManager(physicsWorld, world, engine);
 
   const canvas = app.canvas;
 
@@ -441,6 +464,7 @@ function triggerDash() {
     slop: 0.05,
     inertia: Infinity,
   });
+  box.isPlayer = true;
 
   const scaleX = targetWidth / (baselineRadius * 2);
   const scaleY = targetHeight / (baselineRadius * 2);
@@ -462,9 +486,6 @@ function triggerDash() {
 
   let hearts = [];
   let heart_graphics = [];
-
-  let snails = [];
-  let snail_graphics = [];
 
   let jellys = [];
   let jelly_graphics = [];
@@ -637,11 +658,6 @@ function triggerDash() {
     heart_graphics = [];
     hearts = [];
 
-    snail_graphics.forEach((g) => world.removeChild(g));
-    snails.forEach((t) => Composite.remove(engine.world, t));
-    snail_graphics = [];
-    snails = [];
-
     jelly_graphics.forEach((g) => world.removeChild(g));
     jellys.forEach((t) => Composite.remove(engine.world, t));
     jelly_graphics = [];
@@ -810,30 +826,6 @@ function triggerDash() {
       });*/
     });
 
-    data.snails.forEach((snail_obj) => {
-      const snail_body = Bodies.rectangle(snail_obj.x, snail_obj.y, 50, 50, {
-        isStatic: false,
-        restitution: 1,
-        friction: 0,
-        collisionFilter: { group: -1, mask: 0 },
-      });
-
-      const snail_graphic = new PIXI.Graphics()
-        .rect(-25, -25, 50, 50)
-        .fill(0xf000f0);
-
-      snail_graphic.position.set(snail_obj.x, snail_obj.y);
-      world.addChild(snail_graphic);
-
-      snails.push(snail_body);
-      snail_graphics.push(snail_graphic);
-      Composite.add(engine.world, snail_body);
-      Matter.Body.setVelocity(snail_body, {
-        x: snail_obj.x_vel,
-        y: snail_obj.y_vel,
-      });
-    });
-
     data.jellys.forEach((jelly_obj) => {
       const jelly_body = Bodies.rectangle(jelly_obj.x, jelly_obj.y, 50, 50, {
         isStatic: false,
@@ -933,40 +925,6 @@ function triggerDash() {
     healthbar_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, player.health * 2, 10).fill(0xa090ff);
   }
 
-  //snail movement
-  function snail_movement(roomKey) {
-    const data = room_data[roomKey];
-
-    data.snails.forEach((snail_obj, index) => {
-      const snail_body = snails[index];
-      const snail_graphic = snail_graphics[index];
-
-      if (!snail_body || !snail_graphic) return;
-
-      if (snail_obj.x <= 60) {
-        snail_obj.x_vel = Math.abs(snail_obj.x_vel);
-      }
-      if (snail_obj.x >= 1540) {
-        snail_obj.x_vel = -Math.abs(snail_obj.x_vel);
-      }
-      if (snail_obj.y >= 840) {
-        snail_obj.y_vel = -Math.abs(snail_obj.y_vel);
-      }
-      if (snail_obj.y <= 60) {
-        snail_obj.y_vel = Math.abs(snail_obj.y_vel);
-      }
-
-      Matter.Body.setVelocity(snail_body, {
-        x: snail_obj.x_vel,
-        y: snail_obj.y_vel,
-      });
-
-      snail_obj.x = snail_body.position.x;
-      snail_obj.y = snail_body.position.y;
-      snail_graphic.position.set(snail_obj.x, snail_obj.y);
-    });
-  }
-
   function update_jelly(roomKey) {
     const data = room_data[roomKey];
 
@@ -1020,6 +978,26 @@ function triggerDash() {
     boxGraphic.anchor.set(0.5, 0.5);
     world.addChild(boxGraphic);
 
+    skillGraphic = new PIXI.AnimatedSprite([PIXI.Texture.WHITE]);
+    skillGraphic.animationSpeed = 0.2;
+    skillGraphic.loop = true;
+    skillGraphic.width = skillFrameWidth;
+    skillGraphic.height = skillFrameHeight;
+    skillGraphic.anchor.set((skillFrameWidth - 1) / (skillFrameWidth * 2), (skillFrameHeight + 1) / (skillFrameHeight * 2));
+    skillGraphic.zIndex = "9";
+    skillGraphic.visible = false;
+    world.addChild(skillGraphic);
+
+    playerEffectGraphic = new PIXI.AnimatedSprite(shieldFrames);
+    playerEffectGraphic.animationSpeed = 0.15;
+    playerEffectGraphic.loop = true;
+    playerEffectGraphic.width = PLAYER_DIMENSIONS;
+    playerEffectGraphic.height = PLAYER_DIMENSIONS;
+    playerEffectGraphic.anchor.set(0.5);
+    playerEffectGraphic.zIndex = "10";
+    playerEffectGraphic.visible = false;
+    world.addChild(playerEffectGraphic);
+
     Composite.add(engine.world, [box]);
     load_rooms("room_2", 200, window.innerHeight / 2);
   }
@@ -1048,6 +1026,7 @@ function triggerDash() {
 
 
   let keys = {};
+  let debugKeyWasDown = false;
   let e;
   window.addEventListener("keydown", (event) => {
     keys[event.code] = true;
@@ -1166,33 +1145,10 @@ function triggerDash() {
         player.can_zap = false;
         player.is_zapping = true;
 
-        const frozen_snails = [];
-
-        snails.forEach((snail_body, index) => {
-          if (distance_between(box, snail_body) < 150) {
-            const snail_obj = room_data[current_room].snails[index];
-
-            frozen_snails.push({
-              index: index,
-              x_vel: snail_obj.x_vel,
-              y_vel: snail_obj.y_vel
-            });
-
-            snail_obj.x_vel = 0;
-            snail_obj.y_vel = 0;
-          }
-        });
+        bulletManager.setFrozen(true, box.position, ZAP_RADIUS);
         setTimeout(() => {
           player.is_zapping = false;
-
-          //reapply stored movement data to snails
-          frozen_snails.forEach(({ index, x_vel, y_vel }) => {
-            const snail_obj = room_data[current_room].snails[index];
-            if (snail_obj) {
-              snail_obj.x_vel = x_vel;
-              snail_obj.y_vel = y_vel;
-            }
-          });
+          bulletManager.setFrozen(false);
         }, ZAP_DURATION);
 
         setTimeout(() => {
@@ -1230,7 +1186,11 @@ function triggerDash() {
       }
     }
 
-    if (keys["KeyB"]) {
+    if (keys["KeyB"] && !debugKeyWasDown) {
+      bulletManager.spawnSnailBullet(
+        box.position.x,
+        box.position.y
+      );
       bossFishPattern(bulletManager, fishTexture, world); // blue fish
       anemonePattern(bulletManager, anemoneTexture, 100, 100); // white anemone
       console.log("Spawned pooled bullet");
@@ -1238,6 +1198,7 @@ function triggerDash() {
         bossTurtlePattern(bulletManager, turtleTexture, world); // green turtle
       }, 3000);
     }
+    debugKeyWasDown = keys["KeyB"];
     //healthbar update
     update_healthbar();
     //bullet stuff
@@ -1245,7 +1206,7 @@ function triggerDash() {
       if (b.dead) continue;
 
       // collision check
-      if (check_collision(box, b.body)) {
+      if (bulletManager.collidesWith(b.body, box)) {
         //harmless bullets never deal damage
         if (b.harmless) {
             if (!b.persistent) {
@@ -1283,10 +1244,11 @@ function triggerDash() {
             }
           }
 
-          // remove bullet ALWAYS (even if damage = 0)
-          b.dead = true;
-          b.sprite.visible = false;
-          Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+          if (!b.persistent) {
+            b.dead = true;
+            b.sprite.visible = false;
+            Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+          }
       }
     }
     /*
@@ -1335,8 +1297,6 @@ function triggerDash() {
       }
     }
 */
-    //snail moves
-    snail_movement(current_room);
 
     //jelly moves
     update_jelly(current_room)
@@ -1347,16 +1307,6 @@ function triggerDash() {
     trashes.forEach((trash_body) => {
       if (player.iframe == false && check_collision(box, trash_body)) {
         player.health -= TRASH_DAMAGE;
-        player.iframe = true;
-        setTimeout(() => {
-          player.iframe = false;
-        }, PLAYER_IFRAME_DURATION);
-      }
-    });
-
-    snails.forEach((snail_body) => {
-      if (player.iframe == false && check_collision(box, snail_body)) {
-        player.health -= SNAIL_DAMAGE;
         player.iframe = true;
         setTimeout(() => {
           player.iframe = false;
@@ -1402,15 +1352,23 @@ function triggerDash() {
     }
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.rotation = box.angle + Math.PI / 2;
+    skillGraphic.position.set(box.position.x, box.position.y);
+    skillGraphic.rotation = box.angle + Math.PI / 2;
+    playerEffectGraphic.position.set(box.position.x, box.position.y);
+    playerEffectGraphic.rotation = box.angle + Math.PI / 2;
+    const now = performance.now();
+    if (player.iframe && !shieldWasActive) {
+      playerEffectGraphic.gotoAndPlay(0);
+      shieldVisibleUntil = now + 500;
+    }
+    if (now >= shieldVisibleUntil) playerEffectGraphic.stop();
+    playerEffectGraphic.visible = now < shieldVisibleUntil;
+    shieldWasActive = player.iframe;
     //PLAYERSTATE
 
     //PLAYERSTATE LOGIC
     if (!is_animation_locked) {
-      if (player.is_zapping) {
-        playerState = "zapping";
-      } else if (player.is_healing) {
-        playerState = "healing";
-      } else if (player.state > 0.1) {
+      if (player.state > 0.1) {
         playerState = "moving";
       } else {
         playerState = "idle";

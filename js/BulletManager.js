@@ -1,14 +1,35 @@
 const fishTexture = PIXI.Texture.WHITE;
+const snailSheet = await PIXI.Assets.load("assets/sprites v0.1.png");
+
+function createSnailFrames(y, x, width, height) {
+    return Array.from({ length: 5 }, (_, index) => new PIXI.Texture({
+        source: snailSheet.source,
+        frame: new PIXI.Rectangle(index * 128 + x, y, width, height)
+    }));
+}
+
+const snailChargingFrames = createSnailFrames(80, 0, 60, 38);
+const snailBeginChargingFrames = createSnailFrames(0, 0, 60, 38);
+const snailStunnedFrames = createSnailFrames(40, 0, 56, 38);
+const nematocystFrames = createSnailFrames(0, 96, 15, 32);
+
 export class BulletManager {
-    constructor(physicsWorld, stage) {
+    constructor(physicsWorld, stage, engine) {
         this.physicsWorld = physicsWorld;
         this.stage = stage;
 
         this.pool = [];
         this.active = [];
+        this.bulletsFrozen = false;
+        this.freezeCenter = null;
+        this.freezeRadius = Infinity;
+
+        Matter.Events.on(engine, "collisionStart", ({ pairs }) => {
+            for (const pair of pairs) this.handleCollision(pair);
+        });
 
         for (let i = 0; i < 300; i++) {
-            const body = Matter.Bodies.rectangle(-9999, -9999, 20, 20, {
+            const body = Matter.Bodies.circle(-9999, -9999, 10, {
                 isSensor: false,
                 frictionAir: 0,
                 inertia: Infinity,
@@ -17,18 +38,22 @@ export class BulletManager {
                     mask: 0x0000
                 }
             });
-
-            const sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
+            const sprite = new PIXI.AnimatedSprite([PIXI.Texture.WHITE]);
+            const nematocystSprite = new PIXI.AnimatedSprite([PIXI.Texture.WHITE]);
             sprite.anchor.set(0.5);
+            nematocystSprite.anchor.set(0.5);
             sprite.visible = false;
+            nematocystSprite.visible = false;
 
             Matter.World.add(this.physicsWorld, body);
 
             this.stage.addChild(sprite);
+            this.stage.addChild(nematocystSprite);
 
             this.pool.push({ 
                 body, 
                 sprite, 
+                nematocystSprite,
                 vx: 0, 
                 vy: 0, 
                 dead: true, 
@@ -37,7 +62,16 @@ export class BulletManager {
                 ignoreIframes: false, //no immunity from this
                 harmless: false, //no damage from this
                 persistent: false, //bullet does NOT die on hit
-                pierce: false //bullet can hit multiple times
+                pierce: false, //bullet can hit multiple times
+                bounce: false,
+                frozen: false,
+                bounceCount: 0,
+                bounceLimit: 0,
+                bounceStoppedUntil: 0,
+                chargingUntil: 0,
+                spriteOffsetY: 0,
+                hitboxScaleX: 1,
+                hitboxScaleY: 1
             });
         }
     }
@@ -50,9 +84,32 @@ export class BulletManager {
         b.vx = vx;
         b.vy = vy;
         b.updateFn = updateFn;
+        b.bounce = false;
+        b.isSnail = false;
+        b.isAnemone = false;
+        if (b.hitboxScaleX !== 1 || b.hitboxScaleY !== 1) {
+            Matter.Body.scale(b.body, 1 / b.hitboxScaleX, 1 / b.hitboxScaleY);
+            b.hitboxScaleX = 1;
+            b.hitboxScaleY = 1;
+        }
+        b.frozen = this.bulletsFrozen && this.isInsideFreezeRadius(x, y);
+        b.bounceCount = 0;
+        b.bounceLimit = 0;
+        b.bounceStoppedUntil = 0;
+        b.chargingUntil = 0;
+        b.spriteOffsetY = 0;
+        b.body.restitution = 0;
+        b.body.friction = 0;
+        for (const part of b.body.parts) {
+            part.collisionFilter.category = 0x0002;
+            part.collisionFilter.mask = 0x0000;
+        }
+        b.snailHitAt = new Map();
 
         b.sprite.texture = texture;
-        b.sprite.visible = true;
+        b.sprite.visible = false;
+        b.nematocystSprite.visible = false;
+        b.sprite.rotation = 0;
         b.sprite.width = 20;
         b.sprite.height = 20;
         //b.sprite.tint = 0x00aaff; //default tint
@@ -60,15 +117,121 @@ export class BulletManager {
         Matter.Body.setPosition(b.body, { x, y });
 
         b.sprite.position.set(x, y);
+        b.nematocystSprite.position.set(x, y);
+        b.sprite.visible = true;
 
         this.active.push(b);
+        return b;
+    }
+    spawnSnailBullets(snails, targetBody) {
+        for (const snailBody of snails) {
+            if (!snailBody || snailBody.is_dead) continue;
+
+            const dx = targetBody.position.x - snailBody.position.x;
+            const dy = targetBody.position.y - snailBody.position.y;
+            const distance = Math.hypot(dx, dy) || 1;
+
+            const bullet = snailBullet.spawn(
+                this,
+                snailBody.position.x,
+                snailBody.position.y,
+                (dx / distance) * snailBullet.speed,
+                (dy / distance) * snailBullet.speed
+            );
+
+            if (bullet) {
+                this.setSnailAnimation(bullet, snailChargingFrames);
+                this.setSnailHitbox(bullet);
+                bullet.bounce = true;
+                bullet.body.restitution = 0;
+                bullet.body.friction = 0;
+            }
+        }
+    }
+    spawnSnailBullet(x, y) {
+        const angle = Math.random() * Math.PI * 2;
+        const spawnDistance = 30;
+
+        const bullet = snailBullet.spawn(
+            this,
+            x + Math.cos(angle) * spawnDistance,
+            y + Math.sin(angle) * spawnDistance,
+            Math.cos(angle) * snailBullet.speed,
+            Math.sin(angle) * snailBullet.speed
+        );
+
+        if (bullet) {
+            this.setSnailAnimation(bullet, snailChargingFrames);
+        }
+        return bullet;
+    }
+    collidesWith(bulletBody, targetBody) {
+        return bulletBody.parts.some((part) =>
+            Matter.Bounds.overlaps(part.bounds, targetBody.bounds)
+        );
+    }
+    isInsideFreezeRadius(x, y) {
+        if (!this.freezeCenter) return true;
+
+        return Math.hypot(
+            x - this.freezeCenter.x,
+            y - this.freezeCenter.y
+        ) <= this.freezeRadius;
+    }
+    setFrozen(frozen, center = null, radius = Infinity) {
+        this.bulletsFrozen = frozen;
+        this.freezeCenter = frozen && center
+            ? { x: center.x, y: center.y }
+            : null;
+        this.freezeRadius = frozen ? radius : Infinity;
+
+        for (const b of this.active) {
+            if (!b || b.dead) continue;
+
+            b.frozen = frozen && this.isInsideFreezeRadius(
+                b.body.position.x,
+                b.body.position.y
+            );
+            if (frozen) {
+                if (b.frozen) {
+                    Matter.Body.setVelocity(b.body, { x: 0, y: 0 });
+                }
+            } else {
+                Matter.Body.setVelocity(b.body, { x: b.vx, y: b.vy });
+            }
+        }
     }
     update(dt) {
         for (let b of this.active) {
             if (!b || !b.body) continue;
-            if (b.dead) continue;
+            if (b.dead) {
+                b.sprite.visible = false;
+                b.nematocystSprite.visible = false;
+                continue;
+            }
 
-            // Bullet velocity
+            if (b.frozen) {
+                Matter.Body.setVelocity(b.body, { x: 0, y: 0 });
+                continue;
+            }
+
+            if (b.bounceStoppedUntil > performance.now()) {
+                Matter.Body.setVelocity(b.body, { x: 0, y: 0 });
+                continue;
+            }
+
+            if (b.bounceStoppedUntil) {
+                b.bounceStoppedUntil = 0;
+                b.bounceCount = 0;
+                this.setSnailAnimation(b, snailBeginChargingFrames);
+                b.chargingUntil = performance.now() + 500;
+            }
+
+            if (b.chargingUntil && performance.now() >= b.chargingUntil) {
+                b.chargingUntil = 0;
+                this.setSnailAnimation(b, snailChargingFrames);
+            }
+
             Matter.Body.setVelocity(b.body, { x: b.vx, y: b.vy });
 
             // Custom update
@@ -81,20 +244,105 @@ export class BulletManager {
             if (x < -50 || x > 2000 || y < -50 || y > 1200) {
                 b.dead = true;
                 b.sprite.visible = false;
+                b.nematocystSprite.visible = false;
                 Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
             }
         }
 
         this.active = this.active.filter(b => b && !b.dead);
     }
+    handleCollision(pair) {
+        const bullet = this.active.find(({ body }) =>
+            body === pair.bodyA || body.parts.includes(pair.bodyA) ||
+            body === pair.bodyB || body.parts.includes(pair.bodyB)
+        );
+        if (!bullet || !bullet.bounce || bullet.dead) return;
+
+        const bulletPart = bullet.body === pair.bodyA || bullet.body.parts.includes(pair.bodyA)
+            ? pair.bodyA
+            : pair.bodyB;
+        const otherBody = bulletPart === pair.bodyA ? pair.bodyB : pair.bodyA;
+        if (bullet.isSnail && otherBody.isPlayer) {
+            const pushX = otherBody.position.x - bullet.body.position.x;
+            const pushY = otherBody.position.y - bullet.body.position.y;
+            const distance = Math.hypot(pushX, pushY) || 1;
+            const pushStrength = 3;
+
+            Matter.Body.setVelocity(otherBody, {
+                x: otherBody.velocity.x + (pushX / distance) * pushStrength,
+                y: otherBody.velocity.y + (pushY / distance) * pushStrength
+            });
+            return;
+        }
+
+        let normal = pair.collision.normal;
+        const velocityAlongNormal = bullet.vx * normal.x + bullet.vy * normal.y;
+
+        if (velocityAlongNormal > 0) {
+            normal = { x: -normal.x, y: -normal.y };
+        }
+
+        const incomingSpeed = bullet.vx * normal.x + bullet.vy * normal.y;
+        bullet.vx -= 2 * incomingSpeed * normal.x;
+        bullet.vy -= 2 * incomingSpeed * normal.y;
+        if (normal.x !== 0) {
+            bullet.sprite.scale.x = bullet.vx < 0 ? -1 : 1;
+        }
+        bullet.bounceCount += 1;
+
+        if (bullet.bounceCount >= bullet.bounceLimit) {
+            bullet.bounceStoppedUntil = performance.now() + 3000;
+            this.setSnailAnimation(bullet, snailStunnedFrames);
+        }
+
+        Matter.Body.setVelocity(bullet.body, { x: bullet.vx, y: bullet.vy });
+    }
     syncSprites() {
         for (const b of this.active) {
             if (!b || !b.body || b.dead) continue;
 
-            b.sprite.position.set(b.body.position.x + b.vx, b.body.position.y + b.vy);
+            b.sprite.position.set(
+                b.body.position.x + b.vx,
+                b.body.position.y + b.vy + b.spriteOffsetY
+            );
+            b.nematocystSprite.position.set(b.sprite.position.x, b.sprite.position.y);
+            b.nematocystSprite.rotation = Math.atan2(b.vy, b.vx) - Math.PI / 2;
         }
     }
+    setSnailAnimation(bullet, frames, loop = true) {
+        bullet.sprite.textures = frames;
+        bullet.sprite.loop = loop;
+        bullet.sprite.animationSpeed = 0.12;
+        bullet.sprite.gotoAndPlay(0);
+        bullet.sprite.width = frames === snailStunnedFrames ? 56 : 60;
+        bullet.sprite.height = 38;
+        bullet.spriteOffsetY = frames === snailChargingFrames ? -2 : 0;
+        bullet.sprite.scale.x = bullet.vx < 0 ? -1 : 1;
+    }
+    setSnailHitbox(bullet) {
+        const scaleX = 3;
+        const scaleY = 1.9;
+
+        Matter.Body.scale(bullet.body, scaleX, scaleY);
+        bullet.hitboxScaleX = scaleX;
+        bullet.hitboxScaleY = scaleY;
+        for (const part of bullet.body.parts) {
+            part.collisionFilter.category = 0x0002;
+            part.collisionFilter.mask = 0xFFFF;
+        }
+    }
+    setNematocystAnimation(bullet) {
+        bullet.nematocystSprite.textures = nematocystFrames;
+        bullet.nematocystSprite.loop = true;
+        bullet.nematocystSprite.animationSpeed = 0.12;
+        bullet.nematocystSprite.width = 15;
+        bullet.nematocystSprite.height = 32;
+        bullet.nematocystSprite.rotation = Math.atan2(bullet.vy, bullet.vx) - Math.PI / 2;
+        bullet.nematocystSprite.visible = true;
+        bullet.nematocystSprite.play();
+    }
     serializeBullet(b) {
+        const now = performance.now();
         return {
             x: b.body.position.x,
             y: b.body.position.y,
@@ -105,6 +353,12 @@ export class BulletManager {
             ignoreIframes: b.ignoreIframes,
             persistent: b.persistent,
             pierce: b.pierce,
+            frozen: b.frozen,
+            isSnail: b.isSnail,
+            bounceCount: b.bounceCount,
+            bounceLimit: b.bounceLimit,
+            bounceStoppedRemaining: Math.max(0, b.bounceStoppedUntil - now),
+            chargingRemaining: Math.max(0, b.chargingUntil - now),
             tint: b.sprite.tint //SAVE TEMP COLOR (temporary color tint to replace actual textures for now)
         };
     }
@@ -112,6 +366,7 @@ export class BulletManager {
         for (let b of this.active) {
             b.dead = true;
             b.sprite.visible = false;
+            b.nematocystSprite.visible = false;
             Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
         }
         this.active = [];
@@ -120,8 +375,8 @@ export class BulletManager {
         if (!savedBullets) return;
 
         for (let data of savedBullets) {
-            this.spawnFromPool(
-                texture,
+            const bullet = this.spawnFromPool(
+                data.isSnail ? snailChargingFrames[0] : texture,
                 data.x,
                 data.y,
                 data.vx,
@@ -132,20 +387,77 @@ export class BulletManager {
                     b.ignoreIframes = data.ignoreIframes;
                     b.persistent = data.persistent;
                     b.pierce = data.pierce;
+                    b.frozen = data.frozen ?? false;
 
                     b.sprite.tint = data.tint ?? 0xFFFFFF; //if no tint, set to white as default
                 }
             );
+
+            if (bullet?.isSnail || data.isSnail) {
+                bullet.isSnail = true;
+                bullet.bounce = true;
+                bullet.pierce = true;
+                this.setSnailHitbox(bullet);
+                bullet.body.restitution = 0;
+                bullet.body.friction = 0;
+                bullet.body.collisionFilter.mask = 0xFFFF;
+                bullet.bounceCount = data.bounceCount ?? 0;
+                bullet.bounceLimit = data.bounceLimit ?? 2;
+
+                if (data.bounceStoppedRemaining > 0) {
+                    bullet.bounceStoppedUntil = performance.now() + data.bounceStoppedRemaining;
+                    this.setSnailAnimation(bullet, snailStunnedFrames);
+                } else if (data.chargingRemaining > 0) {
+                    bullet.chargingUntil = performance.now() + data.chargingRemaining;
+                    this.setSnailAnimation(bullet, snailBeginChargingFrames);
+                } else {
+                    this.setSnailAnimation(bullet, snailChargingFrames);
+                }
+            }
+            if (bullet && data.isAnemone) {
+                bullet.isAnemone = true;
+                bullet.sprite.visible = false;
+                this.setNematocystAnimation(bullet);
+            }
         }
     }
 }
 export class defaultBullet {
-    static spawn(manager, texture, x, y, vx, vy) {
+    static spawn(manager, x, y, vx, vy) {
         manager.spawnFromPool(texture, x, y, vx, vy);
     }
 }
 export class Bullet{
     
+}
+export class snailBullet {
+    static speed = 4;
+    static damage = 1;
+
+    static spawn(manager, x, y, vx, vy) {
+        const bullet = manager.spawnFromPool(snailChargingFrames[0], x, y, vx, vy, (b) => {
+            b.damage = this.damage;
+            b.harmless = false;
+            b.persistent = true;
+            b.bounce = true;
+            b.pierce = true;
+            b.isSnail = true;
+            b.bounceLimit = Math.floor(Math.random() * 2) + 2;
+        });
+
+        if (bullet) {
+            bullet.sprite.tint = 0xFFFFFF;
+            bullet.persistent = true;
+            bullet.pierce = true;
+            bullet.bounce = true;
+            manager.setSnailHitbox(bullet);
+            bullet.body.restitution = 0;
+            bullet.body.friction = 0;
+            bullet.body.collisionFilter.mask = 0xFFFF;
+        }
+
+        return bullet;
+    }
 }
 export class anemoneBullet {
     static speed = 1;
@@ -160,7 +472,7 @@ export class anemoneBullet {
             const vx = Math.cos(angle) * speed;
             const vy = Math.sin(angle) * speed;
 
-            manager.spawnFromPool(texture, x, y, vx, vy, (b) => {
+            const bullet = manager.spawnFromPool(texture, x, y, vx, vy, (b) => {
                 b.sprite.width = 20;
                 b.sprite.height = 20;
                 b.sprite.tint = "#ea1498"; // optional color
@@ -168,6 +480,12 @@ export class anemoneBullet {
                 b.harmless = false;
                 b.persistent = false;
             });
+
+            if (bullet) {
+                bullet.isAnemone = true;
+                bullet.sprite.visible = false;
+                manager.setNematocystAnimation(bullet);
+            }
         }
     }
 }
@@ -228,7 +546,7 @@ export function anemonePattern(manager, texture, x, y, count = 12, speed = 6) {
 export function bossFishPattern(manager, texture, world) {
     for (let i = 0; i < 4; i++) {
         setTimeout(() => {
-            bossFishBullet.spawn(manager, texture, i * 200, 400);
+            bossFishBullet.spawn(manager, texture, 80 + i * 200, 400);
         }, i * 500); // Spawn bullets with a delay of 500ms between each
     }
 }
