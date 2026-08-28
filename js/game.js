@@ -225,6 +225,13 @@ const arrow_textures = {
   left: left_arrow_texture,
   down: down_arrow_texture
 }
+await PIXI.Assets.load({
+    alias: 'Indie Flower', 
+    src: './assets/label.ttf',
+    data: {
+        family: 'Indie Flower'
+    }
+});
 
 //PIXI ANIMATION FRAMES (CRIMSON)
 const playerFrameWidth = 32;
@@ -406,7 +413,9 @@ function triggerDash() {
     width: APP_WIDTH,
     height: APP_HEIGHT,
     backgroundColor: APP_BG_COLOR,
-    antialias: false,
+    antialias: true,
+    resolution: window.devicePixelRatio || 1,
+    autoDensity: true,   
   });
 
   world = new PIXI.Container();
@@ -532,6 +541,8 @@ function triggerDash() {
 
   let sand_bars = [];
   let sand_bar_graphics = [];
+
+  let labels = [];
 
   let room_label = new PIXI.Text({
     text: "room_1",
@@ -713,6 +724,9 @@ function triggerDash() {
     text_boxes.forEach((t) => Composite.remove(engine.world, t));
     text_box_graphics = [];
     text_boxes = [];
+
+    labels.forEach((g) => world.removeChild(g));
+    labels = [];
 
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
@@ -904,25 +918,17 @@ function triggerDash() {
       Composite.add(engine.world, jelly_body);
     });
 
-    data.text_boxes.forEach((text_obj) => {
-      const text_body = Bodies.rectangle(text_obj.x, text_obj.y, text_obj.w, text_obj.h, {
-        isStatic: true,
-        restitution: 1,
-        friction: 0,
-      });
+    data.labels.forEach((label) => {
+      const label_graphic = new PIXI.Text({
+        text: label.text,
+        style: label.style
+      })
 
-      const text_graphic = new PIXI.Graphics()
-        .rect(-text_obj.w / 2, -text_obj.h / 2, text_obj.w, text_obj.h)
-        .fill(0xFF0000);
-
-      text_graphic.position.set(text_obj.x, text_obj.y);
-      world.addChild(text_graphic);
-
-      text_boxes.push(text_body);
-      text_box_graphics.push(text_graphic);
-      Composite.add(engine.world, text_body);
+      label_graphic.position.set(label.x, label.y);
+      label_graphic.zIndex = 100;
+      world.addChild(label_graphic);
+      labels.push(label_graphic)
     });
-
 
 
     //end of loading objects
