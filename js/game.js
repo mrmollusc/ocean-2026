@@ -339,8 +339,8 @@ function changeAnimation(row, loopMode = true, animationSpeed = 0.1, forcedLock 
     is_animation_locked = true;
   }
 
-  load_player_animation(row);
-  boxGraphic.textures = player_frames;
+  loadPlayerAnimation(row);
+  boxGraphic.textures = frames;
   boxGraphic.loop = loopMode;
   boxGraphic.animationSpeed = animationSpeed;
   boxGraphic.gotoAndPlay(0);
@@ -1034,7 +1034,7 @@ function dash_anim() {
   //player sprite
   async function create_player() {
     //boxGraphic = new PIXI.Sprite(ralsei_texture);
-    boxGraphic = new PIXI.AnimatedSprite(player_frames);
+    boxGraphic = new PIXI.AnimatedSprite(frames);
     boxGraphic.animationSpeed = 0.1;
     boxGraphic.play();
     boxGraphic.zIndex = "8";
@@ -1388,16 +1388,6 @@ function dash_anim() {
       player.max_speed = PLAYER_MAX_SPEED;
       player.was_on_sand = false;
     }
-
-    snails.forEach((snail_body) => {
-      if (player.iframe == false && check_collision(box, snail_body)) {
-        player.health -= SNAIL_DAMAGE;
-        player.iframe = true;
-        setTimeout(() => {
-          player.iframe = false;
-        }, PLAYER_IFRAME_DURATION);
-      }
-    });
 
     forces.forEach((e, index) => {
       if (check_collision(box, e)) {
