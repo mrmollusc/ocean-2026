@@ -1,42 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-        @import url('https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ocean Game</title>
     <link rel="icon" type="image/png" href="assets/kanako.png">
     <style>
-#return {
-    top: -3%;
-    left: 0.5%;
-    font-weight: normal;
-    font-family: "Mozilla Headline";
-    color: #ffffff;
-    position: absolute;
-    background-color: rgba(255, 30, 0, 0.6);
-    padding: 10px 10px 10px 10px;
-    border-radius: 20px;
-    font-size: 48px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0px 20px rgba(255, 0, 0, 0.3);
-    transition: all 0.25s ease-in-out;
-    width: 60px;
-    height: 60px;
-    text-align: center;
-    flex-direction: column;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-a {
-  text-decoration: none; 
-  color: inherit;       
-  all: unset;
-  cursor: pointer;
-}
+        @import url('https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
 
+        #return {
+            top: -3%;
+            left: 0.5%;
+            font-weight: normal;
+            font-family: "Mozilla Headline";
+            color: #ffffff;
+            position: absolute;
+            background-color: rgba(255, 30, 0, 0.6);
+            padding: 10px 10px 10px 10px;
+            border-radius: 20px;
+            font-size: 48px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0px 20px rgba(255, 0, 0, 0.3);
+            transition: all 0.25s ease-in-out;
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            flex-direction: column;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        a {
+            text-decoration: none; 
+            color: inherit;       
+            all: unset;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -44,9 +44,8 @@ a {
     <div id="game"></div>
     <script src="js/levels/room_1.js"></script>
     <script src="js/levels/room_2.js"></script>
-    <p id = 'return' class="button"><a href="start.html">☰</a></p>
+    <p id='return' class="button"><a href="start.html">☰</a></p>
     <p id="by">© 2026 Studio Mollusc</p>
-
 
     <script src="js/lib/matter.min.js"></script>
     <script src="js/lib/pixi.min.js"></script>
