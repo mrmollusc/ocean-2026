@@ -84,13 +84,10 @@ const ZAP_RADIUS = 200;
 const HEAL_DURATION = 2000;
 const HEAL_COOLDOWN = 5000;
 
-//room transition
-const ROOM_TRANSITION_DELAY = 300;
-
 //app settings
 const APP_WIDTH = 800;
 const APP_HEIGHT = 450;
-const APP_BG_COLOR = 0x111111;
+const APP_BG_COLOR = 0xf6d7b0; //
 
 //map
 const mapData = window.TileMaps[("room_2", "room_1")];
@@ -158,29 +155,29 @@ let keybinds = {
   zap: 'KeyK',
   rejuv: 'KeyO'
 }
-if(is_alt_keybind == true){
+if (is_alt_keybind == false) {
   console.log('keybind', is_alt_keybind)
   keybinds = {
-  up: 'ArrowUp',
-  left: 'ArrowLeft',
-  down: 'ArrowDown',
-  right: 'ArrowRight',
-  dash: 'Space',
-  zap: 'KeyE',
-  rejuv: 'KeyF'
-}
+    up: 'ArrowUp',
+    left: 'ArrowLeft',
+    down: 'ArrowDown',
+    right: 'ArrowRight',
+    dash: 'Space',
+    zap: 'KeyE',
+    rejuv: 'KeyF'
+  }
 }
 else {
   console.log('keybind', is_alt_keybind)
   keybinds = {
-  up: 'KeyW',
-  left: 'KeyA',
-  down: 'KeyS',
-  right: 'KeyD',
-  dash: 'Space',
-  zap: 'KeyK',
-  rejuv: 'KeyO'
-}
+    up: 'KeyW',
+    left: 'KeyA',
+    down: 'KeyS',
+    right: 'KeyD',
+    dash: 'Space',
+    zap: 'KeyK',
+    rejuv: 'KeyO'
+  }
 }
 
 
@@ -208,28 +205,26 @@ const player = {
   is_zapping: false,
 
   can_heal: true,
-  is_healing: false
+  is_healing: false,
+
+  was_on_sand: false
 };
 
 //TEXTURES
 PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
-const ralsei_texture = await PIXI.Assets.load("assets/ralsei.webp");
 const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
 const heart_texture = await PIXI.Assets.load("assets/bottle.png");
 
-const up_arrow_texture = await PIXI.Assets.load("assets/up_dir.png");
-const right_arrow_texture = await PIXI.Assets.load("assets/right_dir.png");
-const left_arrow_texture = await PIXI.Assets.load("assets/left_dir.png");
-const down_arrow_texture = await PIXI.Assets.load("assets/down_dir.png");
-
-const arrowTextures = {
+const up_arrow_texture = await PIXI.Assets.load("assets/up_dir_anim.png");
+const right_arrow_texture = await PIXI.Assets.load("assets/right_dir_anim.png");
+const left_arrow_texture = await PIXI.Assets.load("assets/left_dir_anim.png");
+const down_arrow_texture = await PIXI.Assets.load("assets/down_dir_anim.png");
+const arrow_textures = {
   up: up_arrow_texture,
   right: right_arrow_texture,
   left: left_arrow_texture,
-  down: down_arrow_texture,
-};
-
-export { up_arrow_texture, right_arrow_texture, left_arrow_texture, down_arrow_texture };
+  down: down_arrow_texture
+}
 
 //PIXI ANIMATION FRAMES (CRIMSON)
 const playerFrameWidth = 32;
@@ -264,6 +259,42 @@ function loadPlayerAnimation(animation) {
     frames.push(texture);
   };
 };
+
+//force block animations
+const force_anim_frames = 16;
+const force_frames = {
+  up: [],
+  right: [],
+  down: [],
+  left: []
+};
+
+
+function load_force_animation(key) {
+  force_frames[key].length = 0;
+
+  for (let i = 0; i < force_anim_frames; i++) {
+    const x = i * 32;
+    const y = 0;
+
+    const rect = new PIXI.Rectangle(x, y, 32, 32);
+
+    const texture = new PIXI.Texture({
+      source: arrow_textures[key].source,
+      frame: rect
+    });
+
+    force_frames[key].push(texture);
+  }
+
+}
+
+load_force_animation('up');
+load_force_animation('right');
+load_force_animation('down');
+load_force_animation('left');
+
+
 
 function loadSkillAnimation(skill) {
   skillFrames.length = 0;
@@ -308,8 +339,8 @@ function changeAnimation(row, loopMode = true, animationSpeed = 0.1, forcedLock 
     is_animation_locked = true;
   }
 
-  loadPlayerAnimation(row);
-  boxGraphic.textures = frames;
+  load_player_animation(row);
+  boxGraphic.textures = player_frames;
   boxGraphic.loop = loopMode;
   boxGraphic.animationSpeed = animationSpeed;
   boxGraphic.gotoAndPlay(0);
@@ -343,7 +374,7 @@ function updatePlayerAnimation() {
 }
 
 //when dash, lock anim until dash anim is done
-function triggerDash() {
+function dash_anim() {
   if (is_animation_locked) return;
 
   playerState = "dashing";
@@ -496,11 +527,11 @@ function triggerDash() {
   let bullet_boxes = [];
   let bullet_box_graphics = [];
 
-  let bullets = [];
-  let bullet_graphics = [];
-
   let text_boxes = [];
   let text_box_graphics = [];
+
+  let sand_bars = [];
+  let sand_bar_graphics = [];
 
   let room_label = new PIXI.Text({
     text: "room_1",
@@ -668,6 +699,11 @@ function triggerDash() {
     force_graphics = [];
     forces = [];
 
+    sand_bar_graphics.forEach((g) => world.removeChild(g));
+    sand_bars.forEach((t) => Composite.remove(engine.world, t));
+    sand_bar_graphics = [];
+    sand_bars = [];
+
     bullet_box_graphics.forEach((g) => world.removeChild(g));
     bullet_boxes.forEach((t) => Composite.remove(engine.world, t));
     bullet_box_graphics = [];
@@ -765,7 +801,6 @@ function triggerDash() {
     });
 
     data.force_blocks.forEach((force_obj) => {
-      const texture = force_obj.texture ?? arrowTextures[force_obj.textureKey];
       const force_body = Bodies.rectangle(
         force_obj.x,
         force_obj.y,
@@ -773,11 +808,16 @@ function triggerDash() {
         force_obj.h,
         { isStatic: true, collisionFilter: { group: -1, mask: 0 } }
       );
-      const force_graphic = new PIXI.Sprite(texture);
+      const force_graphic = new PIXI.AnimatedSprite(force_frames[force_obj.texture]);
       force_graphic.width = force_obj.w;
       force_graphic.height = force_obj.h;
       force_graphic.anchor.set(0.5);
-      force_graphic.zIndex = "7";
+      force_graphic.zIndex = 7;
+
+      force_graphic.textures = force_frames[force_obj.texture];
+      force_graphic.loop = true;
+      force_graphic.animationSpeed = 0.6;
+      force_graphic.gotoAndPlay(0);
 
       force_graphic.position.set(force_obj.x, force_obj.y);
       world.addChild(force_graphic);
@@ -785,6 +825,21 @@ function triggerDash() {
       forces.push(force_body);
       force_graphics.push(force_graphic);
       Composite.add(engine.world, force_body);
+    });
+
+    data.sand_bars.forEach((bar) => {
+      const bar_body = Bodies.rectangle(bar.x, bar.y, bar.w, bar.h, { isStatic: true, collisionFilter: { group: -1, mask: 0 } })
+
+      const bar_graphic = new PIXI.Graphics()
+        .rect(-bar.w / 2, -bar.h / 2, bar.w, bar.h)
+        .fill(0xf6f7d0);
+
+      bar_graphic.position.set(bar.x, bar.y);
+      world.addChild(bar_graphic);
+
+      sand_bars.push(bar_body);
+      sand_bar_graphics.push(bar_graphic);
+      Composite.add(engine.world, bar_body);
     });
 
     data.bullet_boxes.forEach((bullet_box_obj) => {
@@ -879,7 +934,13 @@ function triggerDash() {
       canTransition = true;
     }, 300);
   }
-
+  //loss function (not the sigmoid fuh nuh machine learning)
+  function lose(current_room, roomKey) {
+    player.health = 100;
+    const data = room_data[roomKey];
+    let spawn_point = data.spawnpoint;
+    load_rooms(current_room, spawn_point.x, spawn_point.y)
+  }
   //edit hearts on touching
   function update_hearts(roomKey) {
     heart_graphics.forEach((g) => world.removeChild(g));
@@ -913,16 +974,20 @@ function triggerDash() {
   healthbar_graphic.zIndex = 10;
   app.stage.addChild(healthbar_graphic);
 
-  healthbar_bg_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, PLAYER_MAX_HEALTH * 2, 10).fill(0xff0000);
+  healthbar_bg_graphic.rect(50, 20, PLAYER_MAX_HEALTH * 2, 10).fill(0xff00A0);
   healthbar_bg_graphic.zIndex = 9;
   app.stage.addChild(healthbar_bg_graphic);
 
   //healthbar updater
   function update_healthbar() {
     if (player.health > 100) player.health = 100;
-    if (player.health < 0) player.health = 0;
+    if (player.health < 0) {
+      player.health = 0;
+      lose(current_room, current_room);
+
+    }
     healthbar_graphic.clear();
-    healthbar_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, player.health * 2, 10).fill(0xa090ff);
+    healthbar_graphic.rect(50, 20, player.health * 2, 10).fill(0xa090ff);
   }
 
   function update_jelly(roomKey) {
@@ -969,7 +1034,7 @@ function triggerDash() {
   //player sprite
   async function create_player() {
     //boxGraphic = new PIXI.Sprite(ralsei_texture);
-    boxGraphic = new PIXI.AnimatedSprite(frames);
+    boxGraphic = new PIXI.AnimatedSprite(player_frames);
     boxGraphic.animationSpeed = 0.1;
     boxGraphic.play();
     boxGraphic.zIndex = "8";
@@ -1123,7 +1188,7 @@ function triggerDash() {
         player.can_dash = false;
         player.is_dashing = true;
 
-        triggerDash();
+        dash_anim();
 
         setTimeout(() => {
           player.max_speed = PLAYER_MAX_SPEED;
@@ -1209,40 +1274,40 @@ function triggerDash() {
       if (bulletManager.collidesWith(b.body, box)) {
         //harmless bullets never deal damage
         if (b.harmless) {
-            if (!b.persistent) {
-                b.dead = true;
-                b.sprite.visible = false;
-                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
-            }
-            continue;
+          if (!b.persistent) {
+            b.dead = true;
+            b.sprite.visible = false;
+            Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+          }
+          continue;
         }
         //bullets that ignore i‑frames always deal damage
         if (b.ignoreIframes) {
-            player.health -= b.damage;
+          player.health -= b.damage;
 
-            if (!b.pierce && !b.persistent) {
-                b.dead = true;
-                b.sprite.visible = false;
-                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
-            }
-            continue;
+          if (!b.pierce && !b.persistent) {
+            b.dead = true;
+            b.sprite.visible = false;
+            Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+          }
+          continue;
         }
 
         //normal bullets respect i‑frames
         if (!player.iframe && b.damage > 0) {
-            player.health -= b.damage;
+          player.health -= b.damage;
 
-            player.iframe = true;
-            setTimeout(() => {
-                player.iframe = false;
-            }, PLAYER_IFRAME_DURATION);
+          player.iframe = true;
+          setTimeout(() => {
+            player.iframe = false;
+          }, PLAYER_IFRAME_DURATION);
 
-            if (!b.pierce && !b.persistent) {
-                b.dead = true;
-                b.sprite.visible = false;
-                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
-            }
+          if (!b.pierce && !b.persistent) {
+            b.dead = true;
+            b.sprite.visible = false;
+            Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
           }
+        }
 
           if (!b.persistent) {
             b.dead = true;
@@ -1307,6 +1372,26 @@ function triggerDash() {
     trashes.forEach((trash_body) => {
       if (player.iframe == false && check_collision(box, trash_body)) {
         player.health -= TRASH_DAMAGE;
+        player.iframe = true;
+        setTimeout(() => {
+          player.iframe = false;
+        }, PLAYER_IFRAME_DURATION);
+      }
+    });
+
+    const is_on_sand = sand_bars.some((bar) => check_collision(box, bar));
+
+    if (is_on_sand) {
+      player.max_speed = 1;
+      player.was_on_sand = true;
+    } else if (player.was_on_sand) {
+      player.max_speed = PLAYER_MAX_SPEED;
+      player.was_on_sand = false;
+    }
+
+    snails.forEach((snail_body) => {
+      if (player.iframe == false && check_collision(box, snail_body)) {
+        player.health -= SNAIL_DAMAGE;
         player.iframe = true;
         setTimeout(() => {
           player.iframe = false;
@@ -1483,8 +1568,8 @@ function triggerDash() {
           }
         }
       }
-        
-      
+
+
     }
   });
 })();

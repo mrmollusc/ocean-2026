@@ -10,6 +10,7 @@
         { x: 20, y: 450, w: 40, h: 900 },
         { x: 1580, y: 450, w: 40, h: 900 },
         ],
+        sand_bars: [],
         trashes: [],
         doors: [],
         hearts: [],
@@ -17,7 +18,8 @@
         jellys: [],
         force_blocks:[],
         bullet_boxes:[],
-        text_boxes:[]
+        text_boxes:[],
+        spawnpoint:{};
     }*/
     //btw room x and y pos measured from their center
     room_1: {
@@ -28,6 +30,7 @@
         { x: 20, y: 450, w: 40, h: 900 },
         { x: 1580, y: 450, w: 40, h: 900 },
       ],
+      sand_bars: [],
       trashes: [{ x: 800, y: 450, w: 100, h: 100 }],
       doors: [
         {
@@ -53,10 +56,10 @@
       snails: [],
       jellys: [],
       force_blocks: [
-        {x: 600, y: 300, w: 100, h: 100, velocity: {x: 7, y: 0}, textureKey: "right"},
-        {x: 900, y: 300, w: 100, h: 100, velocity: {x: 0, y: 7}, textureKey: "down"},
-        {x: 900, y: 600, w: 100, h: 100, velocity: {x: -7, y: 0}, textureKey: "left"},
-        {x: 600, y: 600, w: 100, h: 100, velocity: {x: 0, y: -7}, textureKey: "up"}
+        {x: 600, y: 300, w: 64, h: 64, velocity: {x: 7, y: 0}, texture: "right"},
+        {x: 900, y: 300, w: 64, h: 64, velocity: {x: 0, y: 7}, texture: "down"},
+        {x: 900, y: 600, w: 64, h: 64, velocity: {x: -7, y: 0}, texture: "left"},
+        {x: 600, y: 600, w: 64, h: 64, velocity: {x: 0, y: -7}, texture: "up"}
       ],
       bullet_boxes:[{
         x: 200,
@@ -68,7 +71,8 @@
         colour: 0xffffff,
         bullets: [{vx: 1, vy: 0}, {vx: -1, vy: 0}, {vx: 0, vy: 1}, {vx: 0, vy: -1}]
       }],
-      text_boxes:[{x: 200, y: 200, w: 100, h: 100, text: 'not yet'}]
+      text_boxes:[{x: 200, y: 200, w: 100, h: 100, text: 'not yet'}],
+      spawnpoint:{x: 120, y: 800}
     },
 
     room_2: {
@@ -83,6 +87,7 @@
         { x: 900, y: 360, w: 960, h: 120 },
         { x: 1380, y: 500, w: 120, h: 400 }
       ],
+      sand_bars: [],
       trashes: [],
       doors: [
         {
@@ -104,6 +109,7 @@
           target_y: 180,
         },
       ],
+      sand_bars: [],
       hearts: [],
       snails: [
         {x: Math.random()*1500, y: Math.random()*700, x_vel: Math.random()*5, y_vel: Math.random()*5},
@@ -127,7 +133,8 @@
           { vx: 0, vy: -1 }
         ]
       }],
-      text_boxes:[]
+      text_boxes:[],
+      spawnpoint:{x: 120, y: 800}
     },
 
     room_3: {
@@ -150,6 +157,7 @@
           target_y: 450,
         },
       ],
+      sand_bars: [{x: 300, y: 400, w: 50, h: 100}],
       hearts: [
         { x: 50, y: 50 },
         { x: 100, y: 50 },
@@ -165,7 +173,8 @@
       jellys: [],
       force_blocks:[],
       bullet_boxes:[],
-      text_boxes:[]
+      text_boxes:[],
+      spawnpoint:{x: 120, y: 800}
     },
 
     room_4: {
@@ -193,7 +202,8 @@
         jellys: [],
       force_blocks:[],
       bullet_boxes:[],
-      text_boxes:[]
+      text_boxes:[],
+      spawnpoint:{x: 120, y: 800}
     }
   };
 
