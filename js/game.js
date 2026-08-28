@@ -87,7 +87,7 @@ const HEAL_COOLDOWN = 5000;
 //app settings
 const APP_WIDTH = 800;
 const APP_HEIGHT = 450;
-const APP_BG_COLOR = 0xf6d7b0; //
+const APP_BG_COLOR = "#003a5f"; //
 
 //map
 const mapData = window.TileMaps[("room_2", "room_1")];
