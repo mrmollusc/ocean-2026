@@ -339,8 +339,8 @@ function changeAnimation(row, loopMode = true, animationSpeed = 0.1, forcedLock 
     is_animation_locked = true;
   }
 
-  load_player_animation(row);
-  boxGraphic.textures = player_frames;
+  loadPlayerAnimation(row);
+  boxGraphic.textures = frames;
   boxGraphic.loop = loopMode;
   boxGraphic.animationSpeed = animationSpeed;
   boxGraphic.gotoAndPlay(0);
@@ -374,7 +374,7 @@ function updatePlayerAnimation() {
 }
 
 //when dash, lock anim until dash anim is done
-function dash_anim() {
+function triggerDash() {
   if (is_animation_locked) return;
 
   playerState = "dashing";
@@ -974,7 +974,7 @@ function dash_anim() {
   healthbar_graphic.zIndex = 10;
   app.stage.addChild(healthbar_graphic);
 
-  healthbar_bg_graphic.rect(50, 20, PLAYER_MAX_HEALTH * 2, 10).fill(0xff00A0);
+  healthbar_bg_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, PLAYER_MAX_HEALTH * 2, 10).fill(0xff00A0);
   healthbar_bg_graphic.zIndex = 9;
   app.stage.addChild(healthbar_bg_graphic);
 
@@ -987,7 +987,7 @@ function dash_anim() {
 
     }
     healthbar_graphic.clear();
-    healthbar_graphic.rect(50, 20, player.health * 2, 10).fill(0xa090ff);
+    healthbar_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, player.health * 2, 10).fill(0xa090ff);
   }
 
   function update_jelly(roomKey) {
@@ -1034,7 +1034,7 @@ function dash_anim() {
   //player sprite
   async function create_player() {
     //boxGraphic = new PIXI.Sprite(ralsei_texture);
-    boxGraphic = new PIXI.AnimatedSprite(player_frames);
+    boxGraphic = new PIXI.AnimatedSprite(frames);
     boxGraphic.animationSpeed = 0.1;
     boxGraphic.play();
     boxGraphic.zIndex = "8";
@@ -1188,7 +1188,7 @@ function dash_anim() {
         player.can_dash = false;
         player.is_dashing = true;
 
-        dash_anim();
+        triggerDash();
 
         setTimeout(() => {
           player.max_speed = PLAYER_MAX_SPEED;
@@ -1388,16 +1388,6 @@ function dash_anim() {
       player.max_speed = PLAYER_MAX_SPEED;
       player.was_on_sand = false;
     }
-
-    snails.forEach((snail_body) => {
-      if (player.iframe == false && check_collision(box, snail_body)) {
-        player.health -= SNAIL_DAMAGE;
-        player.iframe = true;
-        setTimeout(() => {
-          player.iframe = false;
-        }, PLAYER_IFRAME_DURATION);
-      }
-    });
 
     forces.forEach((e, index) => {
       if (check_collision(box, e)) {
