@@ -121,71 +121,12 @@ app.stage.addChild(dialogue_text);
 //////////////////////////////////////////
 // global stuff
 /////////////////////////////////////////
-let current_dialogue = null;
-let dialogue_index = 0;
-let dialogueActive = false;
-
-let world;
-let boxGraphic;
-let skillGraphic;
-let playerEffectGraphic;
-let shieldWasActive = false;
-let shieldVisibleUntil = 0;
-let activeSkill = null;
-
-let current_room = "room_2";
-let current_room_id = "1";
-
-let playerState;
-let is_animation_locked = false;
-
-let currently_playing = -1;
-let inconspicuous_variable_that_counts_how_long_between_snail_movement_has_elapsed_uwu_that_isnt_used = 'mrmollusc';
-let did_you_know_that_the_t1_line_in_sydney_rail_used_to_own_half_the_cityrail_network_but_is_now_nerfed_without_epping_question_mark = 't1'
-let enter_pressed = false;
-
-let is_alt_keybind = get_toggle_flag();
-let is_mute = get_mute_flag();
-let keybinds = {
-  up: 'KeyW',
-  left: 'KeyA',
-  down: 'KeyS',
-  right: 'KeyD',
-  dash: 'Space',
-  zap: 'KeyK',
-  rejuv: 'KeyO'
-}
-if (is_alt_keybind == false) {
-  console.log('keybind', is_alt_keybind)
-  keybinds = {
-    up: 'ArrowUp',
-    left: 'ArrowLeft',
-    down: 'ArrowDown',
-    right: 'ArrowRight',
-    dash: 'Space',
-    zap: 'KeyE',
-    rejuv: 'KeyF'
-  }
-}
-else {
-  console.log('keybind', is_alt_keybind)
-  keybinds = {
-    up: 'KeyW',
-    left: 'KeyA',
-    down: 'KeyS',
-    right: 'KeyD',
-    dash: 'Space',
-    zap: 'KeyK',
-    rejuv: 'KeyO'
-  }
-}
-
 
 ///////////////////////////////////////////
 //PLAYER DATA
 ////////////////////////////////////////////
 
-const player = {
+let player = {
   state: "",
   chapter: 1,
   dealt_nuts: false,
@@ -209,6 +150,80 @@ const player = {
 
   was_on_sand: false
 };
+
+// save mechanic
+let saved_room = localStorage.getItem("current_room");
+let x = parseInt(localStorage.getItem("player_x")) || 500;
+let y = parseInt(localStorage.getItem("player_y")) || 500;
+let player_data = parseInt(localStorage.getItem("temp_player_data"));
+let save_data = localStorage.getItem("room_data");
+
+if (save_data && save_data !== "[object Object]") {
+    Object.assign(room_data, JSON.parse(save_data));
+}
+if (player_data && player_data !== "[object Object]") {
+    Object.assign(player, JSON.parse(player_data));
+}
+
+let temp_room_data = room_data; 
+let temp_player_data = player;
+
+//rest of the things
+let current_dialogue = null;
+let dialogue_index = 0;
+let dialogueActive = false;
+
+let world;
+let boxGraphic;
+let skillGraphic;
+let playerEffectGraphic;
+let shieldWasActive = false;
+let shieldVisibleUntil = 0;
+let activeSkill = null;
+
+let current_room = "room_2";
+
+let playerState;
+let is_animation_locked = false;
+
+let currently_playing = -1;
+let inconspicuous_variable_that_counts_how_long_between_snail_movement_has_elapsed_uwu_that_isnt_used = 'mrmollusc';
+let did_you_know_that_the_t1_line_in_sydney_rail_used_to_own_half_the_cityrail_network_but_is_now_nerfed_without_epping_question_mark = 't1'
+let enter_pressed = false;
+
+let is_alt_keybind = get_toggle_flag();
+let is_mute = get_mute_flag();
+let keybinds = {
+  up: 'KeyW',
+  left: 'KeyA',
+  down: 'KeyS',
+  right: 'KeyD',
+  dash: 'Space',
+  zap: 'KeyK',
+  rejuv: 'KeyO'
+}
+if (is_alt_keybind == false) {
+  keybinds = {
+    up: 'ArrowUp',
+    left: 'ArrowLeft',
+    down: 'ArrowDown',
+    right: 'ArrowRight',
+    dash: 'Space',
+    zap: 'KeyE',
+    rejuv: 'KeyF'
+  }
+}
+else {
+  keybinds = {
+    up: 'KeyW',
+    left: 'KeyA',
+    down: 'KeyS',
+    right: 'KeyD',
+    dash: 'Space',
+    zap: 'KeyK',
+    rejuv: 'KeyO'
+  }
+}
 
 //TEXTURES
 PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
@@ -361,11 +376,11 @@ function changeAnimation(row, loopMode = true, animationSpeed = 0.1, forcedLock 
 function updatePlayerAnimation() {
   if (is_animation_locked) return;
 
-  if (player.is_zapping) {
+  if (temp_player_data.is_zapping) {
     showSkillAnimation(3);
     return;
   }
-  if (player.is_healing) {
+  if (temp_player_data.is_healing) {
     showSkillAnimation(3);
     return;
   }
@@ -373,7 +388,7 @@ function updatePlayerAnimation() {
   skillGraphic.visible = false;
   activeSkill = null;
 
-  if (player.state === "moving") {
+  if (temp_player_data.state === "moving") {
     changeAnimation(0, true, 0.2);
   } else if (playerState === "idle") {
     changeAnimation(0, true, 0.1);
@@ -394,7 +409,7 @@ function triggerDash() {
 
 
 
-    if (player.state === "moving") {
+    if (temp_player_data.state === "moving") {
       playerState = "moving";
     } else {
       playerState = "idle";
@@ -455,7 +470,7 @@ function triggerDash() {
 
     dialogueBg.visible = true;
     dialogue_text.visible = true;
-    player.can_move = false;
+    temp_player_data.can_move = false;
 
     show_next_dialogue_line();
   }
@@ -478,7 +493,7 @@ function triggerDash() {
   function endDialogue() {
     dialogueBg.visible = false;
     dialogue_text.visible = false;
-    player.can_move = true;
+    temp_player_data.can_move = true;
 
     current_dialogue = null;
     dialogue_index = 0;
@@ -675,7 +690,6 @@ function triggerDash() {
   //everything loader
   function load_rooms(roomKey, spawnX, spawnY) {
     current_room = roomKey;
-    current_room_id = Number(current_room.replaceAll(/[rom_]/gi, "")) - 1; //regex yummy
     canTransition = false;
     //clear bullets from prev room
     bulletManager.clearAll();
@@ -731,7 +745,7 @@ function triggerDash() {
     Matter.Body.setPosition(box, { x: spawnX, y: spawnY });
     Matter.Body.setVelocity(box, { x: 0, y: 0 });
 
-    const data = room_data[roomKey];
+    const data = temp_room_data[roomKey];
 
     data.walls.forEach((wall) => {
       const wallBody = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, {
@@ -942,10 +956,10 @@ function triggerDash() {
   }
   //loss function (not the sigmoid fuh nuh machine learning)
   function lose(current_room, roomKey) {
-    player.health = 100;
-    const data = room_data[roomKey];
+    temp_player_data.health = 100;
+    const data = temp_room_data[roomKey];
     let spawn_point = data.spawnpoint;
-    load_rooms(current_room, spawn_point.x, spawn_point.y)
+    load_rooms(current_room ?? 'room_2', spawn_point.x ?? 200, spawn_point.y ?? 450)
   }
   //edit hearts on touching
   function update_hearts(roomKey) {
@@ -954,7 +968,7 @@ function triggerDash() {
     heart_graphics = [];
     hearts = [];
 
-    const data = room_data[roomKey];
+    const data = temp_room_data[roomKey];
 
     data.hearts.forEach((heart_obj) => {
       const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, {
@@ -986,18 +1000,18 @@ function triggerDash() {
 
   //healthbar updater
   function update_healthbar() {
-    if (player.health > 100) player.health = 100;
-    if (player.health < 0) {
-      player.health = 0;
+    if (temp_player_data.health > 100) temp_player_data.health = 100;
+    if (temp_player_data.health < 0) {
+      temp_player_data.health = 0;
       lose(current_room, current_room);
 
     }
     healthbar_graphic.clear();
-    healthbar_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, player.health * 2, 10).fill(0xa090ff);
+    healthbar_graphic.rect(APP_HEIGHT / 10, APP_HEIGHT / 10, temp_player_data.health * 2, 10).fill(0xa090ff);
   }
 
   function update_jelly(roomKey) {
-    const data = room_data[roomKey];
+    const data = temp_room_data[roomKey];
 
     data.jellys.forEach((jelly_obj, index) => {
       const jelly_body = jellys[index];
@@ -1070,7 +1084,7 @@ function triggerDash() {
     world.addChild(playerEffectGraphic);
 
     Composite.add(engine.world, [box]);
-    load_rooms("room_2", 200, window.innerHeight / 2);
+    load_rooms(saved_room, x, y);
   }
   await create_player();
 
@@ -1137,29 +1151,29 @@ function triggerDash() {
     let is_moving_y;
     let is_moving;
 
-    if (keys[keybinds.right] && player.can_move == true) {
-      v1x = Math.min(v1x + player.acceleration, player.max_speed);
+    if (keys[keybinds.right] && temp_player_data.can_move == true) {
+      v1x = Math.min(v1x + temp_player_data.acceleration, temp_player_data.max_speed);
       is_moving_x = true;
     }
-    else if (keys[keybinds.left] && player.can_move == true) {
-      v1x = Math.max(v1x - player.acceleration, -player.max_speed);
+    else if (keys[keybinds.left] && temp_player_data.can_move == true) {
+      v1x = Math.max(v1x - temp_player_data.acceleration, -temp_player_data.max_speed);
       is_moving_x = true;
     }
 
-    if (keys[keybinds.down] && player.can_move == true) {
-      v1y = Math.min(v1y + player.acceleration, player.max_speed);
+    if (keys[keybinds.down] && temp_player_data.can_move == true) {
+      v1y = Math.min(v1y + temp_player_data.acceleration, temp_player_data.max_speed);
       is_moving_y = true;
     }
 
-    else if (keys[keybinds.up] && player.can_move == true) {
-      v1y = Math.max(v1y - player.acceleration, -player.max_speed);
+    else if (keys[keybinds.up] && temp_player_data.can_move == true) {
+      v1y = Math.max(v1y - temp_player_data.acceleration, -temp_player_data.max_speed);
       is_moving_y = true;
     }
 
     if (is_moving_x || is_moving_y) {
       is_moving = true;
     }
-    player.state = is_moving ? "moving" : "idle";
+    temp_player_data.state = is_moving ? "moving" : "idle";
     if (!is_moving_x) {
       v1x *= 0.9;
     }
@@ -1184,75 +1198,75 @@ function triggerDash() {
 
     //dash mechanic
     if (keys[keybinds.dash]) {
-      if (player.can_dash) {
-        if (player.is_dashing) return;
+      if (temp_player_data.can_dash) {
+        if (temp_player_data.is_dashing) return;
 
-        player.can_heal = false;
-        player.state = "dashing";
-        player.max_speed = DASH_SPEED;
-        player.acceleration = DASH_ACCEL;
-        player.can_dash = false;
-        player.is_dashing = true;
+        temp_player_data.can_heal = false;
+        temp_player_data.state = "dashing";
+        temp_player_data.max_speed = DASH_SPEED;
+        temp_player_data.acceleration = DASH_ACCEL;
+        temp_player_data.can_dash = false;
+        temp_player_data.is_dashing = true;
 
         triggerDash();
 
         setTimeout(() => {
-          player.max_speed = PLAYER_MAX_SPEED;
-          player.acceleration = PLAYER_ACCEL;
-          player.is_dashing = false;
-          player.can_heal = true;
+          temp_player_data.max_speed = PLAYER_MAX_SPEED;
+          temp_player_data.acceleration = PLAYER_ACCEL;
+          temp_player_data.is_dashing = false;
+          temp_player_data.can_heal = true;
         }, DASH_DURATION);
 
         setTimeout(() => {
-          player.state = "idle";
-          player.can_dash = true;
+          temp_player_data.state = "idle";
+          temp_player_data.can_dash = true;
         }, DASH_COOLDOWN);
       }
     }
 
     //bullet freeze
     if (keys[keybinds.zap]) {
-      if (player.can_zap && !player.is_zapping) {
-        player.can_zap = false;
-        player.is_zapping = true;
+      if (temp_player_data.can_zap && !temp_player_data.is_zapping) {
+        temp_player_data.can_zap = false;
+        temp_player_data.is_zapping = true;
 
         bulletManager.setFrozen(true, box.position, ZAP_RADIUS);
         setTimeout(() => {
-          player.is_zapping = false;
+          temp_player_data.is_zapping = false;
           bulletManager.setFrozen(false);
         }, ZAP_DURATION);
 
         setTimeout(() => {
-          player.can_zap = true;
+          temp_player_data.can_zap = true;
         }, ZAP_COOLDOWN);
       }
     }
 
     //regenerate health
     if (keys[keybinds.rejuv]) {
-      if (player.can_heal) {
-        if (player.is_healing) return;
+      if (temp_player_data.can_heal) {
+        if (temp_player_data.is_healing) return;
 
-        player.can_dash = false;
-        player.can_heal = false;
-        player.is_healing = true;
-        player.max_speed = PLAYER_HEAL_SPEED;
+        temp_player_data.can_dash = false;
+        temp_player_data.can_heal = false;
+        temp_player_data.is_healing = true;
+        temp_player_data.max_speed = PLAYER_HEAL_SPEED;
 
         const heal_interval = setInterval(() => {
-          if (player.is_healing) {
-            player.health += Math.min(15 / player.health, 1.5);
+          if (temp_player_data.is_healing) {
+            temp_player_data.health += Math.min(15 / temp_player_data.health, 1.5);
           }
         }, 10);
 
         setTimeout(() => {
           clearInterval(heal_interval);
-          player.can_dash = true;
-          player.max_speed = PLAYER_MAX_SPEED;
-          player.is_healing = false;
+          temp_player_data.can_dash = true;
+          temp_player_data.max_speed = PLAYER_MAX_SPEED;
+          temp_player_data.is_healing = false;
         }, HEAL_DURATION);
 
         setTimeout(() => {
-          player.can_heal = true;
+          temp_player_data.can_heal = true;
         }, HEAL_COOLDOWN);
       }
     }
@@ -1289,7 +1303,7 @@ function triggerDash() {
         }
         //bullets that ignore i‑frames always deal damage
         if (b.ignoreIframes) {
-          player.health -= b.damage;
+          temp_player_data.health -= b.damage;
 
           if (!b.pierce && !b.persistent) {
             b.dead = true;
@@ -1300,12 +1314,12 @@ function triggerDash() {
         }
 
         //normal bullets respect i‑frames
-        if (!player.iframe && b.damage > 0) {
-          player.health -= b.damage;
+        if (!temp_player_data.iframe && b.damage > 0) {
+          temp_player_data.health -= b.damage;
 
-          player.iframe = true;
+          temp_player_data.iframe = true;
           setTimeout(() => {
-            player.iframe = false;
+            temp_player_data.iframe = false;
           }, PLAYER_IFRAME_DURATION);
 
           if (!b.pierce && !b.persistent) {
@@ -1322,65 +1336,17 @@ function triggerDash() {
           }
       }
     }
-    /*
-    const now = performance.now();
-
-    room_data[current_room]?.bullet_boxes?.forEach((bullet_box_obj, boxIndex) => {
-      const boxBody = bullet_boxes[boxIndex];
-      if (!boxBody || !bullet_box_obj || !bullet_box_obj.bullets) return;
-
-      if (!bullet_box_obj._nextShotAt) {
-        bullet_box_obj._nextShotAt = now + Math.max(1, Number(bullet_box_obj.interval ?? 1000));
-      }
-
-      if (now >= bullet_box_obj._nextShotAt) {
-        bullet_box_obj.bullets.forEach((bullet_obj) => {
-          const speed = Number(bullet_box_obj.bullet_speed ?? 1);
-          const bullet = new defaultBullet(
-            bullet_box_obj.x,
-            bullet_box_obj.y,
-            Number(bullet_obj.vx) * speed,
-            Number(bullet_obj.vy) * speed,
-            engine.world,
-            world
-          );
-          bullet.sprite.zIndex = 6;
-          bullets.push(bullet);
-          bullet_graphics.push(bullet.sprite);
-        });
-
-        bullet_box_obj._nextShotAt = now + Math.max(1, Number(bullet_box_obj.interval ?? 1000));
-      }
-    });
-
-    //update all bullets each tick
-    for (let i = bullets.length - 1; i >= 0; i--) {
-      bullets[i].update(1000 / 60);
-
-      if (
-        bullets[i].body.position.x < MAP_WIDTH_MIN ||
-        bullets[i].body.position.x > MAP_WIDTH_MAX ||
-        bullets[i].body.position.y < MAP_HEIGHT_MIN ||
-        bullets[i].body.position.y > MAP_HEIGHT_MAX
-      ) {
-        bullets[i].destroy(engine.world, world);
-        bullets.splice(i, 1);
-      }
-    }
-*/
 
     //jelly moves
     update_jelly(current_room)
 
-
-
     //register damage and activate iframes
     trashes.forEach((trash_body) => {
-      if (player.iframe == false && check_collision(box, trash_body)) {
-        player.health -= TRASH_DAMAGE;
-        player.iframe = true;
+      if (temp_player_data.iframe == false && check_collision(box, trash_body)) {
+        temp_player_data.health -= TRASH_DAMAGE;
+        temp_player_data.iframe = true;
         setTimeout(() => {
-          player.iframe = false;
+          temp_player_data.iframe = false;
         }, PLAYER_IFRAME_DURATION);
       }
     });
@@ -1388,17 +1354,17 @@ function triggerDash() {
     const is_on_sand = sand_bars.some((bar) => check_collision(box, bar));
 
     if (is_on_sand) {
-      player.max_speed = 1;
-      player.was_on_sand = true;
-    } else if (player.was_on_sand) {
-      player.max_speed = PLAYER_MAX_SPEED;
-      player.was_on_sand = false;
+      temp_player_data.max_speed = 1;
+      temp_player_data.was_on_sand = true;
+    } else if (temp_player_data.was_on_sand) {
+      temp_player_data.max_speed = PLAYER_MAX_SPEED;
+      temp_player_data.was_on_sand = false;
     }
 
     forces.forEach((e, index) => {
       if (check_collision(box, e)) {
-        let applied_x = room_data[current_room].force_blocks[index].velocity.x;
-        let applied_y = room_data[current_room].force_blocks[index].velocity.y;
+        let applied_x = temp_room_data[current_room].force_blocks[index].velocity.x;
+        let applied_y = temp_room_data[current_room].force_blocks[index].velocity.y;
 
         v1x += applied_x;
         v1y += applied_y;
@@ -1411,9 +1377,9 @@ function triggerDash() {
         const heartIndex = hearts.findIndex((e) => check_collision(box, e));
 
         if (heartIndex !== -1) {
-          player.health += 10;
+          temp_player_data.health += 10;
           hearts.splice(heartIndex, 1);
-          room_data[current_room].hearts.splice(heartIndex, 1);
+          temp_room_data[current_room].hearts.splice(heartIndex, 1);
           update_hearts(current_room);
         }
       }
@@ -1438,18 +1404,18 @@ function triggerDash() {
     playerEffectGraphic.position.set(box.position.x, box.position.y);
     playerEffectGraphic.rotation = box.angle + Math.PI / 2;
     const now = performance.now();
-    if (player.iframe && !shieldWasActive) {
+    if (temp_player_data.iframe && !shieldWasActive) {
       playerEffectGraphic.gotoAndPlay(0);
       shieldVisibleUntil = now + 500;
     }
     if (now >= shieldVisibleUntil) playerEffectGraphic.stop();
     playerEffectGraphic.visible = now < shieldVisibleUntil;
-    shieldWasActive = player.iframe;
+    shieldWasActive = temp_player_data.iframe;
     //PLAYERSTATE
 
     //PLAYERSTATE LOGIC
     if (!is_animation_locked) {
-      if (player.state > 0.1) {
+      if (temp_player_data.state > 0.1) {
         playerState = "moving";
       } else {
         playerState = "idle";
@@ -1537,7 +1503,7 @@ function triggerDash() {
         for (let doorBody of doors) {
           if (check_collision(box, doorBody)) {
             // SAVE bullets from current room
-            room_data[current_room].savedBullets =
+            temp_room_data[current_room].savedBullets =
               bulletManager.active.map(b => bulletManager.serializeBullet(b));
 
             // CLEAR bullets from screen
@@ -1553,7 +1519,7 @@ function triggerDash() {
 
             // RESTORE bullets for new room
             bulletManager.restoreBullets(
-              room_data[doorBody.target_room].savedBullets,
+              temp_room_data[doorBody.target_room].savedBullets,
               PIXI.Texture.WHITE // or bullet-specific texture
             );
 
@@ -1564,8 +1530,16 @@ function triggerDash() {
           }
         }
       }
-
-
     }
   });
+  setInterval(() => {
+    localStorage.setItem("current_room", current_room);
+    localStorage.setItem("player_x", Math.trunc(box.position.x));
+    localStorage.setItem("player_y", Math.trunc(box.position.y));
+    localStorage.setItem("room_data", JSON.stringify(room_data));
+    localStorage.setItem("player_data", JSON.stringify(player));
+
+    console.log(Math.trunc(temp_player_data.health), current_room, Math.trunc(box.position.x), Math.trunc(box.position.y), room_data);
+}, 1000);
+  
 })();
