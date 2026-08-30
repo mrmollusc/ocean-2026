@@ -152,16 +152,16 @@ let player = {
 };
 
 // save mechanic
-let saved_room = localStorage.getItem("current_room");
+let saved_room = localStorage.getItem("current_room") || 'room_2';
 let x = parseInt(localStorage.getItem("player_x")) || 500;
 let y = parseInt(localStorage.getItem("player_y")) || 500;
 let player_data = parseInt(localStorage.getItem("temp_player_data"));
 let save_data = localStorage.getItem("room_data");
 
-if (save_data && save_data !== "[object Object]") {
+if (save_data && save_data !== "null" && save_data !== "[object Object]") {
     Object.assign(room_data, JSON.parse(save_data));
 }
-if (player_data && player_data !== "[object Object]") {
+if (player_data && player_data !== "null" && player_data !== "[object Object]") {
     Object.assign(player, JSON.parse(player_data));
 }
 
