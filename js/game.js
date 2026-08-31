@@ -136,7 +136,7 @@ let player = {
   acceleration: PLAYER_ACCEL,
   max_speed: PLAYER_MAX_SPEED,
 
-  health: PLAYER_MAX_HEALTH,
+  health: 100,
   iframe: false,
 
   can_dash: true,
@@ -157,6 +157,7 @@ let x = parseInt(localStorage.getItem("player_x")) || 500;
 let y = parseInt(localStorage.getItem("player_y")) || 500;
 let player_data = parseInt(localStorage.getItem("temp_player_data"));
 let save_data = localStorage.getItem("room_data");
+let health_data = parseInt(localStorage.getItem("health") || 100);
 
 if (save_data && save_data !== "null" && save_data !== "[object Object]") {
     Object.assign(room_data, JSON.parse(save_data));
@@ -167,6 +168,7 @@ if (player_data && player_data !== "null" && player_data !== "[object Object]") 
 
 let temp_room_data = room_data; 
 let temp_player_data = player;
+temp_player_data.health = health_data;
 
 //rest of the things
 let current_dialogue = null;
@@ -1533,13 +1535,14 @@ function triggerDash() {
     }
   });
   setInterval(() => {
-    localStorage.setItem("current_room", current_room);
-    localStorage.setItem("player_x", Math.trunc(box.position.x));
-    localStorage.setItem("player_y", Math.trunc(box.position.y));
-    localStorage.setItem("room_data", JSON.stringify(room_data));
-    localStorage.setItem("player_data", JSON.stringify(player));
+    localStorage.setItem("current_room", current_room); //room
+    localStorage.setItem("player_x", Math.trunc(box.position.x)); //x
+    localStorage.setItem("player_y", Math.trunc(box.position.y)); //y
+    localStorage.setItem("room_data", JSON.stringify(room_data)); //room data
+    localStorage.setItem("player_data", JSON.stringify(player)); //player data
+    localStorage.setItem("health",Math.trunc(temp_player_data.health)); //health
 
-    console.log(Math.trunc(temp_player_data.health), current_room, Math.trunc(box.position.x), Math.trunc(box.position.y), room_data);
+    console.log(temp_player_data.health, current_room, Math.trunc(box.position.x), Math.trunc(box.position.y), room_data);
 }, 1000);
   
 })();
