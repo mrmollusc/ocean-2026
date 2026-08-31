@@ -13,6 +13,28 @@ div:hover {
 #return:hover {
     animation: bounce 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) infinite alternate;
 }
+#wipe {
+    bottom: 1%;
+    left: 0.5%;
+    font-weight: normal;
+    font-family: "Mozilla Headline";
+    color: #ffffff;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 10px 10px 10px 10px;
+    border-radius: 20px;
+    border: transparent;
+    font-size: 12px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(255, 255, 255, 0.3);
+    transition: all 0.25s ease-in-out;
+    width: 60px;
+    height: 60px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
 #toggle {
     top: 2%;
@@ -50,7 +72,7 @@ div:hover {
     border: transparent;
     font-size: 48px;
     backdrop-filter: blur(10px);
-    box-shadow: 0 0px 20px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0px 20px rgba(255, 255, 255, 0.3);
     transition: all 0.25s ease-in-out;
     width: 90px;
     height: 90px;
