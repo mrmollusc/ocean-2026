@@ -12,7 +12,8 @@ function get_toggle_flag() {
 function get_mute_flag() {
    return localStorage.getItem(mute_storage_key) === 'true';
 }
-const load = document.getElementById('load');
+document.addEventListener('DOMContentLoaded', () => {
+const animation = document.getElementById('load');
 const w = document.getElementById('w');
 const a = document.getElementById('a');
 const s = document.getElementById('s');
@@ -32,6 +33,10 @@ const togglebutton = document.getElementById('toggle');
 const mutebutton = document.getElementById('mute');
 const wipebutton = document.getElementById('wipe');
 const exists = !!w;
+if (animation) {
+   animation.style.opacity = '0';
+   animation.style.visibility = 'hidden';
+}
 
 if (exists) {
    addEventListener('keydown', (e) => {
@@ -211,3 +216,4 @@ mutebutton?.addEventListener('click', mute_function);
 wipebutton?.addEventListener('click', wipe_function);
 
 apply_saved_settings();
+});
