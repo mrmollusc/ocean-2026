@@ -430,3 +430,14 @@ img {
     width: 24px;
     height: 24px;
 }
+
+#load img {
+    z-index: 100;
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 1280px;
+    height: 640px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
