@@ -211,5 +211,3 @@ mutebutton?.addEventListener('click', mute_function);
 wipebutton?.addEventListener('click', wipe_function);
 
 apply_saved_settings();
-
-load.style.opacity =0;
