@@ -349,6 +349,7 @@ h2267284643634 {
     right: 1%;
     bottom: 0%;
     font-size: larger;
+    z-index: 200;
 }
 
 
@@ -431,13 +432,28 @@ img {
     height: 24px;
 }
 
-#load img {
-    z-index: 100;
+img {
     position: absolute;
-    top: 10%;
-    left: 10%;
-    width: 1280px;
-    height: 640px;
+    width: 100%;
+    height:auto;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+    z-index:11;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.rectangle{
+    position: absolute;
+border-radius: 0px;
+top: 0%;
+left: 0%;
+width: 100%;
+height: 100%;
+background-color: rgba(0,0,0,1);
+z-index: 10;
+}
+html, body {
+    overflow: hidden
 }

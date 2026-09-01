@@ -12,7 +12,7 @@ function get_toggle_flag() {
 function get_mute_flag() {
    return localStorage.getItem(mute_storage_key) === 'true';
 }
-
+const load = document.getElementById('load');
 const w = document.getElementById('w');
 const a = document.getElementById('a');
 const s = document.getElementById('s');
@@ -211,3 +211,5 @@ mutebutton?.addEventListener('click', mute_function);
 wipebutton?.addEventListener('click', wipe_function);
 
 apply_saved_settings();
+
+load.style.opacity =0;
