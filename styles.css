@@ -183,15 +183,15 @@ h9 {
 }
 
 h12 {
-    top: 25%;
-    left: 66%;
+    top: 52%;
+    left: 72%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184, 0.3);
-    padding: 20px 2000px 20px 20px;
+    background-color: rgba(14, 2, 38, 0.6);
+    padding: 10px 2000px 10px 20px;
     border-radius: 20px;
     font-size: 100px;
     backdrop-filter: blur(10px);
@@ -200,15 +200,15 @@ h12 {
 }
 
 h223 {
-    top: 42%;
-    left: 66%;
+    top: 68%;
+    left: 72%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184, 0.3);
-    padding: 20px 2000px 20px 20px;
+    background-color: rgba(14, 2, 38, 0.6);
+    padding: 10px 2000px 10px 20px;
     border-radius: 20px;
     font-size: 100px;
     backdrop-filter: blur(10px);
@@ -217,15 +217,15 @@ h223 {
 }
 
 h2267284643634 {
-    top: 59%;
-    left: 66%;
+    top: 84%;
+    left: 72%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184, 0.3);
-    padding: 20px 2000px 20px 20px;
+    background-color: rgba(14, 2, 38, 0.6);
+    padding: 10px 2000px 10px 20px;
     border-radius: 20px;
     font-size: 100px;
     backdrop-filter: blur(10px);
@@ -410,6 +410,29 @@ h2267284643634 {
     align-items: center;
     gap: 0px;
 }
+#yap {
+    top: 66%;
+    left: 30%;
+    font-weight: normal;
+    font-family: "Mozilla Headline";
+    color: #000000;
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.6);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 24px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(255, 223, 223, 0.6);
+    transition: all 0.25s ease-in-out;
+    width: 62%;
+    height: 24%;
+    text-align: left;
+    flex-direction: column;
+    display: flex;
+    justify-content: flex-start; 
+    align-items: flex-start;
+    gap: 24px;
+}
 img {
     width: 24px;
     height: 24px;
@@ -417,35 +440,16 @@ img {
 
 #load img {
     position: absolute;
-    width: 60%;
+    width: 100%;
     height:auto;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
-    z-index:11;
+    z-index:-1;
     top: 50%;
-    left: 30%;
+    left: 50%;
     transform: translate(-50%, -50%);
 }
 
 html, body {
     overflow: hidden
-}
-
-.rectangle, #up {
-    position: absolute;
-    top:0%;
-    left:-1%;
-    width: 101%;
-    height: 24%;
-    background-color: #000000;
-    z-index: 10;
-}
-.rectangle, #down {
-    position: absolute;
-    top:76%;
-    left:-1%;
-    width: 101%;
-    height: 24%;
-    background-color: #000000;
-    z-index: 10;
 }
