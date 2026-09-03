@@ -212,7 +212,8 @@ if (is_alt_keybind == false) {
     right: 'ArrowRight',
     dash: 'Space',
     zap: 'KeyE',
-    rejuv: 'KeyF'
+    rejuv: 'KeyF',
+    dialogue: 'KeyC'
   }
 }
 else {
@@ -223,7 +224,8 @@ else {
     right: 'KeyD',
     dash: 'Space',
     zap: 'KeyK',
-    rejuv: 'KeyO'
+    rejuv: 'KeyO',
+    dialogue: 'Enter'
   }
 }
 
@@ -249,6 +251,20 @@ await PIXI.Assets.load({
     family: 'Indie Flower'
   }
 });
+
+//PIXI MUSIC
+PIXI.sound.add('bgm', 'assets/loop2.mp3');
+
+addEventListener('click', () => {
+    if (!PIXI.sound.isPlaying('bgm')) {
+        PIXI.sound.play('bgm', { 
+            loop: true, 
+            volume: 2 
+        });
+        console.log('BGM started');
+    }
+});
+
 
 //PIXI ANIMATION FRAMES (CRIMSON)
 const playerFrameWidth = 32;
@@ -959,7 +975,7 @@ function triggerDash() {
       canTransition = true;
     }, 300);
   }
-  //loss function (not the sigmoid fuh nuh machine learning)
+  //loss function 
   function lose(current_room, roomKey) {
     temp_player_data.health = 100;
     const data = temp_room_data[roomKey];
@@ -1219,12 +1235,11 @@ function triggerDash() {
     bulletManager.syncSprites();
 
     //dash mechanic
-    if (keys[keybinds.dash]) {
-      if (temp_player_data.can_dash) {
-        if (temp_player_data.is_healing) return;
-        if (temp_player_data.is_dashing) return;
-        if (temp_player_data.is_zapping) return;
-
+    if (keys[keybinds.dash] &&
+      temp_player_data.can_dash &&
+      !temp_player_data.is_healing &&
+      !temp_player_data.is_dashing &&
+      !temp_player_data.is_zapping) {
         temp_player_data.can_heal = false;
         temp_player_data.state = "dashing";
         temp_player_data.max_speed = DASH_SPEED;
@@ -1243,16 +1258,14 @@ function triggerDash() {
           temp_player_data.state = "idle";
           temp_player_data.can_dash = true;
         }, DASH_COOLDOWN);
-      }
     }
 
     //bullet freeze
-    if (keys[keybinds.zap]) {
-      if (temp_player_data.can_zap && !temp_player_data.is_zapping) {
-        if (temp_player_data.is_healing) return;
-        if (temp_player_data.is_dashing) return;
-        if (temp_player_data.is_zapping) return;
-
+    else if (keys[keybinds.zap] &&
+      temp_player_data.can_zap &&
+      !temp_player_data.is_healing &&
+      !temp_player_data.is_dashing &&
+      !temp_player_data.is_zapping) {
         temp_player_data.can_zap = false;
         temp_player_data.is_zapping = true;
 
@@ -1265,16 +1278,14 @@ function triggerDash() {
         setTimeout(() => {
           temp_player_data.can_zap = true;
         }, ZAP_COOLDOWN);
-      }
     }
 
     //regenerate health
-    if (keys[keybinds.rejuv]) {
-      if (temp_player_data.can_heal) {
-        if (temp_player_data.is_healing) return;
-        if (temp_player_data.is_dashing) return;
-        if (temp_player_data.is_zapping) return;
-
+    else if (keys[keybinds.rejuv] &&
+      temp_player_data.can_heal &&
+      !temp_player_data.is_healing &&
+      !temp_player_data.is_dashing &&
+      !temp_player_data.is_zapping) {
         temp_player_data.can_dash = false;
         temp_player_data.can_heal = false;
         temp_player_data.is_healing = true;
@@ -1299,7 +1310,6 @@ function triggerDash() {
         setTimeout(() => {
           temp_player_data.can_heal = true;
         }, HEAL_COOLDOWN);
-      }
     }
 
     if (keys["KeyB"] && !debugKeyWasDown) {
@@ -1485,10 +1495,10 @@ function triggerDash() {
         startDialogue("name_1");
       }
     });
-    ////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
     //for dialogue checker (skip)
     /////////////////////////////////////////////////////////////////////////////////
-    if (keys["Enter"]) {
+    if (keys[keybinds.dialogue]) {
 
       if (!enter_pressed) {
         enter_pressed = true;

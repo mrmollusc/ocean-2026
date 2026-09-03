@@ -29,6 +29,9 @@ const k = document.getElementById('k');
 const o = document.getElementById('o');
 const ee = document.getElementById('e');
 const f = document.getElementById('f');
+
+const enter = document.getElementById('enter');
+const c = document.getElementById('c');
 const togglebutton = document.getElementById('toggle');
 const mutebutton = document.getElementById('mute');
 const wipebutton = document.getElementById('wipe');
@@ -55,6 +58,8 @@ if (exists) {
          case 'ArrowRight': da.style.color = 'red'; break;
          case 'f': f.style.color = 'red'; break;
          case 'e': ee.style.color = 'red'; break;
+         case 'c': c.style.color = 'red'; break;
+         case 'Enter': enter.style.color = 'red'; break;
          default: break;
       }
    });
@@ -75,6 +80,8 @@ if (exists) {
          case 'ArrowRight': da.style.color = 'black'; break;
          case 'f': f.style.color = 'black'; break;
          case 'e': ee.style.color = 'black'; break;
+         case 'c': c.style.color = 'black'; break;
+         case 'Enter': enter.style.color = 'black'; break;
          default: break;
       }
    });
@@ -96,6 +103,7 @@ function toggle_function() {
          d.style.opacity = 0;
          k.style.opacity = 0;
          o.style.opacity = 0;
+         enter.style.opacity = 0;
 
          wa.style.opacity = 1;
          aa.style.opacity = 1;
@@ -103,6 +111,7 @@ function toggle_function() {
          da.style.opacity = 1;
          f.style.opacity = 1;
          e.style.opacity = 1;
+         c.style.opacity = 1;
       }
       return;
    }
@@ -121,6 +130,7 @@ function toggle_function() {
          d.style.opacity = 1;
          k.style.opacity = 1;
          o.style.opacity = 1;
+         enter.style.opacity = 1;
 
          wa.style.opacity = 0;
          aa.style.opacity = 0;
@@ -128,6 +138,7 @@ function toggle_function() {
          da.style.opacity = 0;
          f.style.opacity = 0;
          e.style.opacity = 0;
+         c.style.opacity = 0;
       }
       return;
    }
@@ -171,6 +182,8 @@ function apply_saved_settings() {
          da.style.opacity = 1;
          f.style.opacity = 1;
          ee.style.opacity = 1;
+         enter.style.opacity = 1;
+         c.style.opacity = 0;
       }
    } else if (togglebutton) {
       togglebutton.style.background = 'rgba(0, 255, 30, 0.6)';
@@ -188,6 +201,8 @@ function apply_saved_settings() {
          da.style.opacity = 0;
          f.style.opacity = 0;
          ee.style.opacity = 0;
+         enter.style.opacity = 0;
+         c.style.opacity = 1;
       }
    }
 
