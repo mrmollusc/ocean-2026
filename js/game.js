@@ -15,12 +15,15 @@ const physicsWorld = engine.world;
 import {
   BulletManager,
   anemoneBullet,
+  anemone,
   bossFishBullet,
   bossFishPattern,
   bossTurtleBullet,
   defaultBullet,
   bossTurtlePattern,
-  anemonePattern
+  anemonePattern,
+  bossRGBFishPattern, 
+  snailBullet
 } from './BulletManager.js';
 
 import { get_toggle_flag, get_mute_flag } from "../startscripts.js";
@@ -148,6 +151,7 @@ let player = {
   can_heal: true,
   is_healing: false,
 
+  is_skill_restored: false,
   was_on_sand: false
 };
 
@@ -159,8 +163,21 @@ let player_data = parseInt(localStorage.getItem("temp_player_data"));
 let save_data = localStorage.getItem("room_data");
 let health_data = parseInt(localStorage.getItem("health") || 100);
 
+const unmodified_room_data = JSON.parse(JSON.stringify(room_data));
 if (save_data && save_data !== "null" && save_data !== "[object Object]") {
-    Object.assign(room_data, JSON.parse(save_data));
+    try {
+        const parsedSave = JSON.parse(save_data);
+        for (const roomKey in room_data) {
+            if (parsedSave[roomKey]) {
+                Object.assign(room_data[roomKey], parsedSave[roomKey]);
+                if (unmodified_room_data[roomKey] && unmodified_room_data[roomKey].bullets) {
+                    room_data[roomKey].bullets = unmodified_room_data[roomKey].bullets;
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Error restoring room data:", e);
+    }
 }
 if (player_data && player_data !== "null" && player_data !== "[object Object]") {
     Object.assign(player, JSON.parse(player_data));
@@ -178,12 +195,15 @@ let dialogueActive = false;
 let world;
 let boxGraphic;
 let skillGraphic;
+let skillGraphicBack;
 let playerEffectGraphic;
 let shieldWasActive = false;
 let shieldVisibleUntil = 0;
 let activeSkill = null;
+let anchorX = 0.5;
+let anchorY = 0.5;
 
-let current_room = "room_2";
+let current_room = "room_1";
 
 let playerState;
 let is_animation_locked = false;
@@ -254,15 +274,12 @@ await PIXI.Assets.load({
 const playerFrameWidth = 32;
 const playerFrameHeight = 32;
 const fullFrameWidth = 128;
-//PIXI ANIMATION FRAMES (SKILLS)
-const skillFrameHeight = 48;
-const skillFrameWidth = 52;
-const offset = 38;
 //const fullFrameHeight = 128;
 const totalFrames = 5;
 
 const frames = [];
-const skillFrames = [];
+const skillFramesFront = [];
+const skillFramesBack = [];
 const shieldFrames = Array.from({ length: 3 }, (_, index) => new PIXI.Texture({
   source: crimson_texture,
   frame: new PIXI.Rectangle(index * playerFrameWidth, 64, playerFrameWidth, playerFrameHeight)
@@ -321,29 +338,88 @@ load_force_animation('left');
 
 
 function loadSkillAnimation(skill) {
-  skillFrames.length = 0;
+  skillFramesFront.length = 0;
+  skillFramesBack.length = 0;
   for (let i = 0; i < totalFrames; i++) {
-    const skillFrameX = i * fullFrameWidth + offset;
-    const skillFrameY = (skill - 2) * skillFrameHeight;
-
+    let skillFrameX, skillFrameY, skillFrameWidth, skillFrameHeight = 32;
+    switch (skill) {
+          case 0: 
+            skillFrameX = i * fullFrameWidth + 38; // swap this to spark
+            skillFrameY = 48;
+            skillFrameWidth = 52;
+            skillFrameHeight = 48;
+            anchorX = 0.5;
+            anchorY = 0.5;
+            break;
+          case 1:
+            skillFrameX = i * fullFrameWidth + 38;
+            skillFrameY = 0;
+            skillFrameWidth = 52;
+            skillFrameHeight = 48;
+            anchorX = 0.5;
+            anchorY = 0.5;
+            break;
+          case 2:
+            skillFrameX = i * fullFrameWidth + 96;
+            skillFrameY = 40;
+            skillFrameWidth = 32;
+            skillFrameHeight = 40;
+            anchorX = 0.5;
+            anchorY = 0.5;
+            break;
+          default:
+            skillFrameX = i * fullFrameWidth + offset;
+            skillFrameY = (skill) * skillFrameHeight;
+            skillFrameWidth = 32;
+            skillFrameHeight = 32;
+            anchorX = 0.5;
+            anchorY = 0.5;
+            break;
+        }
     const skillRect = new PIXI.Rectangle(skillFrameX, skillFrameY, skillFrameWidth, skillFrameHeight);
-
-    const skillTexture = new PIXI.Texture({
+    const skillRectBack = new PIXI.Rectangle(skillFrameX, skillFrameY - 40, skillFrameWidth, skillFrameHeight);
+    const skillTextureFront = new PIXI.Texture({
       source: crimson_texture,
       frame: skillRect
     });
-    skillFrames.push(skillTexture);
-  };
-};
+    skillFramesFront.push(skillTextureFront);
+    if (skill === 2) {
+      const skillTextureBack = new PIXI.Texture({
+        source: crimson_texture,
+        frame: skillRectBack
+      });
+      skillFramesBack.push(skillTextureBack);
+    }
+  }
+}
 
+function canSkillAnimation() {
+  showSkillAnimation(0);
+}
 function showSkillAnimation(skill) {
   if (activeSkill === skill && skillGraphic.visible) return;
 
   loadSkillAnimation(skill);
-  skillGraphic.textures = skillFrames;
+
+  skillGraphic.anchor.set(anchorX, anchorY);
+  skillGraphicBack.anchor.set(anchorX, anchorY);
+
+  skillGraphic.textures = skillFramesFront;
+
+  if (skill != 0) {
+      skillGraphic.loop = true;
+      skillGraphicBack.loop = true;
+  }
+
   skillGraphic.gotoAndPlay(0);
   skillGraphic.visible = true;
   activeSkill = skill;
+  
+  if (temp_player_data.is_healing) {
+    skillGraphicBack.textures = skillFramesBack;
+    skillGraphicBack.gotoAndPlay(0);
+    skillGraphicBack.visible = true;
+  }
 }
 
 loadPlayerAnimation(0);
@@ -379,15 +455,21 @@ function updatePlayerAnimation() {
   if (is_animation_locked) return;
 
   if (temp_player_data.is_zapping) {
-    showSkillAnimation(3);
+    showSkillAnimation(1);
     return;
   }
   if (temp_player_data.is_healing) {
-    showSkillAnimation(3);
+    showSkillAnimation(2);
+    return;
+  }
+
+  if (temp_player_data.is_skill_restored) {
+    showSkillAnimation(0);
     return;
   }
 
   skillGraphic.visible = false;
+  skillGraphicBack.visible = false;
   activeSkill = null;
 
   if (temp_player_data.state === "moving") {
@@ -550,8 +632,7 @@ function triggerDash() {
   let forces = [];
   let force_graphics = [];
 
-  let bullet_boxes = [];
-  let bullet_box_graphics = [];
+  let bullets = [];
 
   let text_boxes = [];
   let text_box_graphics = [];
@@ -731,10 +812,14 @@ function triggerDash() {
     sand_bar_graphics = [];
     sand_bars = [];
 
-    bullet_box_graphics.forEach((g) => world.removeChild(g));
-    bullet_boxes.forEach((t) => Composite.remove(engine.world, t));
-    bullet_box_graphics = [];
-    bullet_boxes = [];
+    bulletManager.active.forEach((bullet) => {
+      bullet.dead = true;
+      bullet.sprite.visible = false;
+      bullet.bulletId = null;
+      Matter.Body.setPosition(bullet.body, { x: -9999, y: -9999 });
+      Matter.Body.setVelocity(bullet.body, { x: 0, y: 0 });
+    });
+    bulletManager.active = [];
 
     text_box_graphics.forEach((g) => world.removeChild(g));
     text_boxes.forEach((t) => Composite.remove(engine.world, t));
@@ -872,27 +957,59 @@ function triggerDash() {
       Composite.add(engine.world, bar_body);
     });
 
-    data.bullet_boxes.forEach((bullet_box_obj) => {
-      const bullet_box_body = Bodies.rectangle(
-        bullet_box_obj.x,
-        bullet_box_obj.y,
-        bullet_box_obj.w,
-        bullet_box_obj.h,
-        { isStatic: true }
-      );
+    let currentTime = performance.now();
+    data.bullets?.forEach((b) => {
+      let bullet = bulletManager.active.find(item => item.bulletId === b.id);
 
-      bullet_boxes.push(bullet_box_body);
-      Composite.add(engine.world, bullet_box_body);
+      if (!bullet) {
+        switch (b.type) {
+          case 'snail':
+            bullet = bulletManager.spawnSnailBullet(b.x, b.y);
+            console.log('foundsnail')
+            break;
 
-      const bullet_box_graphic = new PIXI.Graphics()
-        .rect(-25, -25, 50, 50)
-        .fill(0xAAAAAA);
+          case 'anemone':
+            bullet = anemone.spawn(bulletManager, anemoneTexture, b.x, b.y);
+            console.log('found anemone')
+            break;
 
-      bullet_box_graphic.position.set(bullet_box_obj.x, bullet_box_obj.y);
-      bullet_box_graphic.zIndex = 5;
-      bullet_box_graphics.push(bullet_box_graphic);
-      world.addChild(bullet_box_graphic);
+          default:
+            bullet = defaultBullet.spawn(bulletManager, PIXI.Texture.WHITE, b.x, b.y, b.vx || 0, b.vy || 0);
+            console.log(`found default bullet with id ${b.id}`);
+            break;
+        }
 
+        if (bullet) {
+          bullet.bulletId = b.id;
+          bullet.sprite.name = b.type;
+          bullet.x = b.x;
+          bullet.y = b.y;
+          bullet.vx = b.vx || 0;
+          bullet.vy = b.vy || 0;
+          bullet.lastSpawnTime = currentTime;
+        }
+      }
+      
+      if (bullet && !bullet.dead) {
+        // Anemone spawns nematocysts every 1 second
+        if (bullet.isAnemoneEnemy) {
+          const currentTime = performance.now();
+          if (currentTime - bullet.lastSpawnTime >= 1000) {
+            anemoneBullet.spawnSemicircle(bulletManager, PIXI.Texture.WHITE, bullet.body.position.x, bullet.body.position.y);
+            bullet.lastSpawnTime = currentTime;
+          }
+        }
+        
+        bullet.vx = b.x_vel || 0;
+        bullet.vy = b.y_vel || 0;
+
+        if (!bullet.frozen) {
+          Matter.Body.setVelocity(bullet.body, { x: bullet.vx, y: bullet.vy});
+        }
+
+        bullet.sprite.x = bullet.body.position.x;
+        bullet.sprite.y = bullet.body.position.y;
+      }
       /*bullet_box_obj._nextShotAt = 0;
       bullet_box_obj.bullets.forEach((bullet_obj) => {
         const speed = Number(bullet_box_obj.bullet_speed ?? 1);
@@ -910,6 +1027,23 @@ function triggerDash() {
         
       });*/
     });
+
+    for (let i = bulletManager.active.length - 1; i >= 0; i--) {
+      const activeBullet = bulletManager.active[i];
+      if (!activeBullet || !activeBullet.bulletId) continue;
+
+      // Use optional chaining inside the checker to prevent server room loading breaks
+      const existsOnServer = data.bullets?.some(b => b.id === activeBullet.bulletId);
+      
+      if (!existsOnServer) {
+        activeBullet.dead = true;
+        activeBullet.sprite.visible = false;
+        activeBullet.bulletId = null;
+        
+        Matter.Body.setPosition(activeBullet.body, { x: -9999, y: -9999 });
+        Matter.Body.setVelocity(activeBullet.body, { x: 0, y: 0 });
+      }
+    }
 
     data.jellys.forEach((jelly_obj) => {
       const jelly_body = Bodies.rectangle(jelly_obj.x, jelly_obj.y, 50, 50, {
@@ -933,6 +1067,17 @@ function triggerDash() {
       jelly_graphics.push(jelly_graphic);
       Composite.add(engine.world, jelly_body);
     });
+
+    // Load snails from room data
+    data.snails.forEach((snail_obj) => {
+      const snail_bullet = bulletManager.spawnSnailBullet(snail_obj.x, snail_obj.y);
+      if (snail_bullet) {
+        snail_bullet.vx = snail_obj.x_vel || 0;
+        snail_bullet.vy = snail_obj.y_vel || 0;
+        Matter.Body.setVelocity(snail_bullet.body, { x: snail_bullet.vx, y: snail_bullet.vy });
+      }
+    });
+
 
     data.labels.forEach((label) => {
       const label_graphic = new PIXI.Text({
@@ -1068,11 +1213,18 @@ function triggerDash() {
     skillGraphic = new PIXI.AnimatedSprite([PIXI.Texture.WHITE]);
     skillGraphic.animationSpeed = 0.2;
     skillGraphic.loop = true;
-    skillGraphic.width = skillFrameWidth;
-    skillGraphic.height = skillFrameHeight;
-    skillGraphic.anchor.set((skillFrameWidth - 1) / (skillFrameWidth * 2), (skillFrameHeight + 1) / (skillFrameHeight * 2));
+    skillGraphic.anchor.set(0.5, 0.5);
     skillGraphic.zIndex = "9";
     skillGraphic.visible = false;
+
+    skillGraphicBack = new PIXI.AnimatedSprite([PIXI.Texture.WHITE]);
+    skillGraphicBack.animationSpeed = 0.2;
+    skillGraphicBack.loop = true;
+    skillGraphicBack.anchor.set(0.5, 0.5);
+    skillGraphicBack.zIndex = "7";
+    skillGraphicBack.visible = false;
+
+    world.addChild(skillGraphicBack);
     world.addChild(skillGraphic);
 
     playerEffectGraphic = new PIXI.AnimatedSprite(shieldFrames);
@@ -1142,6 +1294,9 @@ function triggerDash() {
 
   app.ticker.add((ticker) => {
     bulletManager.update(ticker);
+
+    // Spawn nematocysts from anemones every 1 second
+    const currentTime = performance.now();
 
     if (!boxGraphic) return;
 
@@ -1233,6 +1388,9 @@ function triggerDash() {
         temp_player_data.is_zapping = true;
 
         bulletManager.setFrozen(true, box.position, ZAP_RADIUS);
+        bulletManager.shockSnails(box.position, ZAP_RADIUS, ZAP_DURATION);
+        showSkillAnimation(1); // skill 1 = shock/zap
+        
         setTimeout(() => {
           temp_player_data.is_zapping = false;
           bulletManager.setFrozen(false);
@@ -1240,6 +1398,18 @@ function triggerDash() {
 
         setTimeout(() => {
           temp_player_data.can_zap = true;
+          
+          temp_player_data.is_skill_restored = true;
+          updatePlayerAnimation(); 
+          
+          skillGraphic.loop = false;
+          skillGraphic.onComplete = () => {
+              temp_player_data.is_skill_restored = false;
+              skillGraphic.onComplete = null; 
+              requestAnimationFrame(() => {
+                  updatePlayerAnimation();
+              });
+          };
         }, ZAP_COOLDOWN);
       }
     }
@@ -1280,6 +1450,7 @@ function triggerDash() {
       );
       bossFishPattern(bulletManager, fishTexture, world); // blue fish
       anemonePattern(bulletManager, anemoneTexture, 100, 100); // white anemone
+      bossRGBFishPattern(bulletManager, world); // RGB fish pattern
       console.log("Spawned pooled bullet");
       setTimeout(() => {
         bossTurtlePattern(bulletManager, turtleTexture, world); // green turtle
@@ -1402,7 +1573,11 @@ function triggerDash() {
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.rotation = box.angle + Math.PI / 2;
     skillGraphic.position.set(box.position.x, box.position.y);
-    skillGraphic.rotation = box.angle + Math.PI / 2;
+    skillGraphicBack.position.set(box.position.x, box.position.y + 1);
+    if (temp_player_data.is_healing) {
+      skillGraphic.rotation = 0;
+      skillGraphicBack.rotation = 0;
+    }
     playerEffectGraphic.position.set(box.position.x, box.position.y);
     playerEffectGraphic.rotation = box.angle + Math.PI / 2;
     const now = performance.now();
@@ -1452,8 +1627,10 @@ function triggerDash() {
     ///////////////////////////////////////////////////////////////
     text_boxes.forEach((tb) => {
       if (!dialogueActive && check_collision(box, tb)) {
-        dialogueActive = true;
-        startDialogue("name_1");
+        if (tb.id == "test_box") {
+          dialogueActive = true;
+          startDialogue("name_1");
+        }
       }
     });
     ////////////////////////////////////////////////////////////////////////////

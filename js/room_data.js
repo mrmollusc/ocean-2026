@@ -62,31 +62,10 @@ let room_data = {
       { x: 900, y: 600, w: 64, h: 64, velocity: { x: -7, y: 0 }, texture: "left" },
       { x: 600, y: 600, w: 64, h: 64, velocity: { x: 0, y: -7 }, texture: "up" }
     ],
-    bullet_boxes: [{
-      x: 200,
-      y: 200,
-      w: 20,
-      h: 20,
-      interval: 100,
-      bullet_speed: 4,
-      colour: 0xffffff,
-      bullets: [{ vx: 1, vy: 0 }, { vx: -1, vy: 0 }, { vx: 0, vy: 1 }, { vx: 0, vy: -1 }]
-    }],
-    text_boxes: [{ x: 200, y: 200, w: 100, h: 100, text: 'not yet' }],
-    spawnpoint: { x: 120, y: 800 },
-    labels: [{
-      x: 700, y: 600, text: 'Hello how are you', style: {
-        fontFamily: 'Indie Flower', 
-        fontSize: 72,
-        fill: '#000000', 
-        fontWeight: 'normal',
-        fontStyle: 'normal',
-        stroke: { color: '#000000', width: 0 },
-        padding: 10,
-        lineHeight: 72,     
-        trim: false    
-      }
-    }]
+    bullets: [
+      { id: 'b1', type: 'snailBullet', x: 10, y: 10 }, 
+      { id: 'b2', type: 'anemone', x: 20, y: 50 }
+    ]
   },
 
   room_2: {
@@ -132,25 +111,10 @@ let room_data = {
     ],
     jellys: [{ x: 100, y: 100 }],
     force_blocks: [],
-    bullet_boxes: [{
-      x: 500,
-      y: 500,
-      w: 40,
-      h: 40,
-      interval: 1000,
-      bullet_speed: 1,
-      colour: 0xffffff,
-      bullets: [
-        { vx: 1, vy: 0 },
-        { vx: -1, vy: 0 },
-        { vx: 0, vy: 1 },
-        { vx: 0, vy: -1 }
-      ]
-    }],
     text_boxes: [],
     spawnpoint: { x: 120, y: 800 },
-    labels: []
-
+    labels: [], 
+    bullets: []
   },
 
   room_3: {
@@ -188,10 +152,10 @@ let room_data = {
     snails: [],
     jellys: [],
     force_blocks: [],
-    bullet_boxes: [],
     text_boxes: [],
     spawnpoint: { x: 120, y: 800 },
-    labels: []
+    labels: [], 
+    bullets: []
   },
 
   room_4: {
@@ -219,10 +183,10 @@ let room_data = {
     snails: [],
     jellys: [],
     force_blocks: [],
-    bullet_boxes: [],
     text_boxes: [],
     spawnpoint: { x: 120, y: 800 },
-    labels: []
+    labels: [], 
+    bullets: []
   }
 };
 
