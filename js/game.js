@@ -35,10 +35,10 @@ import {
 } from "./Dialogue.js";
 
 //////////////////////////////////////////////
-  // for all bullet manager and bullet graphics, scroll down
-  const fishTexture = PIXI.Texture.WHITE;
-  const anemoneTexture = PIXI.Texture.WHITE;
-  const turtleTexture = PIXI.Texture.WHITE;
+// for all bullet manager and bullet graphics, scroll down
+const fishTexture = PIXI.Texture.WHITE;
+const anemoneTexture = PIXI.Texture.WHITE;
+const turtleTexture = PIXI.Texture.WHITE;
 ///////////////////////////////////////////
 //constants
 ///////////////////////////////////////////
@@ -160,13 +160,13 @@ let save_data = localStorage.getItem("room_data");
 let health_data = parseInt(localStorage.getItem("health") || 100);
 
 if (save_data && save_data !== "null" && save_data !== "[object Object]") {
-    Object.assign(room_data, JSON.parse(save_data));
+  Object.assign(room_data, JSON.parse(save_data));
 }
 if (player_data && player_data !== "null" && player_data !== "[object Object]") {
-    Object.assign(player, JSON.parse(player_data));
+  Object.assign(player, JSON.parse(player_data));
 }
 
-let temp_room_data = room_data; 
+let temp_room_data = room_data;
 let temp_player_data = player;
 temp_player_data.health = health_data;
 
@@ -230,8 +230,8 @@ else {
 //TEXTURES
 PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
 const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
-const heart_texture = await PIXI.Assets.load("assets/bottle.png");
-
+const heart_texture = await PIXI.Assets.load("assets/heart.png");
+const sand_texture = await PIXI.Assets.load("assets/sand.png")
 const up_arrow_texture = await PIXI.Assets.load("assets/up_dir_anim.png");
 const right_arrow_texture = await PIXI.Assets.load("assets/right_dir_anim.png");
 const left_arrow_texture = await PIXI.Assets.load("assets/left_dir_anim.png");
@@ -243,11 +243,11 @@ const arrow_textures = {
   down: down_arrow_texture
 }
 await PIXI.Assets.load({
-    alias: 'Indie Flower', 
-    src: './assets/label.ttf',
-    data: {
-        family: 'Indie Flower'
-    }
+  alias: 'Indie Flower',
+  src: './assets/label.ttf',
+  data: {
+    family: 'Indie Flower'
+  }
 });
 
 //PIXI ANIMATION FRAMES (CRIMSON)
@@ -432,7 +432,7 @@ function triggerDash() {
     backgroundColor: APP_BG_COLOR,
     antialias: true,
     resolution: window.devicePixelRatio || 1,
-    autoDensity: true,   
+    autoDensity: true,
   });
 
   world = new PIXI.Container();
@@ -812,14 +812,14 @@ function triggerDash() {
     });
 
     data.hearts.forEach((heart_obj) => {
-      const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, {
+      const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 24, 24, {
         isStatic: true,
         collisionFilter: { group: -1, mask: 0 },
       });
 
       const heart_graphic = new PIXI.Sprite(heart_texture);
-      heart_graphic.width = 50;
-      heart_graphic.height = 50;
+      heart_graphic.width = 32;
+      heart_graphic.height = 32;
       heart_graphic.anchor.set(0.5);
 
       heart_graphic.position.set(heart_obj.x, heart_obj.y);
@@ -860,10 +860,13 @@ function triggerDash() {
     data.sand_bars.forEach((bar) => {
       const bar_body = Bodies.rectangle(bar.x, bar.y, bar.w, bar.h, { isStatic: true, collisionFilter: { group: -1, mask: 0 } })
 
-      const bar_graphic = new PIXI.Graphics()
-        .rect(-bar.w / 2, -bar.h / 2, bar.w, bar.h)
-        .fill(0xf6f7d0);
-
+      const bar_graphic = new PIXI.TilingSprite({
+        texture: sand_texture,
+        width: bar.w,
+        height: bar.h
+      })
+      bar_graphic.tileScale.set(bar.w / 32*1, bar.w / 32*1)
+      bar_graphic.anchor.set(0.5);
       bar_graphic.position.set(bar.x, bar.y);
       world.addChild(bar_graphic);
 
@@ -979,8 +982,8 @@ function triggerDash() {
       });
 
       const heart_graphic = new PIXI.Sprite(heart_texture);
-      heart_graphic.width = 50;
-      heart_graphic.height = 50;
+      heart_graphic.width = 32;
+      heart_graphic.height = 32;
       heart_graphic.anchor.set(0.5);
 
       heart_graphic.position.set(heart_obj.x, heart_obj.y);
@@ -1049,6 +1052,23 @@ function triggerDash() {
         new_l < wall_bounds.max.x &&
         new_b > wall_bounds.min.y &&
         new_t < wall_bounds.max.y
+      );
+    });
+  }
+  function would_collide_with_trash(x, y) {
+    const half_size = (/*PLAYER_DIMENSIONS*/2 * 0.5) - 2;
+    const new_l = x - half_size;
+    const new_r = x + half_size;
+    const new_t = y - half_size;
+    const new_b = y + half_size;
+
+    return trashes.some((trash) => {
+      const trash_bounds = trash.bounds;
+      return (
+        new_r > trash_bounds.min.x &&
+        new_l < trash_bounds.max.x &&
+        new_b > trash_bounds.min.y &&
+        new_t < trash_bounds.max.y
       );
     });
   }
@@ -1186,11 +1206,11 @@ function triggerDash() {
     const nextX = box.position.x + v1x;
     const nextY = box.position.y + v1y;
 
-    if (would_collide_with_wall(nextX, box.position.y)) {
+    if (would_collide_with_wall(nextX, box.position.y) || would_collide_with_trash(nextX, box.position.y)) {
       v1x = 0;
     }
 
-    if (would_collide_with_wall(box.position.x, nextY)) {
+    if (would_collide_with_wall(box.position.x, nextY) || would_collide_with_trash(box.position.x, nextY)) {
       v1y = 0;
     }
 
@@ -1201,7 +1221,9 @@ function triggerDash() {
     //dash mechanic
     if (keys[keybinds.dash]) {
       if (temp_player_data.can_dash) {
+        if (temp_player_data.is_healing) return;
         if (temp_player_data.is_dashing) return;
+        if (temp_player_data.is_zapping) return;
 
         temp_player_data.can_heal = false;
         temp_player_data.state = "dashing";
@@ -1209,8 +1231,6 @@ function triggerDash() {
         temp_player_data.acceleration = DASH_ACCEL;
         temp_player_data.can_dash = false;
         temp_player_data.is_dashing = true;
-
-        triggerDash();
 
         setTimeout(() => {
           temp_player_data.max_speed = PLAYER_MAX_SPEED;
@@ -1229,6 +1249,10 @@ function triggerDash() {
     //bullet freeze
     if (keys[keybinds.zap]) {
       if (temp_player_data.can_zap && !temp_player_data.is_zapping) {
+        if (temp_player_data.is_healing) return;
+        if (temp_player_data.is_dashing) return;
+        if (temp_player_data.is_zapping) return;
+
         temp_player_data.can_zap = false;
         temp_player_data.is_zapping = true;
 
@@ -1248,6 +1272,8 @@ function triggerDash() {
     if (keys[keybinds.rejuv]) {
       if (temp_player_data.can_heal) {
         if (temp_player_data.is_healing) return;
+        if (temp_player_data.is_dashing) return;
+        if (temp_player_data.is_zapping) return;
 
         temp_player_data.can_dash = false;
         temp_player_data.can_heal = false;
@@ -1257,6 +1283,9 @@ function triggerDash() {
         const heal_interval = setInterval(() => {
           if (temp_player_data.is_healing) {
             temp_player_data.health += Math.min(15 / temp_player_data.health, 1.5);
+          }
+          else {
+            clearInterval(heal_interval)
           }
         }, 10);
 
@@ -1331,11 +1360,11 @@ function triggerDash() {
           }
         }
 
-          if (!b.persistent) {
-            b.dead = true;
-            b.sprite.visible = false;
-            Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
-          }
+        if (!b.persistent) {
+          b.dead = true;
+          b.sprite.visible = false;
+          Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+        }
       }
     }
 
@@ -1540,9 +1569,9 @@ function triggerDash() {
     localStorage.setItem("player_y", Math.trunc(box.position.y)); //y
     localStorage.setItem("room_data", JSON.stringify(room_data)); //room data
     localStorage.setItem("player_data", JSON.stringify(player)); //player data
-    localStorage.setItem("health",Math.trunc(temp_player_data.health)); //health
+    localStorage.setItem("health", Math.trunc(temp_player_data.health)); //health
 
     console.log(temp_player_data.health, current_room, Math.trunc(box.position.x), Math.trunc(box.position.y), room_data);
-}, 1000);
-  
+  }, 1000);
+
 })();
