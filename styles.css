@@ -3,7 +3,7 @@ body {
 }
 
 .button:hover {
-    transform: scale(1.5);
+    transform: translateX(-3%);
 }
 
 div:hover {
@@ -12,6 +12,28 @@ div:hover {
 
 #return:hover {
     animation: bounce 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) infinite alternate;
+}
+#wipe {
+    bottom: 1%;
+    left: 0.5%;
+    font-weight: normal;
+    font-family: "Mozilla Headline";
+    color: #ffffff;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 10px 10px 10px 10px;
+    border-radius: 20px;
+    border: transparent;
+    font-size: 12px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(255, 255, 255, 0.3);
+    transition: all 0.25s ease-in-out;
+    width: 60px;
+    height: 60px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #toggle {
@@ -50,7 +72,7 @@ div:hover {
     border: transparent;
     font-size: 48px;
     backdrop-filter: blur(10px);
-    box-shadow: 0 0px 20px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0px 20px rgba(255, 255, 255, 0.3);
     transition: all 0.25s ease-in-out;
     width: 90px;
     height: 90px;
@@ -160,33 +182,16 @@ h9 {
     transition: all 0.25s ease-in-out;
 }
 
-h10 {
-    top: 25%;
-    left: 26%;
-
-    font-weight: bold;
-    font-family: "Mozilla Headline";
-    color: #ff11AA;
-    position: absolute;
-    background-color: rgb(66, 11, 184, 0.3);
-    padding: 20px 20px 20px 20px;
-    border-radius: 20px;
-    font-size: 100px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.3);
-    transition: all 0.25s ease-in-out;
-}
-
 h12 {
-    top: 50%;
-    left: 42%;
+    top: 52%;
+    left: 72%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184, 0.3);
-    padding: 20px 20px 20px 20px;
+    background-color: rgba(14, 2, 38, 0.6);
+    padding: 10px 2000px 10px 20px;
     border-radius: 20px;
     font-size: 100px;
     backdrop-filter: blur(10px);
@@ -195,15 +200,15 @@ h12 {
 }
 
 h223 {
-    top: 50%;
-    right: 68%;
+    top: 68%;
+    left: 72%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184, 0.3);
-    padding: 20px 20px 20px 20px;
+    background-color: rgba(14, 2, 38, 0.6);
+    padding: 10px 2000px 10px 20px;
     border-radius: 20px;
     font-size: 100px;
     backdrop-filter: blur(10px);
@@ -212,15 +217,15 @@ h223 {
 }
 
 h2267284643634 {
-    top: 50%;
-    left: 66%;
+    top: 84%;
+    left: 72%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgb(66, 11, 184, 0.3);
-    padding: 20px 20px 20px 20px;
+    background-color: rgba(14, 2, 38, 0.6);
+    padding: 10px 2000px 10px 20px;
     border-radius: 20px;
     font-size: 100px;
     backdrop-filter: blur(10px);
@@ -269,6 +274,14 @@ h2267284643634 {
 #f {
     top: 55%;
     left: 26.5%;
+}
+#c {
+    top: 55%;
+    left: 15%;
+}
+#enter {
+    top: 55%;
+    left: 73.5%;
 }
 
 #e {
@@ -327,6 +340,7 @@ h2267284643634 {
     right: 1%;
     bottom: 0%;
     font-size: larger;
+    z-index: 200;
 }
 
 
@@ -404,7 +418,46 @@ h2267284643634 {
     align-items: center;
     gap: 0px;
 }
+#yap {
+    top: 66%;
+    left: 30%;
+    font-weight: normal;
+    font-family: "Mozilla Headline";
+    color: #000000;
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.6);
+    padding: 20px 20px 20px 20px;
+    border-radius: 20px;
+    font-size: 24px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0px 20px rgba(255, 223, 223, 0.6);
+    transition: all 0.25s ease-in-out;
+    width: 62%;
+    height: 24%;
+    text-align: left;
+    flex-direction: column;
+    display: flex;
+    justify-content: flex-start; 
+    align-items: flex-start;
+    gap: 24px;
+}
 img {
     width: 24px;
     height: 24px;
+}
+
+#load img {
+    position: absolute;
+    width: 100%;
+    height:auto;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    z-index:-1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+html, body {
+    overflow: hidden
 }

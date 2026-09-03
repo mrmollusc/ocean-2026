@@ -32,7 +32,7 @@ let room_data = {
       { x: 1580, y: 450, w: 40, h: 900 },
     ],
     sand_bars: [],
-    trashes: [{ x: 800, y: 450, w: 100, h: 100 }],
+    trashes: [{ x: 800, y: 300, w: 500, h: 500 }],
     doors: [
       {
         x: 20,
@@ -57,7 +57,8 @@ let room_data = {
     snails: [],
     jellys: [],
     force_blocks: [
-      { x: 600, y: 300, w: 64, h: 64, velocity: { x: 7, y: 0 }, texture: "right" },
+      { x: 600, y: 300, w: 64, h: 64, velocity: { x: 15, y: 0 }, texture: "right" },{ x: 500, y: 300, w: 64, h: 64, velocity: { x: 15, y: 0 }, texture: "right" },{ x: 400, y: 300, w: 64, h: 64, velocity: { x: 15, y: 0 }, texture: "right" },{ x: 300, y: 300, w: 64, h: 64, velocity: { x: 15, y: 0 }, texture: "right" },{ x: 200, y: 300, w: 64, h: 64, velocity: { x: 15, y: 0 }, texture: "right" },{ x: 100, y: 300, w: 64, h: 64, velocity: { x: 15, y: 0 }, texture: "right" },
+      { x: 600, y: 450, w: 64, h: 64, velocity: { x: 7, y: 0 }, texture: "right" },
       { x: 900, y: 300, w: 64, h: 64, velocity: { x: 0, y: 7 }, texture: "down" },
       { x: 900, y: 600, w: 64, h: 64, velocity: { x: -7, y: 0 }, texture: "left" },
       { x: 600, y: 600, w: 64, h: 64, velocity: { x: 0, y: -7 }, texture: "up" }
@@ -80,7 +81,7 @@ let room_data = {
       { x: 900, y: 360, w: 960, h: 120 },
       { x: 1380, y: 500, w: 120, h: 400 }
     ],
-    sand_bars: [],
+    sand_bars: [{ x: 500, y: 800, w: 200, h: 5000 }],
     trashes: [],
     doors: [
       {
@@ -137,7 +138,7 @@ let room_data = {
         target_y: 450,
       },
     ],
-    sand_bars: [{ x: 300, y: 400, w: 50, h: 100 }],
+    sand_bars: [{ x: 300, y: 400, w: 400, h: 300 }],
     hearts: [
       { x: 50, y: 50 },
       { x: 100, y: 50 },

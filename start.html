@@ -3,7 +3,7 @@
 <head>
     <link rel="stylesheet" href="styles.css">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"user-scalable=no>
     <title>~Turritopsis Red~</title>
     <link rel="icon" type="image/png" href="assets/icon.png">
     <style>
@@ -12,14 +12,21 @@
     </style>
 </head>
 <body>
-    <h10 id = "title" class = "button">Turritopsis Red</h10>
+    <span id="load">
+        <img src="./assets/loading_screen.png">
+    </span>
+    
+
+
+    <span id="elements">
     <h12 id = 'play' class = "button"><a href="index.html">Play</a></h12>
     <h223 class = "button"><a href="options.html">Options</a></h223>
     <h2267284643634 class= "button"><a href="credits.html">Credits</a></h2267284643634>
     <p id="by">© 2026 Studio Mollusc</p>
+    </span>
 
 
-
-    <script src="startscripts.js"></script>
+    <script src="startscripts.js" defer></script>
+    <script src="js/lib/pixi-sound.mjs"></script>
 </body>
 </html>
