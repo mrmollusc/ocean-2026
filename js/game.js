@@ -56,7 +56,7 @@ const CAMERA_ZOOM = 1;
 
 //Player movement and physics
 const PLAYER_ACCEL = 5;
-const PLAYER_MAX_SPEED = 7;
+const PLAYER_MAX_SPEED = 5;
 const PLAYER_HEAL_SPEED = 1;
 
 //player body size
@@ -73,7 +73,7 @@ const rotationSpeed = 0.1;
 const TRASH_DAMAGE = 5;
 
 //dash mechanic
-const DASH_SPEED = 40;
+const DASH_SPEED = 30;
 const DASH_ACCEL = 10;
 const DASH_DURATION = 150;
 const DASH_COOLDOWN = 1500;
@@ -156,14 +156,14 @@ let player = {
 };
 
 // save mechanic
-let saved_room = localStorage.getItem("current_room") || 'room_2';
-let x = parseInt(localStorage.getItem("player_x")) || 500;
-let y = parseInt(localStorage.getItem("player_y")) || 500;
-let player_data = parseInt(localStorage.getItem("temp_player_data"));
-let save_data = localStorage.getItem("room_data");
-let health_data = parseInt(localStorage.getItem("health") || 100);
+let saved_room = 'room_2';//localStorage.getItem("current_room")
+let x = 100;//parseInt(localStorage.getItem("player_x"))
+let y = 225;//parseInt(localStorage.getItem("player_y"))
+let player_data = player;//parseInt(localStorage.getItem("temp_player_data"))
+let save_data = room_data;//localStorage.getItem("room_data")
+let health_data = 100;//parseInt(localStorage.getItem("health"))
 
-const unmodified_room_data = JSON.parse(JSON.stringify(room_data));
+/*const unmodified_room_data = JSON.parse(JSON.stringify(room_data));
 if (save_data && save_data !== "null" && save_data !== "[object Object]") {
     try {
         const parsedSave = JSON.parse(save_data);
@@ -176,13 +176,13 @@ if (save_data && save_data !== "null" && save_data !== "[object Object]") {
             }
         }
     } catch (e) {
-        console.error("Error restoring room data:", e);
+        console.error("error reading data", e);
     }
 }
 if (player_data && player_data !== "null" && player_data !== "[object Object]") {
   Object.assign(player, JSON.parse(player_data));
 }
-
+*/
 let temp_room_data = room_data;
 let temp_player_data = player;
 temp_player_data.health = health_data;
@@ -1318,7 +1318,7 @@ function triggerDash() {
   test_body.id = "test_box";
   const text_graphic = new PIXI.Graphics()
     .rect(-25, -25, 50, 50)
-    .fill(0x00FF00); // green box so you can see it
+    .fill(0x000000); // green box so you can see it
 
   text_graphic.position.set(300, 200);
   text_graphic.zIndex = 5;
@@ -1563,11 +1563,22 @@ function triggerDash() {
       }
     });
 
+    sand_bars.forEach((sand_body) => {
+      if (temp_player_data.iframe == false && check_collision(box, sand_body)) {
+        temp_player_data.health -= 0.1;
+        temp_player_data.iframe = true;
+        setTimeout(() => {
+          temp_player_data.iframe = false;
+        }, PLAYER_IFRAME_DURATION);
+      }
+    });
+    
     const is_on_sand = sand_bars.some((bar) => check_collision(box, bar));
 
     if (is_on_sand) {
       temp_player_data.max_speed = 1;
       temp_player_data.was_on_sand = true;
+
     } else if (temp_player_data.was_on_sand) {
       temp_player_data.max_speed = PLAYER_MAX_SPEED;
       temp_player_data.was_on_sand = false;
@@ -1709,14 +1720,6 @@ function triggerDash() {
     for (let i = 0; i < walls.length; i++) {
       wall_graphics[i].position.set(walls[i].position.x, walls[i].position.y);
     }
-    if (canTransition) {
-      const playerBounds = {
-        x: box.position.x - 80,
-        y: box.position.y - 80,
-        w: 160,
-        h: 160,
-      };
-
       if (canTransition) {
         for (let doorBody of doors) {
           if (check_collision(box, doorBody)) {
@@ -1747,7 +1750,7 @@ function triggerDash() {
             break;
           }
         }
-      }
+      
     }
   });
   setInterval(() => {
