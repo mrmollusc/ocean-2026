@@ -223,7 +223,7 @@ let room_data = {
       },
       {
         x: 740,
-        y: 440,
+        y: 450,
         w: 50,
         h: 60,
         target_room: "room_4",
@@ -262,109 +262,69 @@ let room_data = {
   },
 
   room_4: {
-    label: "room 4",
+    label: "",
+    walls: [
+      { x: 400, y: 20, w: 800, h: 40 },
+      { x: 400, y: 440, w: 800, h: 40 },
+      { x: 20, y: 225, w: 40, h: 450 },
+      { x: 790, y: 225, w: 40, h: 450 },
+    ],
     sand_bars: [],
     kelps: [],
-    walls: [
-      { x: 800, y: 20, w: 1600, h: 40 },
-      { x: 800, y: 880, w: 1600, h: 40 },
-      { x: 20, y: 450, w: 40, h: 900 },
-      { x: 1580, y: 450, w: 40, h: 900 },
+    trashes: [
+      { x: 150, y: 150, w: 60, h: 300 },
+      { x: 300, y: 300, w: 60, h: 300 },
+      { x: 490, y: 120, w: 440, h: 60 },
+      { x: 600, y: 300, w: 400, h: 60 },
     ],
-    trashes: [],
     doors: [
       {
-        x: 800,
-        y: 20,
-        w: 120,
-        h: 50,
-        target_room: "room_2",
-        target_x: 800,
-        target_y: 720,
+        x: 60,
+        y: 10,
+        w: 50,
+        h: 60,
+        target_room: "room_3",
+        target_x: 740,
+        target_y: 390,
       },
-        {
-        x: 800,
-        y: 880,
-        w: 120,
-        h: 50,
-        target_room: "vinnies_room",
-        target_x: 800,
-        target_y: 180,
-      }
+      {
+        x: 740,
+        y: 450,
+        w: 50,
+        h: 60,
+        target_room: "room_5",
+        target_x: 60,
+        target_y: 60,
+      },
     ],
     hearts: [],
     snails: [],
     jellys: [],
-    force_blocks: [],
+    force_blocks: [    ],
     bullet_boxes: [],
     text_boxes: [],
-    spawnpoint: { x: 120, y: 800 },
-    labels: []
-  }, vinnies_room: {
-    label: "vinnies trap room",
-    walls: [
-      { x: 800, y: 20, w: 1600, h: 40 },
-      { x: 800, y: 880, w: 1600, h: 40 },
-      { x: 20, y: 450, w: 40, h: 900 },
-      { x: 1580, y: 450, w: 40, h: 900 },
-    ],
-    sand_bars: [],
-    trashes: [{ x: 1100, y: 300, w: 100, h: 100 }, { x: 664, y: 600, w: 30, h: 30 },{ x: 1000, y: 380, w: 300, h: 100 },{ x: 1000, y: 220, w: 300, h: 100 },{ x: 364, y: 600, w: 64, h: 64 }],
-    doors: [
-      {
-        x: 800,
-        y: 20,
-        w: 120,
-        h: 50,
-        target_room: "room_4",
-        target_x: 800,
-        target_y: 720,
-      },
-        {
-        x: 800,
-        y: 880,
-        w: 120,
-        h: 50,
-        target_room: "maze_room",
-        target_x: 800,
-        target_y: 180,
-      }
-    ],
-    hearts: Array.from({ length: 250 }, (_, i) => ({ x: 50 + i, y: 50 + i })),
-    snails: [],
-    jellys: [],
-    force_blocks: [
-      { x: 600, y: 300, w: 64, h: 64, velocity: { x: 7, y: 0 }, texture: "right" },{ x: 800, y: 300, w: 64, h: 64, velocity: { x: 7, y: 0 }, texture: "right" },{ x: 1200, y: 300, w: 64, h: 64, velocity: { x: -10, y: 0 }, texture: "right" },{ x: 900, y: 300, w: 64, h: 64, velocity: { x: 7, y: 0 }, texture: "right" },{ x: 700, y: 300, w: 64, h: 64, velocity: { x: 7, y: 0 }, texture: "right" },
-        { x: 600, y: 600, w: 64, h: 64, velocity: { x:10, y: 0 }, texture: "right" }, { x: 728, y: 600, w: 64, h: 64, velocity: { x: -10, y: 0 }, texture: "left" },{ x: 664, y: 664, w: 64, h: 64, velocity: { x: -0, y: -10 }, texture: "up" },{ x: 664, y: 536, w: 64, h: 64, velocity: { x: -0, y: 10 }, texture: "down" }
-          ,{ x: 600, y: 536, w: 64, h: 64, velocity: { x:10, y: 10 }, texture: "right" },{ x: 600, y: 664, w: 64, h: 64, velocity: { x:10, y: -10 }, texture: "right" },{ x: 728, y: 536, w: 64, h: 64, velocity: { x:-10, y: 10 }, texture: "left" },{ x: 728, y: 664, w: 64, h: 64, velocity: { x:-10, y: -10 }, texture: "left" },
-              { x: 300, y: 600, w: 64, h: 64, velocity: { x:10, y: 0 }, texture: "right" }, { x: 428, y: 600, w: 64, h: 64, velocity: { x: -10, y: 0 }, texture: "left" },{ x: 364, y: 664, w: 64, h: 64, velocity: { x: -0, y: -10 }, texture: "up" },{ x: 364, y: 536, w: 64, h: 64, velocity: { x: -0, y: 10 }, texture: "down" }
-          ,{ x: 300, y: 536, w: 64, h: 64, velocity: { x:10, y: 10 }, texture: "right" },{ x: 300, y: 664, w: 64, h: 64, velocity: { x:10, y: -10 }, texture: "right" },{ x: 428, y: 536, w: 64, h: 64, velocity: { x:-10, y: 10 }, texture: "left" },{ x: 428, y: 664, w: 64, h: 64, velocity: { x:-10, y: -10 }, texture: "left" }
-    ],
-    bullet_boxes: [{
-      x: 200,
-      y: 200,
-      w: 20,
-      h: 20,
-      interval: 100,
-      bullet_speed: 4,
-      colour: 0xffffff,
-      bullets: [{ vx: 1, vy: 0 }, { vx: -1, vy: 0 }, { vx: 0, vy: 1 }, { vx: 0, vy: -1 }]
-    }],
-    text_boxes: [{ x: 200, y: 200, w: 100, h: 100, text: 'not yet' }],
-    spawnpoint: { x: 120, y: 800 },
+    spawnpoint: { x: 100, y: 225 },
     labels: [{
-      x: 700, y: 600, text: 'vinnie\'s evil trap', style: {
-        fontFamily: 'Indie Flower',
-        fontSize: 72,
-        fill: '#000000',
-        fontWeight: 'normal',
-        fontStyle: 'normal',
-        stroke: { color: '#000000', width: 0 },
-        padding: 10,
-        lineHeight: 72,
-        trim: false
-      }
-    }]
+  x: 360, 
+  y: 320, 
+  text: 'The ocean is a place', 
+  resolution: 2,  
+  roundPixels: true,  
+  style: {
+    fontFamily: 'Indie Flower', 
+    fontSize: 40,
+    fill: '#ffffff', 
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    stroke: { 
+      color: '#1d0067', 
+      width: 4,
+      join: 'round',
+    },
+    padding: 100,
+    lineHeight: 72,
+    trim: false    }
+}]
   },
   maze_room: {
     label: "mazeroom",

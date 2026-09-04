@@ -156,7 +156,7 @@ let player = {
 };
 
 // save mechanic
-let saved_room = 'room_3';//localStorage.getItem("current_room")
+let saved_room = 'room_4';//localStorage.getItem("current_room")
 let x = 100;//parseInt(localStorage.getItem("player_x"))
 let y = 225;//parseInt(localStorage.getItem("player_y"))
 let player_data = player;//parseInt(localStorage.getItem("temp_player_data"))
@@ -871,7 +871,7 @@ function triggerDash() {
 
       wallGraphic.position.set(wall.x, wall.y);
       world.addChild(wallGraphic);
-
+      wallGraphic.zIndex = 6;
       walls.push(wallBody);
       wall_graphics.push(wallGraphic);
       Composite.add(engine.world, wallBody);
@@ -893,7 +893,7 @@ function triggerDash() {
 
       doorGraphic.position.set(door.x, door.y);
       world.addChild(doorGraphic);
-
+      doorGraphic.zIndex = 6;
       doors.push(doorBody);
       door_graphics.push(doorGraphic);
       Composite.add(engine.world, doorBody);
@@ -914,7 +914,7 @@ function triggerDash() {
 
       trash_graphic.position.set(trash_obj.x, trash_obj.y);
       world.addChild(trash_graphic);
-
+      trash_graphic.zIndex = 5;
       trashes.push(trash_body);
       trash_graphics.push(trash_graphic);
       Composite.add(engine.world, trash_body);
@@ -1129,8 +1129,8 @@ function triggerDash() {
       const label_graphic = new PIXI.Text({
         text: label.text,
         style: label.style,
-        resolution: label.resolution || app.renderer.resolution * 2,
-        roundPixels: label.roundPixels ?? true
+        resolution: 3,
+        roundPixels: true
       })
       label_graphic.position.set(label.x, label.y);
       label_graphic.zIndex = 100;
