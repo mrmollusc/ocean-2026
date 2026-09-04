@@ -78,6 +78,7 @@ let room_data = {
       { x: 790, y: 225, w: 40, h: 450 },
     ],
     sand_bars: [],
+    kelps: [],
     trashes: [],
     doors: [
       {
@@ -98,18 +99,26 @@ let room_data = {
     text_boxes: [],
     spawnpoint: { x: 100, y: 225 },
     labels: [{
-      x: 200, y: 300, text: 'Welcome to the ocean', style: {
-        fontFamily: 'Indie Flower', 
-        fontSize: 40,
-        fill: '#ffffff', 
-        fontWeight: 'normal',
-        fontStyle: 'normal',
-        stroke: { color: '#1d0067', width: 4 },
-        padding: 10,
-        lineHeight: 72,     
-        trim: false    
-      }
-    }]
+  x: 200, 
+  y: 300, 
+  text: 'Welcome', 
+  resolution: 2,  
+  roundPixels: true,  
+  style: {
+    fontFamily: 'Indie Flower', 
+    fontSize: 40,
+    fill: '#ffffff', 
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    stroke: { 
+      color: '#1d0067', 
+      width: 4,
+      join: 'round',
+    },
+    padding: 100,
+    lineHeight: 72,
+    trim: false    }
+}]
   },
 
   room_2: {
@@ -124,6 +133,7 @@ let room_data = {
       { x: 450, y: 300, w: 40, h: 300},
     ],
     sand_bars: [],
+    kelps: [],
     trashes: [{
       x: 625, y: 250, w: 200, h: 200
     }],
@@ -148,6 +158,7 @@ let room_data = {
       }
     ],
     hearts: [],
+    kelps: [],
     snails: [],
     jellys: [],
     force_blocks: [    ],
@@ -155,18 +166,26 @@ let room_data = {
     text_boxes: [],
     spawnpoint: { x: 100, y: 225 },
     labels: [{
-      x: 200, y: 300, text: 'Its hard being a microscopic jellyfish', style: {
-        fontFamily: 'Indie Flower', 
-        fontSize: 40,
-        fill: '#ffffff', 
-        fontWeight: 'normal',
-        fontStyle: 'normal',
-        stroke: { color: '#1d0067', width: 4 },
-        padding: 10,
-        lineHeight: 72,     
-        trim: false    
-      }
-    }]
+  x: 350, 
+  y: 50, 
+  text: 'Its hard being a tiny jelly', 
+  resolution: 2,  
+  roundPixels: true,  
+  style: {
+    fontFamily: 'Indie Flower', 
+    fontSize: 40,
+    fill: '#ffffff', 
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    stroke: { 
+      color: '#1d0067', 
+      width: 4,
+      join: 'round',
+    },
+    padding: 100,
+    lineHeight: 72,
+    trim: false    }
+}]
   },
 
   room_3: {
@@ -176,14 +195,13 @@ let room_data = {
       { x: 400, y: 440, w: 800, h: 40 },
       { x: 20, y: 225, w: 40, h: 450 },
       { x: 790, y: 225, w: 40, h: 450 },
-      { x: 150, y: 300, w: 40, h: 300},
-      { x: 300, y: 150, w: 40, h: 300},
-      { x: 450, y: 300, w: 40, h: 300},
+
+      { x: 450, y: 100, w: 500, h: 200},
+      { x: 450, y: 350, w: 500, h: 200}
     ],
     sand_bars: [],
-    trashes: [{
-      x: 625, y: 250, w: 200, h: 200
-    }],
+    kelps: [],
+    trashes: [],
     doors: [
       {
         x: 60,
@@ -192,7 +210,25 @@ let room_data = {
         h: 60,
         target_room: "room_2",
         target_x: 740,
-        target_y: 165,
+        target_y: 390,
+      },
+      {
+        x: 740,
+        y: 10,
+        w: 50,
+        h: 60,
+        target_room: "treasure_1",
+        target_x: 60,
+        target_y: 390,
+      },
+      {
+        x: 740,
+        y: 440,
+        w: 50,
+        h: 60,
+        target_room: "room_4",
+        target_x: 60,
+        target_y: 60,
       },
     ],
     hearts: [],
@@ -203,23 +239,32 @@ let room_data = {
     text_boxes: [],
     spawnpoint: { x: 100, y: 225 },
     labels: [{
-      x: 200, y: 300, text: 'Press SPACE to dash', style: {
-        fontFamily: 'Indie Flower', 
-        fontSize: 40,
-        fill: '#ffffff', 
-        fontWeight: 'normal',
-        fontStyle: 'normal',
-        stroke: { color: '#1d0067', width: 4 },
-        padding: 10,
-        lineHeight: 72,     
-        trim: false    
-      }
-    }]
+  x: 250, 
+  y: 300, 
+  text: 'Press SPACE to dash', 
+  resolution: 2,  
+  roundPixels: true,  
+  style: {
+    fontFamily: 'Indie Flower', 
+    fontSize: 40,
+    fill: '#ffffff', 
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    stroke: { 
+      color: '#1d0067', 
+      width: 4,
+      join: 'round',
+    },
+    padding: 100,
+    lineHeight: 72,
+    trim: false    }
+}]
   },
 
   room_4: {
     label: "room 4",
     sand_bars: [],
+    kelps: [],
     walls: [
       { x: 800, y: 20, w: 1600, h: 40 },
       { x: 800, y: 880, w: 1600, h: 40 },

@@ -156,7 +156,7 @@ let player = {
 };
 
 // save mechanic
-let saved_room = 'room_2';//localStorage.getItem("current_room")
+let saved_room = 'room_3';//localStorage.getItem("current_room")
 let x = 100;//parseInt(localStorage.getItem("player_x"))
 let y = 225;//parseInt(localStorage.getItem("player_y"))
 let player_data = player;//parseInt(localStorage.getItem("temp_player_data"))
@@ -656,6 +656,9 @@ function triggerDash() {
   let sand_bars = [];
   let sand_bar_graphics = [];
 
+  let kelps = [];
+  let kelp_graphics = [];
+
   let labels = [];
 
   let room_label = new PIXI.Text({
@@ -828,6 +831,11 @@ function triggerDash() {
     sand_bar_graphics = [];
     sand_bars = [];
 
+    kelp_graphics.forEach((g) => world.removeChild(g));
+    kelps.forEach((t) => Composite.remove(engine.world, t));
+    kelp_graphics = [];
+    kelps = [];
+
     bulletManager.active.forEach((bullet) => {
       bullet.dead = true;
       bullet.sprite.visible = false;
@@ -976,6 +984,25 @@ function triggerDash() {
       Composite.add(engine.world, bar_body);
     });
 
+    data.kelps?.forEach((kelp) => {
+      const kelp_body = Bodies.rectangle(kelp.x, kelp.y, kelp.w, kelp.h, {
+        isStatic: true,
+        collisionFilter: { group: -1, mask: 0 }
+      });
+
+      const kelp_graphic = new PIXI.Graphics()
+        .rect(-kelp.w / 2, -kelp.h / 2, kelp.w, kelp.h)
+        .fill(0x164a2b);
+
+      kelp_graphic.position.set(kelp.x, kelp.y);
+      kelp_graphic.zIndex = 4;
+      world.addChild(kelp_graphic);
+
+      kelps.push(kelp_body);
+      kelp_graphics.push(kelp_graphic);
+      Composite.add(engine.world, kelp_body);
+    });
+
     let currentTime = performance.now();
     data.bullets?.forEach((b) => {
       let bullet = bulletManager.active.find(item => item.bulletId === b.id);
@@ -1101,9 +1128,10 @@ function triggerDash() {
     data.labels.forEach((label) => {
       const label_graphic = new PIXI.Text({
         text: label.text,
-        style: label.style
+        style: label.style,
+        resolution: label.resolution || app.renderer.resolution * 2,
+        roundPixels: label.roundPixels ?? true
       })
-
       label_graphic.position.set(label.x, label.y);
       label_graphic.zIndex = 100;
       world.addChild(label_graphic);
@@ -1230,6 +1258,24 @@ function triggerDash() {
         new_l < trash_bounds.max.x &&
         new_b > trash_bounds.min.y &&
         new_t < trash_bounds.max.y
+      );
+    });
+  }
+
+  function would_collide_with_kelp(x, y) {
+    const half_size = (/*PLAYER_DIMENSIONS*/2 * 0.5) - 2;
+    const new_l = x - half_size;
+    const new_r = x + half_size;
+    const new_t = y - half_size;
+    const new_b = y + half_size;
+
+    return kelps.some((kelp) => {
+      const kelp_bounds = kelp.bounds;
+      return (
+        new_r > kelp_bounds.min.x &&
+        new_l < kelp_bounds.max.x &&
+        new_b > kelp_bounds.min.y &&
+        new_t < kelp_bounds.max.y
       );
     });
   }
@@ -1374,8 +1420,19 @@ function triggerDash() {
       v1y *= 0.9;
     }
 
+    const rotationVelocityX = v1x;
+    const rotationVelocityY = v1y;
+
     const nextX = box.position.x + v1x;
     const nextY = box.position.y + v1y;
+
+    if (!temp_player_data.is_dashing && would_collide_with_kelp(nextX, box.position.y)) {
+      v1x = 0;
+    }
+
+    if (!temp_player_data.is_dashing && would_collide_with_kelp(box.position.x, nextY)) {
+      v1y = 0;
+    }
 
     if (would_collide_with_wall(nextX, box.position.y) || would_collide_with_trash(nextX, box.position.y)) {
       v1x = 0;
@@ -1612,9 +1669,9 @@ function triggerDash() {
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.angle = box.angle;
 
-    const speed = Math.sqrt(v1x * v1x + v1y * v1y);
+    const speed = Math.sqrt(rotationVelocityX * rotationVelocityX + rotationVelocityY * rotationVelocityY);
     if (speed > 0.1) {
-      const targetAngle = Math.atan2(v1y, v1x);
+      const targetAngle = Math.atan2(rotationVelocityY, rotationVelocityX);
       let angleDiff = targetAngle - box.angle;
       while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
       while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
