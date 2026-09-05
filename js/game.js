@@ -983,7 +983,9 @@ function triggerDash() {
             break;
 
           case 'anemone':
-            console.log('found anemone')
+            anemone.initialize(b.x, b.y, world);
+
+            console.log(`found anemone ${b.x}, ${b.y}`);
             break;
 
           default:
@@ -1314,10 +1316,12 @@ function triggerDash() {
   //important start or main game loop
 
   app.ticker.add((ticker) => {
+    console.log(`FPS: ${Math.round(app.ticker.FPS)}`);
+    console.log(`{player.x: ${box.position.x}, player.y: ${box.position.y}}`);
     bulletManager.update(ticker);
 
     let currentTime = performance.now();
-    anemone.update(currentTime, bulletManager, anemoneTexture, 400, 40);
+    anemone.update(currentTime, bulletManager, anemoneTexture, anemone.x, anemone.y);
 
     if (!boxGraphic) return;
 

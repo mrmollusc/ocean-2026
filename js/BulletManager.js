@@ -1,19 +1,19 @@
 const spriteSheet = await PIXI.Assets.load("assets/sprites v0.2.png");
 
-function createSpriteFrames(y, x, width, height) {
+function createSpriteFrames(x, y, width, height) {
     return Array.from({ length: 5 }, (_, index) => new PIXI.Texture({
         source: spriteSheet.source,
         frame: new PIXI.Rectangle(index * 128 + x, y, width, height)
     }));
 }
 
-const snailChargingFrames = createSpriteFrames(80, 0, 60, 38);
+const snailChargingFrames = createSpriteFrames(0, 80, 60, 38);
 const snailBeginChargingFrames = createSpriteFrames(0, 0, 60, 38);
-const snailStunnedFrames = createSpriteFrames(40, 0, 56, 38);
-const nematocystFrames = createSpriteFrames(0, 96, 15, 32);
+const snailStunnedFrames = createSpriteFrames(0, 40, 56, 38);
+const nematocystFrames = createSpriteFrames(96, 0, 15, 32);
 const bossFishFrames = createSpriteFrames(96, 96, 32, 32);
-const bossTurtleFrames = createSpriteFrames(32, 96, 32, 32);
-const anemoneFrames = createSpriteFrames(64, 0, 32, 32);
+const bossTurtleFrames = createSpriteFrames(96, 32, 32, 32);
+const anemoneFrames = createSpriteFrames(64, 10, 32, 22);
 
 // RGB fish - single static textures (not animated)
 const redFishTexture = new PIXI.Texture({
@@ -29,11 +29,6 @@ const blueFishTexture = new PIXI.Texture({
     frame: new PIXI.Rectangle(64, 96, 32, 32)
 });
 
-// Anemone texture
-const anemoneTexture = new PIXI.Texture({
-    source: spriteSheet.source,
-    frame: new PIXI.Rectangle(0, 64, 32, 32)
-});
 
 export class BulletManager {
     constructor(physicsWorld, stage, engine) {
@@ -612,8 +607,19 @@ export class anemoneBullet {
 }
 export class anemone {
     static lastspawnTime = 0;
-    static initialize() {
-        
+    static x = 0;
+    static y = 0;
+    static initialize(x, y, stage) {
+        anemone.x = x;
+        anemone.y = y;
+        const graphic = new PIXI.AnimatedSprite(anemoneFrames);
+        stage.addChild(graphic);
+        graphic.position.set(x, y);
+        graphic.play();
+        graphic.visible = true;
+        graphic.animationSpeed = 0.12;
+        graphic.scale.set(2, 2);
+        graphic.anchor.set(0.5, 0.5);
     }
     static update(currentTime, manager, texture, x, y) {
         if (currentTime - anemone.lastspawnTime >= 1000) {
