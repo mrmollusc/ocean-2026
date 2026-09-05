@@ -156,7 +156,7 @@ let player = {
 };
 
 // save mechanic
-let saved_room = 'room_4';//localStorage.getItem("current_room")
+let saved_room = 'room_1';//localStorage.getItem("current_room")
 let x = 100;//parseInt(localStorage.getItem("player_x"))
 let y = 225;//parseInt(localStorage.getItem("player_y"))
 let player_data = player;//parseInt(localStorage.getItem("temp_player_data"))
