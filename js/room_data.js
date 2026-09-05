@@ -73,7 +73,7 @@ let room_data = {
     label: "",
     walls: [
       { x: 400, y: 20, w: 800, h: 40 },
-      { x: 400, y: 440, w: 800, h: 40 },
+      { x: 405, y: 450, w: 810, h: 40 },
       { x: 20, y: 225, w: 40, h: 450 },
       { x: 790, y: 225, w: 40, h: 450 },
     ],
@@ -125,7 +125,7 @@ let room_data = {
     label: "",
     walls: [
       { x: 400, y: 20, w: 800, h: 40 },
-      { x: 400, y: 440, w: 800, h: 40 },
+      { x: 405, y: 450, w: 810, h: 40 },
       { x: 20, y: 225, w: 40, h: 450 },
       { x: 790, y: 225, w: 40, h: 450 },
       { x: 150, y: 300, w: 40, h: 300},
@@ -192,7 +192,7 @@ let room_data = {
     label: "",
     walls: [
       { x: 400, y: 20, w: 800, h: 40 },
-      { x: 400, y: 440, w: 800, h: 40 },
+      { x: 405, y: 450, w: 810, h: 40 },
       { x: 20, y: 225, w: 40, h: 450 },
       { x: 790, y: 225, w: 40, h: 450 },
 
@@ -201,7 +201,7 @@ let room_data = {
     ],
     sand_bars: [],
     kelps: [],
-    trashes: [],
+    trashes: [{x: 100, y: 400, w: 200, h: 100}],
     doors: [
       {
         x: 60,
@@ -265,7 +265,7 @@ let room_data = {
     label: "",
     walls: [
       { x: 400, y: 20, w: 800, h: 40 },
-      { x: 400, y: 440, w: 800, h: 40 },
+      { x: 405, y: 450, w: 810, h: 40 },
       { x: 20, y: 225, w: 40, h: 450 },
       { x: 790, y: 225, w: 40, h: 450 },
     ],
@@ -293,8 +293,8 @@ let room_data = {
         w: 50,
         h: 60,
         target_room: "room_5",
-        target_x: 60,
-        target_y: 60,
+        target_x: 600,
+        target_y: 70,
       },
     ],
     hearts: [],
@@ -326,7 +326,7 @@ let room_data = {
     trim: false    }
 }]
   },
-  maze_room: {
+  room_5: {
     label: "mazeroom",
     walls: [
   { x: 800, y: 20, w: 1600, h: 40 },
@@ -335,9 +335,7 @@ let room_data = {
   { x: 1580, y: 450, w: 40, h: 900 },
   { x: 344, y: 122, w: 60, h: 164 },
   { x: 496, y: 122, w: 60, h: 164 },
-  { x: 344, y: 286, w: 60, h: 164 },
-  { x: 648, y: 286, w: 60, h: 164 },
-  { x: 952, y: 286, w: 60, h: 164 },
+
   { x: 192, y: 450, w: 60, h: 164 },
   { x: 648, y: 450, w: 60, h: 164 },
   { x: 800, y: 450, w: 60, h: 164 },
@@ -357,7 +355,18 @@ let room_data = {
   { x: 572, y: 368, w: 152, h: 60 },
   { x: 1180, y: 368, w: 152, h: 60 },
   { x: 1332, y: 368, w: 152, h: 60 },
-  { x: 268, y: 532, w: 152, h: 60 },
+  
+  
+  { x: 1028, y: 696, w: 152, h: 60 },
+  { x: 1180, y: 696, w: 152, h: 60 },
+  { x: 1484, y: 696, w: 152, h: 60 }
+],
+    sand_bars: [],
+    trashes: [
+        { x: 344, y: 286, w: 60, h: 164 },
+  { x: 648, y: 286, w: 60, h: 164 },
+  { x: 952, y: 286, w: 60, h: 164 },
+      { x: 268, y: 532, w: 152, h: 60 },
   { x: 420, y: 532, w: 152, h: 60 },
   { x: 876, y: 532, w: 152, h: 60 },
   { x: 1028, y: 532, w: 152, h: 60 },
@@ -365,21 +374,16 @@ let room_data = {
   { x: 268, y: 696, w: 152, h: 60 },
   { x: 572, y: 696, w: 152, h: 60 },
   { x: 724, y: 696, w: 152, h: 60 },
-  { x: 1028, y: 696, w: 152, h: 60 },
-  { x: 1180, y: 696, w: 152, h: 60 },
-  { x: 1484, y: 696, w: 152, h: 60 }
-],
-    sand_bars: [],
-    trashes: [],
+    ],
     doors: [
       {
-        x: 800,
+        x: 600,
         y: 20,
-        w: 120,
+        w: 60,
         h: 50,
-        target_room: "vinnies_room",
-        target_x: 800,
-        target_y: 720,
+        target_room: "room_4",
+        target_x: 740,
+        target_y: 390,
       },
         {
         x: 800,
@@ -399,20 +403,49 @@ let room_data = {
     ],
     bullet_boxes: [],
     text_boxes: [{ x: 200, y: 200, w: 100, h: 100, text: 'not yet' }],
-    spawnpoint: { x: 120, y: 800 },
+    spawnpoint: { x: 600, y: 70 },
     labels: [{
-      x: 700, y: 600, text: 'great maze, right?', style: {
-        fontFamily: 'Indie Flower',
-        fontSize: 72,
-        fill: '#000000',
-        fontWeight: 'normal',
-        fontStyle: 'normal',
-        stroke: { color: '#000000', width: 0 },
-        padding: 10,
-        lineHeight: 72,
-        trim: false
-      }
-    }]
+  x: 700, 
+  y: 70, 
+  text: 'Sometimes its huge', 
+  resolution: 2,  
+  roundPixels: true,  
+  style: {
+    fontFamily: 'Indie Flower', 
+    fontSize: 40,
+    fill: '#ffffff', 
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    stroke: { 
+      color: '#1d0067', 
+      width: 4,
+      join: 'round',
+    },
+    padding: 100,
+    lineHeight: 72,
+    trim: false    }
+},
+{
+  x: 700, 
+  y: 70, 
+  text: 'What is this?', 
+  resolution: 2,  
+  roundPixels: true,  
+  style: {
+    fontFamily: 'Indie Flower', 
+    fontSize: 40,
+    fill: '#ffffff', 
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    stroke: { 
+      color: '#1d0067', 
+      width: 4,
+      join: 'round',
+    },
+    padding: 100,
+    lineHeight: 72,
+    trim: false    }
+}]
   },
   maze_room_2: {
     label: "mazeroom2",
