@@ -64,7 +64,7 @@ let room_data = {
       { x: 600, y: 600, w: 64, h: 64, velocity: { x: 0, y: -7 }, texture: "up" }
     ],
     bullets: [
-      { id: 'b1', type: 'snailBullet', x: 10, y: 10 }, 
+      { id: 'b1', type: 'snail', x: 100, y: 100 }, 
       { id: 'b2', type: 'anemone', x: 20, y: 50 }
     ]
   },

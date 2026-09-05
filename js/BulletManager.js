@@ -13,8 +13,7 @@ const snailStunnedFrames = createSpriteFrames(40, 0, 56, 38);
 const nematocystFrames = createSpriteFrames(0, 96, 15, 32);
 const bossFishFrames = createSpriteFrames(96, 96, 32, 32);
 const bossTurtleFrames = createSpriteFrames(32, 96, 32, 32);
-const healingBackFrames = createSpriteFrames(0, 96, 32, 40);   // y=0, x=96
-const healingFrontFrames = createSpriteFrames(40, 96, 32, 40); // y=40, x=96
+const anemoneFrames = createSpriteFrames(64, 0, 32, 32);
 
 // RGB fish - single static textures (not animated)
 const redFishTexture = new PIXI.Texture({
@@ -129,7 +128,6 @@ export class BulletManager {
         b.bounceLimit = 0;
         b.bounceStoppedUntil = 0;
         b.chargingUntil = 0;
-        b.spriteOffsetY = 0;
         b.isShocked = false;
         b.shockUntil = 0;
         b.isDizzyAnimating = false;
@@ -445,9 +443,6 @@ export class BulletManager {
         bullet.sprite.visible = true;
         bullet.sprite.play();
     }
-    setNematocystAnimation(bullet) {
-        this.setSpriteAnimation(bullet);
-    }
     shockSnails(center, radius, duration = 1500) {
         const now = performance.now();
         for (const b of this.active) {
@@ -463,48 +458,6 @@ export class BulletManager {
                 this.damageSnail(b);
             }
         }
-    }
-    showShockAnimation(center) {
-        // Create a temporary animation sprite for shock
-        const shockSprite = new PIXI.AnimatedSprite(shockFrames);
-        shockSprite.loop = false;
-        shockSprite.animationSpeed = 0.2; // 12fps
-        shockSprite.width = 51;
-        shockSprite.height = 48;
-        shockSprite.anchor.set(0.5);
-        shockSprite.position.set(center.x, center.y);
-        shockSprite.zIndex = 100;
-        shockSprite.play();
-        
-        this.stage.addChild(shockSprite);
-        
-        // Remove sprite when animation finishes
-        shockSprite.onComplete = () => {
-            if (this.stage.children.includes(shockSprite)) {
-                this.stage.removeChild(shockSprite);
-            }
-        };
-    }
-    showSparkAnimation(center) {
-        // Create a temporary animation sprite for spark
-        const sparkSprite = new PIXI.AnimatedSprite(sparkFrames);
-        sparkSprite.loop = false;
-        sparkSprite.animationSpeed = 0.2; // 12fps
-        sparkSprite.width = 39;
-        sparkSprite.height = 41;
-        sparkSprite.anchor.set(0.5);
-        sparkSprite.position.set(center.x, center.y);
-        sparkSprite.zIndex = 100;
-        sparkSprite.play();
-        
-        this.stage.addChild(sparkSprite);
-        
-        // Remove sprite when animation finishes
-        sparkSprite.onComplete = () => {
-            if (this.stage.children.includes(sparkSprite)) {
-                this.stage.removeChild(sparkSprite);
-            }
-        };
     }
     serializeBullet(b) {
         const now = performance.now();
@@ -652,14 +605,21 @@ export class anemoneBullet {
             if (bullet) {
                 bullet.isAnemone = true;
                 bullet.sprite.visible = false;
-                manager.setNematocystAnimation(bullet);
+                manager.setSpriteAnimation(bullet);
             }
         }
     }
 }
 export class anemone {
-    static spawn(manager, texture, x, y) {
-        anemonePattern(manager, texture, x, y);
+    static lastspawnTime = 0;
+    static initialize() {
+        
+    }
+    static update(currentTime, manager, texture, x, y) {
+        if (currentTime - anemone.lastspawnTime >= 1000) {
+            anemoneBullet.spawnSemicircle(manager, texture, x, y);
+            anemone.lastspawnTime = currentTime;
+        }
     }
 }
 export class bossRockBullet{
@@ -759,19 +719,6 @@ export class bossBlueFishBullet {
             b.persistent = false;
             b.isBossRGBFish = true;
         });
-    }
-}
-export function anemonePattern(manager, texture, x, y, count = 12, speed = 6) {
-    const startAngle = Math.PI;      // 180°
-    const endAngle = 2 * Math.PI;    // 360°
-
-    for (let i = 0; i < count; i++) {
-        const angle = startAngle + (i / (count - 1)) * (endAngle - startAngle);
-
-        const vx = Math.cos(angle) * speed;
-        const vy = Math.sin(angle) * speed;
-
-        anemoneBullet.spawnSemicircle(manager, texture, x, y)
     }
 }
 export function bossFishPattern(manager, texture, world) {

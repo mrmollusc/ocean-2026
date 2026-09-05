@@ -21,7 +21,6 @@ import {
   bossTurtleBullet,
   defaultBullet,
   bossTurtlePattern,
-  anemonePattern,
   bossRGBFishPattern, 
   snailBullet
 } from './BulletManager.js';
@@ -42,6 +41,7 @@ import {
 const fishTexture = PIXI.Texture.WHITE;
 const anemoneTexture = PIXI.Texture.WHITE;
 const turtleTexture = PIXI.Texture.WHITE;
+let lastNematocystSpawnTime = 0;
 ///////////////////////////////////////////
 //constants
 ///////////////////////////////////////////
@@ -407,10 +407,6 @@ function loadSkillAnimation(skill) {
       skillFramesBack.push(skillTextureBack);
     }
   }
-}
-
-function canSkillAnimation() {
-  showSkillAnimation(0);
 }
 function showSkillAnimation(skill) {
   if (activeSkill === skill && skillGraphic.visible) return;
@@ -979,7 +975,6 @@ function triggerDash() {
     let currentTime = performance.now();
     data.bullets?.forEach((b) => {
       let bullet = bulletManager.active.find(item => item.bulletId === b.id);
-
       if (!bullet) {
         switch (b.type) {
           case 'snail':
@@ -988,7 +983,6 @@ function triggerDash() {
             break;
 
           case 'anemone':
-            bullet = anemone.spawn(bulletManager, anemoneTexture, b.x, b.y);
             console.log('found anemone')
             break;
 
@@ -1005,19 +999,10 @@ function triggerDash() {
           bullet.y = b.y;
           bullet.vx = b.vx || 0;
           bullet.vy = b.vy || 0;
-          bullet.lastSpawnTime = currentTime;
         }
       }
       
       if (bullet && !bullet.dead) {
-        // Anemone spawns nematocysts every 1 second
-        if (bullet.isAnemoneEnemy) {
-          const currentTime = performance.now();
-          if (currentTime - bullet.lastSpawnTime >= 1000) {
-            anemoneBullet.spawnSemicircle(bulletManager, PIXI.Texture.WHITE, bullet.body.position.x, bullet.body.position.y);
-            bullet.lastSpawnTime = currentTime;
-          }
-        }
         
         bullet.vx = b.x_vel || 0;
         bullet.vy = b.y_vel || 0;
@@ -1331,8 +1316,8 @@ function triggerDash() {
   app.ticker.add((ticker) => {
     bulletManager.update(ticker);
 
-    // Spawn nematocysts from anemones every 1 second
-    const currentTime = performance.now();
+    let currentTime = performance.now();
+    anemone.update(currentTime, bulletManager, anemoneTexture, 400, 40);
 
     if (!boxGraphic) return;
 
@@ -1488,7 +1473,6 @@ function triggerDash() {
         box.position.y
       );
       bossFishPattern(bulletManager, fishTexture, world); // blue fish
-      anemonePattern(bulletManager, anemoneTexture, 100, 100); // white anemone
       bossRGBFishPattern(bulletManager, world); // RGB fish pattern
       console.log("Spawned pooled bullet");
       setTimeout(() => {
