@@ -1011,8 +1011,7 @@ function triggerDash() {
 
           case 'anemone':
             anemone.initialize(b.x, b.y, world);
-
-            console.log(`found anemone ${b.x}, ${b.y}`);
+            b.updatable = true;
             break;
 
           default:
@@ -1367,7 +1366,9 @@ function triggerDash() {
     bulletManager.update(ticker);
 
     let currentTime = performance.now();
-    anemone.update(currentTime, bulletManager, anemoneTexture, anemone.x, anemone.y);
+    if (anemone.updatable) {
+      anemone.update(currentTime, bulletManager, anemoneTexture, anemone.x, anemone.y);
+    }
 
     if (!boxGraphic) return;
 
