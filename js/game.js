@@ -56,7 +56,7 @@ const CAMERA_ZOOM = 1;
 
 //Player movement and physics
 const PLAYER_ACCEL = 5;
-const PLAYER_MAX_SPEED = 5;
+const PLAYER_MAX_SPEED = 7;
 const PLAYER_HEAL_SPEED = 1;
 
 //player body size
@@ -73,7 +73,7 @@ const rotationSpeed = 0.1;
 const TRASH_DAMAGE = 5;
 
 //dash mechanic
-const DASH_SPEED = 30;
+const DASH_SPEED = 40;
 const DASH_ACCEL = 10;
 const DASH_DURATION = 150;
 const DASH_COOLDOWN = 1500;
@@ -156,14 +156,14 @@ let player = {
 };
 
 // save mechanic
-let saved_room = 'room_1';//localStorage.getItem("current_room")
-let x = 100;//parseInt(localStorage.getItem("player_x"))
-let y = 225;//parseInt(localStorage.getItem("player_y"))
-let player_data = player;//parseInt(localStorage.getItem("temp_player_data"))
-let save_data = room_data;//localStorage.getItem("room_data")
-let health_data = 100;//parseInt(localStorage.getItem("health"))
+let saved_room = localStorage.getItem("current_room") || 'room_2';
+let x = parseInt(localStorage.getItem("player_x")) || 500;
+let y = parseInt(localStorage.getItem("player_y")) || 500;
+let player_data = parseInt(localStorage.getItem("temp_player_data"));
+let save_data = localStorage.getItem("room_data");
+let health_data = parseInt(localStorage.getItem("health") || 100);
 
-/*const unmodified_room_data = JSON.parse(JSON.stringify(room_data));
+const unmodified_room_data = JSON.parse(JSON.stringify(room_data));
 if (save_data && save_data !== "null" && save_data !== "[object Object]") {
     try {
         const parsedSave = JSON.parse(save_data);
@@ -176,13 +176,13 @@ if (save_data && save_data !== "null" && save_data !== "[object Object]") {
             }
         }
     } catch (e) {
-        console.error("error reading data", e);
+        console.error("Error restoring room data:", e);
     }
 }
 if (player_data && player_data !== "null" && player_data !== "[object Object]") {
   Object.assign(player, JSON.parse(player_data));
 }
-*/
+
 let temp_room_data = room_data;
 let temp_player_data = player;
 temp_player_data.health = health_data;
@@ -652,9 +652,6 @@ function triggerDash() {
   let sand_bars = [];
   let sand_bar_graphics = [];
 
-  let kelps = [];
-  let kelp_graphics = [];
-
   let labels = [];
 
   let room_label = new PIXI.Text({
@@ -827,11 +824,6 @@ function triggerDash() {
     sand_bar_graphics = [];
     sand_bars = [];
 
-    kelp_graphics.forEach((g) => world.removeChild(g));
-    kelps.forEach((t) => Composite.remove(engine.world, t));
-    kelp_graphics = [];
-    kelps = [];
-
     bulletManager.active.forEach((bullet) => {
       bullet.dead = true;
       bullet.sprite.visible = false;
@@ -867,7 +859,7 @@ function triggerDash() {
 
       wallGraphic.position.set(wall.x, wall.y);
       world.addChild(wallGraphic);
-      wallGraphic.zIndex = 6;
+
       walls.push(wallBody);
       wall_graphics.push(wallGraphic);
       Composite.add(engine.world, wallBody);
@@ -889,7 +881,7 @@ function triggerDash() {
 
       doorGraphic.position.set(door.x, door.y);
       world.addChild(doorGraphic);
-      doorGraphic.zIndex = 6;
+
       doors.push(doorBody);
       door_graphics.push(doorGraphic);
       Composite.add(engine.world, doorBody);
@@ -910,7 +902,7 @@ function triggerDash() {
 
       trash_graphic.position.set(trash_obj.x, trash_obj.y);
       world.addChild(trash_graphic);
-      trash_graphic.zIndex = 5;
+
       trashes.push(trash_body);
       trash_graphics.push(trash_graphic);
       Composite.add(engine.world, trash_body);
@@ -978,25 +970,6 @@ function triggerDash() {
       sand_bars.push(bar_body);
       sand_bar_graphics.push(bar_graphic);
       Composite.add(engine.world, bar_body);
-    });
-
-    data.kelps?.forEach((kelp) => {
-      const kelp_body = Bodies.rectangle(kelp.x, kelp.y, kelp.w, kelp.h, {
-        isStatic: true,
-        collisionFilter: { group: -1, mask: 0 }
-      });
-
-      const kelp_graphic = new PIXI.Graphics()
-        .rect(-kelp.w / 2, -kelp.h / 2, kelp.w, kelp.h)
-        .fill(0x164a2b);
-
-      kelp_graphic.position.set(kelp.x, kelp.y);
-      kelp_graphic.zIndex = 4;
-      world.addChild(kelp_graphic);
-
-      kelps.push(kelp_body);
-      kelp_graphics.push(kelp_graphic);
-      Composite.add(engine.world, kelp_body);
     });
 
     let currentTime = performance.now();
@@ -1115,10 +1088,9 @@ function triggerDash() {
     data.labels.forEach((label) => {
       const label_graphic = new PIXI.Text({
         text: label.text,
-        style: label.style,
-        resolution: 3,
-        roundPixels: true
+        style: label.style
       })
+
       label_graphic.position.set(label.x, label.y);
       label_graphic.zIndex = 100;
       world.addChild(label_graphic);
@@ -1249,24 +1221,6 @@ function triggerDash() {
     });
   }
 
-  function would_collide_with_kelp(x, y) {
-    const half_size = (/*PLAYER_DIMENSIONS*/2 * 0.5) - 2;
-    const new_l = x - half_size;
-    const new_r = x + half_size;
-    const new_t = y - half_size;
-    const new_b = y + half_size;
-
-    return kelps.some((kelp) => {
-      const kelp_bounds = kelp.bounds;
-      return (
-        new_r > kelp_bounds.min.x &&
-        new_l < kelp_bounds.max.x &&
-        new_b > kelp_bounds.min.y &&
-        new_t < kelp_bounds.max.y
-      );
-    });
-  }
-
   //player sprite
   async function create_player() {
     //boxGraphic = new PIXI.Sprite(ralsei_texture);
@@ -1351,7 +1305,7 @@ function triggerDash() {
   test_body.id = "test_box";
   const text_graphic = new PIXI.Graphics()
     .rect(-25, -25, 50, 50)
-    .fill(0x000000); // green box so you can see it
+    .fill(0x00FF00); // green box so you can see it
 
   text_graphic.position.set(300, 200);
   text_graphic.zIndex = 5;
@@ -1409,19 +1363,8 @@ function triggerDash() {
       v1y *= 0.9;
     }
 
-    const rotationVelocityX = v1x;
-    const rotationVelocityY = v1y;
-
     const nextX = box.position.x + v1x;
     const nextY = box.position.y + v1y;
-
-    if (!temp_player_data.is_dashing && would_collide_with_kelp(nextX, box.position.y)) {
-      v1x = 0;
-    }
-
-    if (!temp_player_data.is_dashing && would_collide_with_kelp(box.position.x, nextY)) {
-      v1y = 0;
-    }
 
     if (would_collide_with_wall(nextX, box.position.y) || would_collide_with_trash(nextX, box.position.y)) {
       v1x = 0;
@@ -1608,22 +1551,11 @@ function triggerDash() {
       }
     });
 
-    sand_bars.forEach((sand_body) => {
-      if (temp_player_data.iframe == false && check_collision(box, sand_body)) {
-        temp_player_data.health -= 0.1;
-        temp_player_data.iframe = true;
-        setTimeout(() => {
-          temp_player_data.iframe = false;
-        }, PLAYER_IFRAME_DURATION);
-      }
-    });
-    
     const is_on_sand = sand_bars.some((bar) => check_collision(box, bar));
 
     if (is_on_sand) {
       temp_player_data.max_speed = 1;
       temp_player_data.was_on_sand = true;
-
     } else if (temp_player_data.was_on_sand) {
       temp_player_data.max_speed = PLAYER_MAX_SPEED;
       temp_player_data.was_on_sand = false;
@@ -1657,9 +1589,9 @@ function triggerDash() {
     boxGraphic.position.set(box.position.x, box.position.y);
     boxGraphic.angle = box.angle;
 
-    const speed = Math.sqrt(rotationVelocityX * rotationVelocityX + rotationVelocityY * rotationVelocityY);
+    const speed = Math.sqrt(v1x * v1x + v1y * v1y);
     if (speed > 0.1) {
-      const targetAngle = Math.atan2(rotationVelocityY, rotationVelocityX);
+      const targetAngle = Math.atan2(v1y, v1x);
       let angleDiff = targetAngle - box.angle;
       while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
       while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
@@ -1765,6 +1697,14 @@ function triggerDash() {
     for (let i = 0; i < walls.length; i++) {
       wall_graphics[i].position.set(walls[i].position.x, walls[i].position.y);
     }
+    if (canTransition) {
+      const playerBounds = {
+        x: box.position.x - 80,
+        y: box.position.y - 80,
+        w: 160,
+        h: 160,
+      };
+
       if (canTransition) {
         for (let doorBody of doors) {
           if (check_collision(box, doorBody)) {
@@ -1795,7 +1735,7 @@ function triggerDash() {
             break;
           }
         }
-      
+      }
     }
   });
   setInterval(() => {
