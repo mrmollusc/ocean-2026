@@ -157,8 +157,8 @@ let player = {
 
 // save mechanic
 let saved_room = 'room_5';//localStorage.getItem("current_room")
-let x = 100;//parseInt(localStorage.getItem("player_x"))
-let y = 225;//parseInt(localStorage.getItem("player_y"))
+let x = room_data[saved_room]?.spawnpoint?.x ?? 100;//parseInt(localStorage.getItem("player_x"))
+let y = room_data[saved_room]?.spawnpoint?.y ?? 225;//parseInt(localStorage.getItem("player_y"))
 let player_data = player;//parseInt(localStorage.getItem("temp_player_data"))
 let save_data = room_data;//localStorage.getItem("room_data")
 let health_data = 100;//parseInt(localStorage.getItem("health"))
@@ -214,7 +214,6 @@ let did_you_know_that_the_t1_line_in_sydney_rail_used_to_own_half_the_cityrail_n
 let enter_pressed = false;
 
 let is_alt_keybind = get_toggle_flag();
-let is_mute = get_mute_flag();
 let keybinds = {
   up: 'KeyW',
   left: 'KeyA',
@@ -252,7 +251,7 @@ else {
 //TEXTURES
 PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
 const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
-const heart_texture = await PIXI.Assets.load("assets/heart.png");
+const heart_texture = await PIXI.Assets.load("assets/yums.png");
 const sand_texture = await PIXI.Assets.load("assets/sand.png")
 const up_arrow_texture = await PIXI.Assets.load("assets/up_dir_anim.png");
 const right_arrow_texture = await PIXI.Assets.load("assets/right_dir_anim.png");
@@ -272,19 +271,20 @@ await PIXI.Assets.load({
   }
 });
 
-//PIXI MUSIC
-PIXI.sound.add('bgm', 'assets/loop2.mp3');
+PIXI.sound.add('game-bgm', 'assets/loop2.mp3');
+PIXI.sound.muted = get_mute_flag();
 
-addEventListener('click', () => {
-    if (!PIXI.sound.isPlaying('bgm')) {
-        PIXI.sound.play('bgm', { 
-            loop: true, 
-            volume: 2 
-        });
-        console.log('BGM started');
-    }
+window.addEventListener('click', () => {
+  const isMuted = get_mute_flag();
+  PIXI.sound.muted = isMuted;
+
+  if (!isMuted) {
+    PIXI.sound.play('game-bgm', {
+      loop: true,
+      volume: 1
+    });
+  }
 });
-
 
 //PIXI ANIMATION FRAMES (CRIMSON)
 const playerFrameWidth = 32;
@@ -318,6 +318,7 @@ function loadPlayerAnimation(animation) {
 };
 
 //force block animations
+const heal_anim_frames = 4;
 const force_anim_frames = 16;
 const force_frames = {
   up: [],
@@ -325,6 +326,7 @@ const force_frames = {
   down: [],
   left: []
 };
+let heal_frames = [];
 
 
 function load_force_animation(key) {
@@ -343,9 +345,27 @@ function load_force_animation(key) {
 
     force_frames[key].push(texture);
   }
-
 }
 
+function load_heals_animation() {
+  heal_frames.length = 0;
+
+  for (let i = 0; i < heal_anim_frames; i++) {
+    const x = i * 32;
+    const y = 0;
+
+    const rect = new PIXI.Rectangle(x, y, 32, 32);
+
+      const texture = new PIXI.Texture({
+        source: heart_texture.source,
+      frame: rect
+    });
+
+    heal_frames.push(texture);
+  }
+
+}
+load_heals_animation();
 load_force_animation('up');
 load_force_animation('right');
 load_force_animation('down');
@@ -530,6 +550,7 @@ function triggerDash() {
   });
 
   world = new PIXI.Container();
+  world.sortableChildren = true;
   app.stage.addChild(world);
   world.scale.set(CAMERA_ZOOM);
 
@@ -922,10 +943,15 @@ function triggerDash() {
         collisionFilter: { group: -1, mask: 0 },
       });
 
-      const heart_graphic = new PIXI.Sprite(heart_texture);
-      heart_graphic.width = 32;
-      heart_graphic.height = 32;
+      const heart_graphic = new PIXI.AnimatedSprite(heal_frames);
+      heart_graphic.width = 64;
+      heart_graphic.height = 64;
       heart_graphic.anchor.set(0.5);
+
+      heart_graphic.textures = heal_frames;
+      heart_graphic.loop = true;
+      heart_graphic.animationSpeed = 0.1;
+      heart_graphic.gotoAndPlay(0);
 
       heart_graphic.position.set(heart_obj.x, heart_obj.y);
       world.addChild(heart_graphic);
@@ -1119,7 +1145,7 @@ function triggerDash() {
         roundPixels: true
       })
       label_graphic.position.set(label.x, label.y);
-      label_graphic.zIndex = 100;
+      label_graphic.zIndex = 10000;
       world.addChild(label_graphic);
       labels.push(label_graphic)
     });
@@ -1361,8 +1387,6 @@ function triggerDash() {
   //important start or main game loop
 
   app.ticker.add((ticker) => {
-    console.log(`FPS: ${Math.round(app.ticker.FPS)}`);
-    console.log(`{player.x: ${box.position.x}, player.y: ${box.position.y}}`);
     bulletManager.update(ticker);
 
     let currentTime = performance.now();

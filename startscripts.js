@@ -1,9 +1,32 @@
 export { toggle_flag, mute_flag, get_toggle_flag, get_mute_flag };
+//music
+
+
 
 const toggle_storage_key = 'ocean-controls-toggle';
 const mute_storage_key = 'ocean-controls-muted';
 let toggle_flag = localStorage.getItem(toggle_storage_key) !== 'false';
 let mute_flag = localStorage.getItem(mute_storage_key) === 'true';
+
+// PIXI MUSIC
+const pixiSound = globalThis.PIXI?.sound;
+
+if (pixiSound && !document.getElementById('game')) {
+   pixiSound.add('menu-bgm', 'assets/loop1.mp3');
+   pixiSound.muted = get_mute_flag();
+}
+
+window.addEventListener('keydown', () => {
+   mute_flag = get_mute_flag();
+   if (pixiSound) pixiSound.muted = mute_flag;
+
+   if (pixiSound && !document.getElementById('game') && !mute_flag && !pixiSound.isPlaying('menu-bgm')) {
+      pixiSound.play('menu-bgm', {
+         loop: true,
+         volume: 1
+      });
+   }
+});
 
 function get_toggle_flag() {
    return localStorage.getItem(toggle_storage_key) !== 'false';
@@ -36,10 +59,6 @@ const togglebutton = document.getElementById('toggle');
 const mutebutton = document.getElementById('mute');
 const wipebutton = document.getElementById('wipe');
 const exists = !!w;
-if (animation) {
-   animation.style.opacity = '0';
-   animation.style.visibility = 'hidden';
-}
 
 if (exists) {
    addEventListener('keydown', (e) => {
@@ -152,6 +171,7 @@ function mute_function() {
       }
       mute_flag = false;
       localStorage.setItem(mute_storage_key, 'false');
+      if (pixiSound) pixiSound.muted = get_mute_flag();
       return;
    }
    if (mute_flag == false) {
@@ -161,6 +181,7 @@ function mute_function() {
       }
       mute_flag = true;
       localStorage.setItem(mute_storage_key, 'true');
+      if (pixiSound) pixiSound.muted = get_mute_flag();
       return;
    }
 }
@@ -183,7 +204,7 @@ function apply_saved_settings() {
          f.style.opacity = 1;
          ee.style.opacity = 1;
          enter.style.opacity = 1;
-         c.style.opacity = 0;
+         c.style.opacity = 1;
       }
    } else if (togglebutton) {
       togglebutton.style.background = 'rgba(0, 255, 30, 0.6)';
@@ -202,7 +223,7 @@ function apply_saved_settings() {
          f.style.opacity = 0;
          ee.style.opacity = 0;
          enter.style.opacity = 0;
-         c.style.opacity = 1;
+         c.style.opacity = 0;
       }
    }
 

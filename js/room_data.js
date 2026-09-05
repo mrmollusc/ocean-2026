@@ -395,11 +395,10 @@ let room_data = {
         target_y: 180,
       }
     ],
-    hearts: [],
+    hearts: [{ x: 100, y: 100 }],
     snails: [],
     jellys: [],
     force_blocks: [
-
     ],
     bullet_boxes: [],
     text_boxes: [{ x: 200, y: 200, w: 100, h: 100, text: 'not yet' }],
