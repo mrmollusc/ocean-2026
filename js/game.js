@@ -277,7 +277,7 @@ await PIXI.Assets.load({
 PIXI.sound.add('game-bgm', 'assets/loop2.mp3');
 PIXI.sound.muted = get_mute_flag();
 
-window.addEventListener('click', () => {
+window.addEventListener('load', () => {
   const isMuted = get_mute_flag();
   PIXI.sound.muted = isMuted;
 
