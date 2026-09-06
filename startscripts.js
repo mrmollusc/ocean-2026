@@ -12,11 +12,11 @@ let mute_flag = localStorage.getItem(mute_storage_key) === 'true';
 const pixiSound = globalThis.PIXI?.sound;
 
 if (pixiSound && !document.getElementById('game')) {
-   pixiSound.add('menu-bgm', 'assets/loop1.mp3');
+   pixiSound.add('menu-bgm', 'assets/future_fantasy.mp3');
    pixiSound.muted = get_mute_flag();
 }
 
-window.addEventListener('keydown', () => {
+window.addEventListener('load', () => {
    mute_flag = get_mute_flag();
    if (pixiSound) pixiSound.muted = mute_flag;
 
@@ -25,6 +25,10 @@ window.addEventListener('keydown', () => {
          loop: true,
          volume: 1
       });
+      title.innerHTML = 'Click to play music';
+      setTimeout(() => {
+         title.innerHTML = '~Turritopsis Red~';
+      }, 1000);
    }
 });
 
@@ -36,7 +40,7 @@ function get_mute_flag() {
    return localStorage.getItem(mute_storage_key) === 'true';
 }
 document.addEventListener('DOMContentLoaded', () => {
-const animation = document.getElementById('load');
+const title = document.getElementById('title');
 const w = document.getElementById('w');
 const a = document.getElementById('a');
 const s = document.getElementById('s');
@@ -59,7 +63,6 @@ const togglebutton = document.getElementById('toggle');
 const mutebutton = document.getElementById('mute');
 const wipebutton = document.getElementById('wipe');
 const exists = !!w;
-
 if (exists) {
    addEventListener('keydown', (e) => {
       const keycode = e.key;
