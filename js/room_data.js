@@ -408,7 +408,9 @@ let room_data = {
     force_blocks: [
     ],
     bullet_boxes: [],
-    text_boxes: [{ x: 200, y: 200, w: 100, h: 100, text: 'not yet' }],
+    text_boxes: [
+
+    ],
     spawnpoint: { x: 600, y: 70 },
     labels: [{
   x: 700, 
@@ -557,7 +559,7 @@ let room_data = {
 
     ],
     bullet_boxes: [],
-    text_boxes: [{ x: 200, y: 200, w: 100, h: 100, text: 'not yet' }],
+    text_boxes: [],
     spawnpoint: { x: 120, y: 800 },
     labels: [{
       x: 700, y: 600, text: 'great maze, right?', style: {

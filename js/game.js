@@ -255,6 +255,7 @@ PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
 const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
 const heart_texture = await PIXI.Assets.load("assets/yums.png");
 const sand_texture = await PIXI.Assets.load("assets/sand.png")
+const chrysaory_texture = await PIXI.Assets.load("assets/sprites v0.2.png")
 const up_arrow_texture = await PIXI.Assets.load("assets/up_dir_anim.png");
 const right_arrow_texture = await PIXI.Assets.load("assets/right_dir_anim.png");
 const left_arrow_texture = await PIXI.Assets.load("assets/left_dir_anim.png");
@@ -516,29 +517,28 @@ function updatePlayerAnimation() {
   }
 }
 
-//when dash, lock anim until dash anim is done
-function triggerDash() {
-  if (is_animation_locked) return;
+//chrysaory animation
+let ChrysaoryFrames = [];
+function loadChrysaoryAnimation() {
+  ChrysaoryFrames.length = 0;
 
-  playerState = "dashing";
-  changeAnimation(1, false, 0.2, true);
+  for (let i = 0; i < totalFrames; i++) {
+    const x = i * 128 + 64;
+    const y = 32.6;
 
-  boxGraphic.onComplete = () => {
-    is_animation_locked = false;
-    boxGraphic.onComplete = null;
-    currently_playing = -1;
+    const rect = new PIXI.Rectangle(x, y, 22, 32);
 
+      const texture = new PIXI.Texture({
+        source: chrysaory_texture,
+        frame: rect
+    });
 
+    ChrysaoryFrames.push(texture);
+  }
 
-    if (temp_player_data.state === "moving") {
-      playerState = "moving";
-    } else {
-      playerState = "idle";
-    }
-
-    updatePlayerAnimation();
-  };
 }
+loadChrysaoryAnimation();
+console.log(`${ChrysaoryFrames.length}`);
 
 ////////////////////////////////////////
 //PIXI INIT + WORLD CONTAINER
@@ -942,14 +942,30 @@ function triggerDash() {
       text_boxes.push(text_box_body);
       Composite.add(engine.world, text_box_body);
 
-      const text_box_graphic = new PIXI.Graphics()
+      const default_graphic = new PIXI.Graphics()
         .rect(-text_box.w / 2, -text_box.h / 2, text_box.w, text_box.h)
         .fill({ color: 0x00ff00, alpha: 0.2 });
+      const chrysaory_graphic = new PIXI.AnimatedSprite(ChrysaoryFrames)
+      if (text_box.id == "Chrysaory_Space") {
+      chrysaory_graphic.anchor.set(0.5);
+      chrysaory_graphic.textures = ChrysaoryFrames;
+      chrysaory_graphic.loop = true;
+      chrysaory_graphic.animationSpeed = 0.12;
+      chrysaory_graphic.gotoAndPlay(0);
+      chrysaory_graphic.visible = true;
+      chrysaory_graphic.scale.set(1.6, 1.6);
+      chrysaory_graphic.position.set(text_box.x, text_box.y);
+      world.addChild(chrysaory_graphic);
+      chrysaory_graphic.zIndex = 6;
 
-      text_box_graphic.position.set(text_box.x, text_box.y);
-      world.addChild(text_box_graphic);
-      text_box_graphic.zIndex = 6;
-      text_box_graphics.push(text_box_graphic);
+      text_box_graphics.push(chrysaory_graphic);
+      }
+      else {
+      default_graphic.position.set(text_box.x, text_box.y);
+      world.addChild(default_graphic);
+      default_graphic.zIndex = 6;
+      text_box_graphics.push(default_graphic);
+      }
     });
 
     data.trashes.forEach((trash_obj) => {
