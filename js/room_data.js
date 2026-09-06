@@ -168,7 +168,7 @@ let room_data = {
     labels: [{
   x: 350, 
   y: 50, 
-  text: 'Its hard being a tiny jelly', 
+  text: 'Trash hurts', 
   resolution: 2,  
   roundPixels: true,  
   style: {
@@ -345,7 +345,7 @@ let room_data = {
   { x: 496, y: 614, w: 60, h: 164 },
   { x: 800, y: 614, w: 60, h: 164 },
   { x: 1256, y: 614, w: 60, h: 164 },
-  { x: 952, y: 778, w: 60, h: 164 }, { x: 116, y: 204, w: 152, h: 60 },
+   { x: 116, y: 204, w: 152, h: 60 },
   { x: 724, y: 204, w: 152, h: 60 },
   { x: 876, y: 204, w: 152, h: 60 },
   { x: 1028, y: 204, w: 152, h: 60 },
@@ -353,13 +353,13 @@ let room_data = {
   { x: 1332, y: 204, w: 152, h: 60 },
   { x: 268, y: 368, w: 152, h: 60 },
   { x: 572, y: 368, w: 152, h: 60 },
-  { x: 1180, y: 368, w: 152, h: 60 },
+  
   { x: 1332, y: 368, w: 152, h: 60 },
   
   
   { x: 1028, y: 696, w: 152, h: 60 },
   { x: 1180, y: 696, w: 152, h: 60 },
-  { x: 1484, y: 696, w: 152, h: 60 }
+  
 ],
     sand_bars: [],
     trashes: [
@@ -374,6 +374,9 @@ let room_data = {
   { x: 268, y: 696, w: 152, h: 60 },
   { x: 572, y: 696, w: 152, h: 60 },
   { x: 724, y: 696, w: 152, h: 60 },
+  { x: 1484, y: 696, w: 152, h: 60 },
+  { x: 1180, y: 368, w: 152, h: 60 },
+  { x: 952, y: 778, w: 60, h: 164 }
     ],
     doors: [
       {
@@ -406,7 +409,7 @@ let room_data = {
     labels: [{
   x: 700, 
   y: 70, 
-  text: 'Sometimes its huge', 
+  text: 'Trash is everywhere', 
   resolution: 2,  
   roundPixels: true,  
   style: {
@@ -425,8 +428,8 @@ let room_data = {
     trim: false    }
 },
 {
-  x: 700, 
-  y: 70, 
+  x: 70, 
+  y: 270, 
   text: 'What is this?', 
   resolution: 2,  
   roundPixels: true,  

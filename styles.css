@@ -2,6 +2,11 @@ body {
     background-image: linear-gradient(to right, rgb(27, 0, 86), rgb(97, 3, 81), rgb(4, 81, 119));
 }
 
+body#start {
+    background-image: none;
+    background: #00a3ad;
+}
+
 .button:hover {
     transform: translateX(-3%);
 }
@@ -184,13 +189,13 @@ h9 {
 
 h12 {
     top: 52%;
-    left: 72%;
+    left: 66%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgba(14, 2, 38, 0.6);
+    background-color: rgba(28, 2, 79, 0.6);
     padding: 10px 2000px 10px 20px;
     border-radius: 20px;
     font-size: 100px;
@@ -201,13 +206,13 @@ h12 {
 
 h223 {
     top: 68%;
-    left: 72%;
+    left: 66%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgba(14, 2, 38, 0.6);
+    background-color: rgba(28, 2, 79, 0.6);
     padding: 10px 2000px 10px 20px;
     border-radius: 20px;
     font-size: 100px;
@@ -218,13 +223,13 @@ h223 {
 
 h2267284643634 {
     top: 84%;
-    left: 72%;
+    left: 66%;
 
     font-weight: bold;
     font-family: "Mozilla Headline";
     color: #ff11AA;
     position: absolute;
-    background-color: rgba(14, 2, 38, 0.6);
+    background-color: rgba(28, 2, 79, 0.6);
     padding: 10px 2000px 10px 20px;
     border-radius: 20px;
     font-size: 100px;
