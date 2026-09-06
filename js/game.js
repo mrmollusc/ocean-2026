@@ -131,7 +131,7 @@ app.stage.addChild(dialogue_text);
 
 let player = {
   state: "",
-  chapter: 1,
+  chapter: 0,
   dealt_nuts: false,
 
   can_move: true,
@@ -1161,7 +1161,6 @@ function triggerDash() {
       Composite.add(engine.world, jelly_body);
     });
 
-    // Load snails from room data
     data.snails.forEach((snail_obj) => {
       const snail_bullet = bulletManager.spawnSnailBullet(snail_obj.x, snail_obj.y);
       if (snail_bullet) {
@@ -1170,7 +1169,6 @@ function triggerDash() {
         Matter.Body.setVelocity(snail_bullet.body, { x: snail_bullet.vx, y: snail_bullet.vy });
       }
     });
-
 
     data.labels.forEach((label) => {
       const label_graphic = new PIXI.Text({
@@ -1195,13 +1193,15 @@ function triggerDash() {
       canTransition = true;
     }, 300);
   }
+
   //loss function 
   function lose(current_room, roomKey) {
     temp_player_data.health = 100;
     const data = temp_room_data[roomKey];
     let spawn_point = data.spawnpoint;
-    load_rooms(current_room ?? 'room_2', spawn_point.x ?? 200, spawn_point.y ?? 450)
+    load_rooms(current_room, spawn_point.x, spawn_point.y)
   }
+
   //edit hearts on touching
   function update_hearts(roomKey) {
     heart_graphics.forEach((g) => world.removeChild(g));
@@ -1392,7 +1392,7 @@ function triggerDash() {
     return Math.round(Math.hypot(dx, dy));
   }
 
-
+//movement
   let keys = {};
   let debugKeyWasDown = false;
   let e;
@@ -1409,6 +1409,10 @@ function triggerDash() {
   app.ticker.add((ticker) => {
     bulletManager.update(ticker);
 
+    if(current_room == "dash_room") temp_player_data.chapter = 1;
+    if(current_room == "zap_room") temp_player_data.chapter = 2;
+    if(current_room == "rejuv_room") temp_player_data.chapter = 3;
+    
     let currentTime = performance.now();
     if (anemone.updatable) {
       anemone.update(currentTime, bulletManager, anemoneTexture, anemone.x, anemone.y);
@@ -1485,7 +1489,9 @@ function triggerDash() {
       temp_player_data.can_dash &&
       !temp_player_data.is_healing &&
       !temp_player_data.is_dashing &&
-      !temp_player_data.is_zapping) {
+      !temp_player_data.is_zapping &&
+      temp_player_data.chapter >= 1
+    ) {
         temp_player_data.can_heal = false;
         temp_player_data.state = "dashing";
         temp_player_data.max_speed = DASH_SPEED;
@@ -1511,7 +1517,8 @@ function triggerDash() {
       temp_player_data.can_zap &&
       !temp_player_data.is_healing &&
       !temp_player_data.is_dashing &&
-      !temp_player_data.is_zapping) {
+      !temp_player_data.is_zapping &&
+      temp_player_data.chapter >= 2) {
         temp_player_data.can_zap = false;
         temp_player_data.is_zapping = true;
 
@@ -1546,7 +1553,8 @@ function triggerDash() {
       temp_player_data.can_heal &&
       !temp_player_data.is_healing &&
       !temp_player_data.is_dashing &&
-      !temp_player_data.is_zapping) {
+      !temp_player_data.is_zapping &&
+      temp_player_data.chapter >= 3) {
         temp_player_data.can_dash = false;
         temp_player_data.can_heal = false;
         temp_player_data.is_healing = true;
