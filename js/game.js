@@ -191,6 +191,8 @@ temp_player_data.health = health_data;
 let current_dialogue = null;
 let dialogue_index = 0;
 let dialogueActive = false;
+let last_touched_box = null; 
+let text_box_talk_counts = {}; 
 
 let world;
 let boxGraphic;
@@ -419,8 +421,11 @@ function showSkillAnimation(skill) {
   skillGraphic.textures = skillFramesFront;
 
   if (skill != 0) {
-      skillGraphic.loop = true;
-      skillGraphicBack.loop = true;
+    skillGraphic.loop = true;
+    skillGraphicBack.loop = true;
+  } else {
+    skillGraphic.loop = false;
+    skillGraphicBack.loop = false;
   }
 
   skillGraphic.gotoAndPlay(0);
@@ -571,28 +576,37 @@ function triggerDash() {
     show_next_dialogue_line();
   }
   function show_next_dialogue_line() {
+    if (dialogue_text._typingInterval) {
+      clearInterval(dialogue_text._typingInterval);
+      dialogue_text._typingInterval = null;
+    }
     if (!current_dialogue || dialogue_index >= current_dialogue.length) {
       endDialogue();
       return;
     }
+    dialogue_text.text = ""; 
 
     const line = current_dialogue[dialogue_index];
     const fullText = `${line.speaker}: ${line.text}`;
 
     dialogue_text._typingInterval = typeDialogueLogic(
       fullText,
-      25, // typing speed
-      (text) => dialogue_text.text = text, // update callback
-      () => dialogue_text._typingInterval = null // finish callback
+      25, 
+      (text) => dialogue_text.text = text, 
+      () => dialogue_text._typingInterval = null 
     );
   }
   function endDialogue() {
     dialogueBg.visible = false;
     dialogue_text.visible = false;
-    temp_player_data.can_move = true;
+    
+    if (typeof temp_player_data !== "undefined") {
+      temp_player_data.can_move = true;
+    }
 
     current_dialogue = null;
     dialogue_index = 0;
+    dialogueActive = false; 
   }
   ///////////////////////////////////////////////////////
   //bullet texture
@@ -846,6 +860,8 @@ function triggerDash() {
     text_box_graphics = [];
     text_boxes = [];
 
+    last_touched_box = null;
+
     labels.forEach((g) => world.removeChild(g));
     labels = [];
 
@@ -893,6 +909,26 @@ function triggerDash() {
       doors.push(doorBody);
       door_graphics.push(doorGraphic);
       Composite.add(engine.world, doorBody);
+    });
+
+    data.text_boxes.forEach((text_box) => {
+      const text_box_body = Bodies.rectangle(text_box.x, text_box.y, text_box.w, text_box.h, {
+        isStatic: true,
+        isSensor: true,
+      });
+
+      text_box_body.text_id = text_box.id;
+      text_boxes.push(text_box_body);
+      Composite.add(engine.world, text_box_body);
+
+      const text_box_graphic = new PIXI.Graphics()
+        .rect(-text_box.w / 2, -text_box.h / 2, text_box.w, text_box.h)
+        .fill({ color: 0x00ff00, alpha: 0.2 });
+
+      text_box_graphic.position.set(text_box.x, text_box.y);
+      world.addChild(text_box_graphic);
+      text_box_graphic.zIndex = 6;
+      text_box_graphics.push(text_box_graphic);
     });
 
     data.trashes.forEach((trash_obj) => {
@@ -999,7 +1035,6 @@ function triggerDash() {
       Composite.add(engine.world, kelp_body);
     });
 
-    let currentTime = performance.now();
     data.bullets?.forEach((b) => {
       let bullet = bulletManager.active.find(item => item.bulletId === b.id);
       if (!bullet) {
@@ -1343,26 +1378,9 @@ function triggerDash() {
     keys[event.code] = false;
   });
 
-  const test_body = Bodies.rectangle(300, 200, 50, 50, {
-    isStatic: true,
-    isSensor: true
-  });
-  test_body.id = "test_box";
-  const text_graphic = new PIXI.Graphics()
-    .rect(-25, -25, 50, 50)
-    .fill(0x000000); // green box so you can see it
-
-  text_graphic.position.set(300, 200);
-  text_graphic.zIndex = 5;
-  world.addChild(text_graphic);
-
-  text_boxes.push(test_body);
-  Composite.add(engine.world, test_body);
   //important start or main game loop
 
   app.ticker.add((ticker) => {
-    console.log(`FPS: ${Math.round(app.ticker.FPS)}`);
-    console.log(`{player.x: ${box.position.x}, player.y: ${box.position.y}}`);
     bulletManager.update(ticker);
 
     let currentTime = performance.now();
@@ -1722,11 +1740,55 @@ function triggerDash() {
     //collide into test text box maker
     ///////////////////////////////////////////////////////////////
     text_boxes.forEach((tb) => {
-      if (!dialogueActive && check_collision(box, tb)) {
-        if (tb.id == "test_box") {
-          dialogueActive = true;
-          startDialogue("name_1");
+      const isColliding = check_collision(box, tb);
+
+      // Start dialogue only if colliding, no dialogue active, and not currently locked
+      if (isColliding && !dialogueActive && last_touched_box !== tb) {
+        
+        // Initialize the tracker if it's the first touch ever
+        if (text_box_talk_counts[tb.text_id] === undefined) {
+          text_box_talk_counts[tb.text_id] = 0;
         }
+
+        const currentTimesTalked = text_box_talk_counts[tb.text_id];
+
+        if (tb.text_id === "Welcome" && currentTimesTalked > 0) {
+          last_touched_box = tb; // Lock it so it doesn't try checking every frame while standing here
+          return; // if already touched the welcome box, then don't trigger again
+        }
+
+        // pass rules to safely turn on active states
+        dialogueActive = true;
+        last_touched_box = tb; 
+
+        switch (tb.text_id) {
+          case "Welcome":
+            startDialogue("Welcome");
+            break;
+
+          case "Chrysaory_Space":
+            if (currentTimesTalked === 0) {
+              startDialogue("Chrysaory_Space"); 
+            } else if (currentTimesTalked === 1) {
+              startDialogue("Chrysaory_Space_repeat_1");
+            } else if (currentTimesTalked === 2) {
+              startDialogue("Chrysaory_Space_repeat_2");
+            } else{
+              startDialogue("Chrysaory_Space_repeat");
+            }
+            break;
+          default:
+            startDialogue("dialogueMissing");
+            break;
+        }
+
+        // Increment immediately so it registers as "viewed"
+        text_box_talk_counts[tb.text_id]++;
+      }
+
+      // RESET THE TOUCH LOCK: Safely clear only when the player completely walks off the box
+      if (!isColliding && last_touched_box === tb) {
+        last_touched_box = null;
       }
     });
     /////////////////////////////////////////////////////////////////////////////

@@ -96,7 +96,9 @@ let room_data = {
     jellys: [],
     force_blocks: [    ],
     bullet_boxes: [],
-    text_boxes: [],
+    text_boxes: [
+      { id: "Welcome", x: 400, y: 230, w: 10, h: 460 }
+    ],
     spawnpoint: { x: 100, y: 225 },
     labels: [{
   x: 200, 
@@ -236,7 +238,9 @@ let room_data = {
     jellys: [],
     force_blocks: [    ],
     bullet_boxes: [],
-    text_boxes: [],
+    text_boxes: [
+      { id: "Chrysaory_Space", x: 205, y: 225, w: 10, h: 50 },
+    ],
     spawnpoint: { x: 100, y: 225 },
     labels: [{
   x: 250, 
