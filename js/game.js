@@ -373,7 +373,25 @@ load_force_animation('right');
 load_force_animation('down');
 load_force_animation('left');
 
+const chrysaory_frames = [];
+function loadChysaoryAnimation() {
+  chrysaory_frames.length = 0;
 
+  for (let i = 0; i < chrysaory_anim_frames; i++) {
+    const x = i * 128 + 64;
+    const y = 32;
+
+    const rect = new PIXI.Rectangle(x, y, 32, 22);
+
+      const texture = new PIXI.Texture({
+        source: 'assets/sprites v0.2.png',
+      frame: rect
+    });
+
+    chrysaory_frames.push(texture);
+  }
+}
+loadChysaoryAnimation();
 
 function loadSkillAnimation(skill) {
   skillFramesFront.length = 0;
@@ -942,9 +960,7 @@ function triggerDash() {
       text_boxes.push(text_box_body);
       Composite.add(engine.world, text_box_body);
 
-      const text_box_graphic = new PIXI.Graphics()
-        .rect(-text_box.w / 2, -text_box.h / 2, text_box.w, text_box.h)
-        .fill({ color: 0x00ff00, alpha: 0.2 });
+      const text_box_graphic = new PIXI.AnimatedSprite(chrysaory_frames);
 
       text_box_graphic.position.set(text_box.x, text_box.y);
       world.addChild(text_box_graphic);
