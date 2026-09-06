@@ -97,7 +97,7 @@ let room_data = {
     force_blocks: [    ],
     bullet_boxes: [],
     text_boxes: [
-      { id: "Welcome", x: 400, y: 230, w: 10, h: 460 }
+
     ],
     spawnpoint: { x: 100, y: 225 },
     labels: [{
@@ -239,7 +239,7 @@ let room_data = {
     force_blocks: [    ],
     bullet_boxes: [],
     text_boxes: [
-      { id: "Chrysaory_Space", x: 205, y: 225, w: 10, h: 50 },
+      { id: "Chrysaory_Space", x: 695, y: 225, w: 10, h: 50 },
     ],
     spawnpoint: { x: 100, y: 225 },
     labels: [{
@@ -408,7 +408,9 @@ let room_data = {
     force_blocks: [
     ],
     bullet_boxes: [],
-    text_boxes: [{ x: 200, y: 200, w: 100, h: 100, text: 'not yet' }],
+    text_boxes: [
+      { id: "Welcome", x: 695, y: 107.5, w: 10, h: 135 }
+    ],
     spawnpoint: { x: 600, y: 70 },
     labels: [{
   x: 700, 
@@ -557,7 +559,7 @@ let room_data = {
 
     ],
     bullet_boxes: [],
-    text_boxes: [{ x: 200, y: 200, w: 100, h: 100, text: 'not yet' }],
+    text_boxes: [],
     spawnpoint: { x: 120, y: 800 },
     labels: [{
       x: 700, y: 600, text: 'great maze, right?', style: {

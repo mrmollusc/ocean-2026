@@ -1407,6 +1407,7 @@ function triggerDash() {
   //important start or main game loop
 
   app.ticker.add((ticker) => {
+    console.log(`player position: (${box.position.x.toFixed(2)}, ${box.position.y.toFixed(2)})`);
     bulletManager.update(ticker);
 
     if(current_room == "dash_room") temp_player_data.chapter = 1;
