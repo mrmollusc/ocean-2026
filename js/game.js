@@ -15,7 +15,8 @@ const physicsWorld = engine.world;
 import {
   BulletManager,
   anemoneBullet,
-  anemone,
+  anemone, 
+  anemoneFrames, 
   bossFishBullet,
   bossFishPattern,
   bossTurtleBullet,
@@ -41,7 +42,6 @@ import {
 const fishTexture = PIXI.Texture.WHITE;
 const anemoneTexture = PIXI.Texture.WHITE;
 const turtleTexture = PIXI.Texture.WHITE;
-let lastNematocystSpawnTime = 0;
 ///////////////////////////////////////////
 //constants
 ///////////////////////////////////////////
@@ -156,7 +156,7 @@ let player = {
 };
 
 // save mechanic
-let saved_room = 'room_5';//localStorage.getItem("current_room")
+let saved_room = 'maze_room_2';//localStorage.getItem("current_room")
 let x = room_data[saved_room]?.spawnpoint?.x ?? 100;//parseInt(localStorage.getItem("player_x"))
 let y = room_data[saved_room]?.spawnpoint?.y ?? 225;//parseInt(localStorage.getItem("player_y"))
 let player_data = player;//parseInt(localStorage.getItem("temp_player_data"))
@@ -482,7 +482,6 @@ function changeAnimation(row, loopMode = true, animationSpeed = 0.1, forcedLock 
   boxGraphic.loop = loopMode;
   boxGraphic.animationSpeed = animationSpeed;
   boxGraphic.gotoAndPlay(0);
-  console.log(`${animationSpeed}`)
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -538,7 +537,6 @@ function loadChrysaoryAnimation() {
 
 }
 loadChrysaoryAnimation();
-console.log(`${ChrysaoryFrames.length}`);
 
 ////////////////////////////////////////
 //PIXI INIT + WORLD CONTAINER
@@ -691,6 +689,8 @@ console.log(`${ChrysaoryFrames.length}`);
   let kelp_graphics = [];
 
   let labels = [];
+
+  let anemone_graphics = [];
 
   let room_label = new PIXI.Text({
     text: "room_1",
@@ -875,6 +875,9 @@ console.log(`${ChrysaoryFrames.length}`);
       Matter.Body.setVelocity(bullet.body, { x: 0, y: 0 });
     });
     bulletManager.active = [];
+    
+    anemone_graphics.forEach((g) => world.removeChild(g));
+    anemone_graphics = [];
 
     text_box_graphics.forEach((g) => world.removeChild(g));
     text_boxes.forEach((t) => Composite.remove(engine.world, t));
@@ -946,7 +949,7 @@ console.log(`${ChrysaoryFrames.length}`);
         .rect(-text_box.w / 2, -text_box.h / 2, text_box.w, text_box.h)
         .fill({ color: 0x00ff00, alpha: 0.2 });
       const chrysaory_graphic = new PIXI.AnimatedSprite(ChrysaoryFrames)
-      if (text_box.id == "Chrysaory_Space") {
+      if (text_box.id == "Chrysaory_Dash" || "Chrysaory_Shock") {
       chrysaory_graphic.anchor.set(0.5);
       chrysaory_graphic.textures = ChrysaoryFrames;
       chrysaory_graphic.loop = true;
@@ -1082,18 +1085,17 @@ console.log(`${ChrysaoryFrames.length}`);
       if (!bullet) {
         switch (b.type) {
           case 'snail':
-            bullet = bulletManager.spawnSnailBullet(b.x, b.y);
-            console.log('foundsnail')
+            bulletManager.spawnSnailBullet(b.x, b.y);
             break;
 
           case 'anemone':
-            anemone.initialize(b.x, b.y, world);
+            const graphic = anemone.initialize(b.x, b.y, world, b.dir);
+            anemone_graphics.push(graphic);
             b.updatable = true;
             break;
 
           default:
             bullet = defaultBullet.spawn(bulletManager, PIXI.Texture.WHITE, b.x, b.y, b.vx || 0, b.vy || 0);
-            console.log(`found default bullet with id ${b.id}`);
             break;
         }
 
@@ -1430,8 +1432,22 @@ console.log(`${ChrysaoryFrames.length}`);
     if(current_room == "rejuv_room") temp_player_data.chapter = 3;
     
     let currentTime = performance.now();
-    if (anemone.updatable) {
-      anemone.update(currentTime, bulletManager, anemoneTexture, anemone.x, anemone.y);
+
+    const activeRoomData = temp_room_data[current_room];
+    if (activeRoomData && activeRoomData.bullets) {
+        const activeAnemones = activeRoomData.bullets.filter(b => b.type === 'anemone');
+        
+        activeAnemones.forEach((bulletData) => {
+            anemone.update(
+                currentTime, 
+                bulletManager, 
+                anemoneFrames[0],
+                bulletData.x, 
+                bulletData.y, 
+                bulletData.dir, 
+                bulletData.id
+            );
+        });
     }
 
     if (!boxGraphic) return;
@@ -1604,7 +1620,6 @@ console.log(`${ChrysaoryFrames.length}`);
       );
       bossFishPattern(bulletManager, fishTexture, world); // blue fish
       bossRGBFishPattern(bulletManager, world); // RGB fish pattern
-      console.log("Spawned pooled bullet");
       setTimeout(() => {
         bossTurtlePattern(bulletManager, turtleTexture, world); // green turtle
       }, 3000);
@@ -1816,15 +1831,24 @@ console.log(`${ChrysaoryFrames.length}`);
             startDialogue("Welcome");
             break;
 
-          case "Chrysaory_Space":
+          case "Chrysaory_Dash":
             if (currentTimesTalked === 0) {
-              startDialogue("Chrysaory_Space"); 
+              startDialogue("Chrysaory_Dash"); 
             } else if (currentTimesTalked === 1) {
-              startDialogue("Chrysaory_Space_repeat_1");
+              startDialogue("Chrysaory_Dash_repeat_1");
             } else if (currentTimesTalked === 2) {
-              startDialogue("Chrysaory_Space_repeat_2");
+              startDialogue("Chrysaory_Dash_repeat_2");
             } else{
-              startDialogue("Chrysaory_Space_repeat");
+              startDialogue("Chrysaory_Dash_repeat");
+            }
+            break;
+          case "Chrysaory_Shock":
+            if (currentTimesTalked === 0) {
+              startDialogue("Chrysaory_Shock"); 
+            } else if (currentTimesTalked === 1) {
+              startDialogue("Chrysaory_Shock_repeat_1");
+            } else {
+              startDialogue("Chrysaory_Shock_repeat");
             }
             break;
           default:
