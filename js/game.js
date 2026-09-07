@@ -163,14 +163,13 @@ let player = {
 };
 
 // save mechanic
-let saved_room = localStorage.getItem("current_room") ?? 'room_1';
+let saved_room = localStorage.getItem("current_room") || 'room_1';
 let x = parseInt(localStorage.getItem("player_x")) || 100;
-let y = parseInt(localStorage.getItem("player_y")) || 200;
-
-// REMOVED parseInt from object strings:
-let player_data = localStorage.getItem("player_data") ?? null; 
-let save_data = localStorage.getItem("room_data") ?? null;
+let y = parseInt(localStorage.getItem("player_y")) || 225;
+let player_data = localStorage.getItem("temp_player_data") || player;
+let save_data = localStorage.getItem("room_data") || room_data;
 let health_data = parseInt(localStorage.getItem("health")) || 100;
+let chapter_data = parseInt(localStorage.getItem("chapter")) || 0;
 
 const unmodified_room_data = JSON.parse(JSON.stringify(room_data));
 
@@ -180,27 +179,31 @@ if (save_data && save_data !== "null" && save_data !== "[object Object]") {
         for (const roomKey in room_data) {
             if (parsedSave[roomKey]) {
                 Object.assign(room_data[roomKey], parsedSave[roomKey]);
-                if (unmodified_room_data[roomKey] && unmodified_room_data[roomKey].bullets) {
+                
+                if (parsedSave[roomKey].savedBullets) {
+                    room_data[roomKey].savedBullets = parsedSave[roomKey].savedBullets;
+                } else if (unmodified_room_data[roomKey] && unmodified_room_data[roomKey].bullets) {
                     room_data[roomKey].bullets = unmodified_room_data[roomKey].bullets;
                 }
             }
         }
     } catch (e) {
-        console.error("error reading room data", e);
+        console.error("Error parsing save_data from localStorage:", e);
     }
 }
 
-if (player_data && player_data !== "null" && player_data !== "[object Object]") {
+if (player_data&& player_data !== "null" && player_data !== "[object Object]") {
     try {
         Object.assign(player, JSON.parse(player_data));
     } catch (e) {
-        console.error("error reading player data", e);
+        console.error("Error parsing player_data from localStorage:", e);
     }
 }
 
 let temp_room_data = room_data;
 let temp_player_data = player;
 temp_player_data.health = health_data;
+temp_player_data.chapter = chapter_data
 
 //rest of the things
 let current_dialogue = null;
@@ -2047,8 +2050,9 @@ loadChrysaoryAnimation();
     localStorage.setItem("room_data", JSON.stringify(room_data)); //room data
     localStorage.setItem("player_data", JSON.stringify(player)); //player data
     localStorage.setItem("health", Math.trunc(temp_player_data.health)); //health
+    localStorage.setItem("chapter", temp_player_data.chapter); //chapter
 
-    console.log(temp_player_data.health, current_room, Math.trunc(box.position.x), Math.trunc(box.position.y), room_data);
+    console.log(temp_player_data.chapter, temp_player_data.health, current_room, Math.trunc(box.position.x), Math.trunc(box.position.y), room_data);
   }, 1000);
 
 })();
