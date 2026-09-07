@@ -568,7 +568,7 @@ let room_data = {
       { id: 'b5', type: 'anemone', x: 400, y: 62, dir: 'down'}
     ],
     text_boxes: [],
-    spawnpoint: { x: 120, y: 800 },
+    spawnpoint: { x: 800, y: 75 },
     labels: [{
       x: 700, y: 600, text: 'great maze, right?', style: {
         fontFamily: 'Indie Flower',
