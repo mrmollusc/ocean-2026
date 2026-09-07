@@ -163,14 +163,17 @@ let player = {
 };
 
 // save mechanic
-let saved_room = 'room_1';//localStorage.getItem("current_room")
-let x = parseInt(localStorage.getItem("player_x")) ?? 100;
-let y = parseInt(localStorage.getItem("player_y")) ?? 200
-let player_data = parseInt(localStorage.getItem("temp_player_data")) ?? player;
-let save_data = localStorage.getItem("room_data") ?? room_data;
-let health_data = parseInt(localStorage.getItem("health")) ?? 100
+let saved_room = localStorage.getItem("current_room") ?? 'room_1';
+let x = parseInt(localStorage.getItem("player_x")) || 100;
+let y = parseInt(localStorage.getItem("player_y")) || 200;
+
+// REMOVED parseInt from object strings:
+let player_data = localStorage.getItem("player_data") ?? null; 
+let save_data = localStorage.getItem("room_data") ?? null;
+let health_data = parseInt(localStorage.getItem("health")) || 100;
 
 const unmodified_room_data = JSON.parse(JSON.stringify(room_data));
+
 if (save_data && save_data !== "null" && save_data !== "[object Object]") {
     try {
         const parsedSave = JSON.parse(save_data);
@@ -183,11 +186,16 @@ if (save_data && save_data !== "null" && save_data !== "[object Object]") {
             }
         }
     } catch (e) {
-        console.error("error reading data", e);
+        console.error("error reading room data", e);
     }
 }
+
 if (player_data && player_data !== "null" && player_data !== "[object Object]") {
-  Object.assign(player, JSON.parse(player_data));
+    try {
+        Object.assign(player, JSON.parse(player_data));
+    } catch (e) {
+        console.error("error reading player data", e);
+    }
 }
 
 let temp_room_data = room_data;
