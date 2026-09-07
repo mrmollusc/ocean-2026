@@ -102,7 +102,14 @@ const {
   tilewidth: tileWidth,
   tileheight: tileHeight,
 } = mapData;
+//background
+const bgTexture = await PIXI.Assets.load('assets/BackGround.png');
+const background = new PIXI.Sprite(bgTexture);
 
+app.stage.addChildAt(background, 0); 
+
+const gameContainer = new PIXI.Container();
+app.stage.addChild(gameContainer); 
 //dialogue
 const dialogueBg = new PIXI.Graphics()
   .rect(100, APP_HEIGHT - 200, APP_WIDTH - 200, 150)
