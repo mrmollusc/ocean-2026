@@ -78,7 +78,7 @@ let room_data = {
       { x: 790, y: 225, w: 40, h: 450 },
     ],
     sand_bars: [],
-    kelps: [],
+    kelps: [{x: 100, y: 100, w: 50, h: 100}],
     trashes: [],
     doors: [
       {

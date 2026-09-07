@@ -156,7 +156,7 @@ let player = {
 };
 
 // save mechanic
-let saved_room = 'maze_room_2';//localStorage.getItem("current_room")
+let saved_room = 'room_1';//localStorage.getItem("current_room")
 let x = room_data[saved_room]?.spawnpoint?.x ?? 100;//parseInt(localStorage.getItem("player_x"))
 let y = room_data[saved_room]?.spawnpoint?.y ?? 225;//parseInt(localStorage.getItem("player_y"))
 let player_data = player;//parseInt(localStorage.getItem("temp_player_data"))
@@ -252,6 +252,7 @@ else {
 
 //TEXTURES
 PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
+const kelp_texture = await PIXI.Assets.load("assets/kelp.png");
 const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
 const heart_texture = await PIXI.Assets.load("assets/yums.png");
 const sand_texture = await PIXI.Assets.load("assets/sand.png")
@@ -320,7 +321,8 @@ function loadPlayerAnimation(animation) {
   };
 };
 
-//force block animations
+//game animations
+const kelp_anim_frames = 5;
 const heal_anim_frames = 4;
 const force_anim_frames = 16;
 const force_frames = {
@@ -330,6 +332,7 @@ const force_frames = {
   left: []
 };
 let heal_frames = [];
+let kelp_frames = [];
 
 
 function load_force_animation(key) {
@@ -368,6 +371,25 @@ function load_heals_animation() {
   }
 
 }
+function load_kelp_animation() {
+  kelp_frames.length = 0;
+
+  for (let i = 0; i < kelp_anim_frames; i++) {
+    const x = i * 32;
+    const y = 0;
+
+    const rect = new PIXI.Rectangle(x, y, 32, 32);
+
+      const texture = new PIXI.Texture({
+        source: kelp_texture.source,
+      frame: rect
+    });
+
+    kelp_frames.push(texture);
+  }
+
+}
+load_kelp_animation();
 load_heals_animation();
 load_force_animation('up');
 load_force_animation('right');
@@ -547,7 +569,7 @@ loadChrysaoryAnimation();
     width: APP_WIDTH,
     height: APP_HEIGHT,
     backgroundColor: APP_BG_COLOR,
-    antialias: true,
+    antialias: false,
     resolution: window.devicePixelRatio || 1,
     autoDensity: true,
   });
@@ -1067,12 +1089,17 @@ loadChrysaoryAnimation();
         collisionFilter: { group: -1, mask: 0 }
       });
 
-      const kelp_graphic = new PIXI.Graphics()
-        .rect(-kelp.w / 2, -kelp.h / 2, kelp.w, kelp.h)
-        .fill(0x164a2b);
+      const kelp_graphic = new PIXI.AnimatedSprite(kelp_frames);
+      kelp_graphic.width = kelp.w;
+      kelp_graphic.height = kelp.h;
+      kelp_graphic.anchor.set(0.5);
+      kelp_graphic.zIndex = 7;
 
+      kelp_graphic.textures = kelp_frames;
+      kelp_graphic.loop = true;
+      kelp_graphic.animationSpeed = 0.05;
+      kelp_graphic.gotoAndPlay(0);
       kelp_graphic.position.set(kelp.x, kelp.y);
-      kelp_graphic.zIndex = 4;
       world.addChild(kelp_graphic);
 
       kelps.push(kelp_body);
