@@ -203,7 +203,7 @@ if (player_data&& player_data !== "null" && player_data !== "[object Object]") {
 let temp_room_data = room_data;
 let temp_player_data = player;
 temp_player_data.health = health_data;
-temp_player_data.chapter = chapter_data
+temp_player_data.chapter = chapter_data 
 
 //rest of the things
 let current_dialogue = null;
@@ -664,7 +664,7 @@ loadChrysaoryAnimation();
       () => dialogue_text._typingInterval = null 
     );
   }
-  function endDialogue() {
+   function endDialogue() {
     dialogueBg.visible = false;
     dialogue_text.visible = false;
     
@@ -675,6 +675,7 @@ loadChrysaoryAnimation();
     current_dialogue = null;
     dialogue_index = 0;
     dialogueActive = false; 
+    last_touched_box = null; 
   }
   ///////////////////////////////////////////////////////
   //bullet texture
@@ -966,7 +967,7 @@ loadChrysaoryAnimation();
 
     data.doors?.forEach((door) => {
       const doorGraphic = new PIXI.Sprite(door_texture);
-      const doorBody = Bodies.rectangle(door.x, door.y, door.w, door.h, {
+      const doorBody = Bodies.rectangle(door.x, door.y, door.w+10, door.h+10, {
         isStatic: true,
         isSensor: true,
       });
@@ -1483,9 +1484,10 @@ loadChrysaoryAnimation();
 
   app.ticker.add((ticker) => {
     bulletManager.update(ticker);
-    if(current_room == "room_3") temp_player_data.chapter = 1;
-    if(current_room == "snails_room") temp_player_data.chapter = 2;
-    if(current_room == "sand_room") temp_player_data.chapter = 3;
+    if(current_room == "room_3") temp_player_data.chapter++;
+    if(current_room == "snails_room") temp_player_data.chapter++;
+    if(current_room == "sand_room") temp_player_data.chapter++;
+    if(temp_player_data.chapter>2) temp_player_data.chapter=2
     
     let currentTime = performance.now();
 
@@ -1860,119 +1862,112 @@ loadChrysaoryAnimation();
     /////////////////////////////////////////////////////////////////////////////
     //collide into test text box maker
     ///////////////////////////////////////////////////////////////
+     let touchingAnyBox = false;
+
     text_boxes.forEach((tb) => {
-      const isColliding = check_collision(box, tb);
+      const isColliding = Matter.Query.collides(box, [tb]).length > 0;
 
-      if (isColliding && !dialogueActive && last_touched_box !== tb) {
-        
-        if (text_box_talk_counts[tb.text_id] === undefined) {
-          text_box_talk_counts[tb.text_id] = 0;
-        }
+      if (isColliding) {
+        touchingAnyBox = true;
 
-        const currentTimesTalked = text_box_talk_counts[tb.text_id];
-
-        if (tb.text_id === "Welcome" && currentTimesTalked > 0) {
-          last_touched_box = tb; 
-          return; 
-        }
-
-        // pass rules to safely turn on active states
-        dialogueActive = true;
-        last_touched_box = tb; 
-
-        switch (tb.text_id) {
-          case "Welcome":
-            startDialogue("Welcome");
-            break;
-
-          case "Chrysaory_dash_kelp":
-            if(currentTimesTalked === 0) startDialogue("dash_kelp");
-            else return;
-            break;
+        if (!dialogueActive && last_touched_box !== tb && temp_player_data.can_move) {
           
-          case "Chrysaory_end":
-            if(currentTimesTalked === 0) startDialogue("Chrysaory_end");
-            else if (currentTimesTalked ===1) startDialogue("Chrysaory_end_repeat_1");
-            else return;
-            break;
-            
+          if (text_box_talk_counts[tb.text_id] === undefined) {
+            text_box_talk_counts[tb.text_id] = 0;
+          }
 
-          case "Chrysaory_sand":
-            if(currentTimesTalked === 0) startDialogue("Chrysaory_sand");
-            else if(currentTimesTalked === 1) startDialogue("Chrysaory_sand_repeat_1");
-            else return;
-            break;
+          const currentTimesTalked = text_box_talk_counts[tb.text_id];
 
-          case "heal":
-            if(currentTimesTalked === 0) startDialogue("heal");
-            else return;
-            break;
+          last_touched_box = tb; 
+          let shouldPlayDialogue = false;
+          
+          if (tb.text_id === "Welcome" && currentTimesTalked === 0) shouldPlayDialogue = true;
+          else if (tb.text_id === "Chrysaory_dash_kelp" && currentTimesTalked === 0) shouldPlayDialogue = true;
+          else if (tb.text_id === "Chrysaory_end" && currentTimesTalked < 2) shouldPlayDialogue = true;
+          else if (tb.text_id === "Chrysaory_sand" && currentTimesTalked < 2) shouldPlayDialogue = true;
+          else if (tb.text_id === "heal" && currentTimesTalked === 0) shouldPlayDialogue = true;
+          else if (tb.text_id === "zap_Chrysaory" && currentTimesTalked === 0) shouldPlayDialogue = true;
+          else if (tb.text_id === "maze_room_2" && currentTimesTalked === 0) shouldPlayDialogue = true;
+          else if (tb.text_id === "room_6" && currentTimesTalked === 0) shouldPlayDialogue = true;
+          else if (tb.text_id === "treasure" && currentTimesTalked === 0) shouldPlayDialogue = true;
+          else if (tb.text_id === "Chrysaory_room_2" && currentTimesTalked === 0) shouldPlayDialogue = true;
+          else if (tb.text_id === "Chrysaory_Dash") shouldPlayDialogue = true; 
+          else if (tb.text_id === "Chrysaory_Shock") shouldPlayDialogue = true; 
 
-            case "zap_Chrysaory":
-            if(currentTimesTalked === 0) startDialogue("zap_Chrysaory");
-            else return;
-            break;
+          if (shouldPlayDialogue) {
+            dialogueActive = true;
 
-          case "maze_room_2":
-            if(currentTimesTalked === 0) startDialogue("maze_room_2");
-            else return;
-            break;
+            switch (tb.text_id) {
+              case "Welcome":
+                startDialogue("Welcome");
+                break;
 
-            case "room_6":
-            if(currentTimesTalked === 0) startDialogue("room_6");
-            else return;
-            break;
+              case "Chrysaory_dash_kelp":
+                startDialogue("dash_kelp");
+                break;
+              
+              case "Chrysaory_end":
+                if (currentTimesTalked === 0) startDialogue("Chrysaory_end");
+                else if (currentTimesTalked === 1) startDialogue("Chrysaory_end_repeat_1");
+                break;
 
-          case "treasure":
-            if(currentTimesTalked === 0) {
-            startDialogue("treasure");
+              case "Chrysaory_sand":
+                if (currentTimesTalked === 0) startDialogue("Chrysaory_sand");
+                else if (currentTimesTalked === 1) startDialogue("Chrysaory_sand_repeat_1");
+                break;
+
+              case "heal":
+                startDialogue("heal");
+                break;
+
+              case "zap_Chrysaory":
+                startDialogue("zap_Chrysaory");
+                break;
+
+              case "maze_room_2":
+                startDialogue("maze_room_2");
+                break;
+
+              case "room_6":
+                startDialogue("room_6");
+                break;
+
+              case "treasure":
+                startDialogue("treasure");
+                break;
+
+              case "Chrysaory_room_2":
+                startDialogue("Chrysaory_room_2");
+                break;
+
+              case "Chrysaory_Dash":
+                if (currentTimesTalked === 0) startDialogue("Chrysaory_Dash"); 
+                else if (currentTimesTalked === 1) startDialogue("Chrysaory_Dash_repeat_1");
+                else if (currentTimesTalked === 2) startDialogue("Chrysaory_Dash_repeat_2");
+                else startDialogue("Chrysaory_Dash_repeat");
+                break;
+
+              case "Chrysaory_Shock":
+                if (currentTimesTalked === 0) startDialogue("Chrysaory_Shock"); 
+                else if (currentTimesTalked === 1) startDialogue("Chrysaory_Shock_repeat_1");
+                else startDialogue("Chrysaory_Shock_repeat");
+                break;
+
+              default:
+                startDialogue("dialogueMissing");
+                break;
             }
-            else return;
-            break;
 
-          case "Chrysaory_room_2":
-            if( currentTimesTalked === 0) {
-            startDialogue("Chrysaory_room_2");
-            }
-            else{
-              return;
-            }
-            break;
 
-          case "Chrysaory_Dash":
-            if (currentTimesTalked === 0) {
-              startDialogue("Chrysaory_Dash"); 
-            } else if (currentTimesTalked === 1) {
-              startDialogue("Chrysaory_Dash_repeat_1");
-            } else if (currentTimesTalked === 2) {
-              startDialogue("Chrysaory_Dash_repeat_2");
-            } else{
-              startDialogue("Chrysaory_Dash_repeat");
-            }
-            break;
-          case "Chrysaory_Shock":
-            if (currentTimesTalked === 0) {
-              startDialogue("Chrysaory_Shock"); 
-            } else if (currentTimesTalked === 1) {
-              startDialogue("Chrysaory_Shock_repeat_1");
-            } else {
-              startDialogue("Chrysaory_Shock_repeat");
-            }
-            break;
-          default:
-            startDialogue("dialogueMissing");
-            break;
+            text_box_talk_counts[tb.text_id]++;
+          }
         }
-
-        // Increment immediately so it registers as "viewed"
-        text_box_talk_counts[tb.text_id]++;
-      }
-
-      // RESET THE TOUCH LOCK: Safely clear only when the player completely walks off the box
-      if (!isColliding && last_touched_box === tb) {
-        last_touched_box = null;
       }
     });
+    if (!touchingAnyBox) {
+      last_touched_box = null;
+    }
+    
     /////////////////////////////////////////////////////////////////////////////
     //for dialogue checker (skip)
     /////////////////////////////////////////////////////////////////////////////////
