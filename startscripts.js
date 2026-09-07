@@ -25,9 +25,9 @@ window.addEventListener('load', () => {
          loop: true,
          volume: 1
       });
-      title.innerHTML = 'Click to play music';
+      titles.innerHTML = 'Click to play music';
       setTimeout(() => {
-         title.innerHTML = '~Turritopsis Red~';
+         titles.innerHTML = '~Turritopsis Red~';
       }, 1000);
    }
 });
@@ -40,7 +40,7 @@ function get_mute_flag() {
    return localStorage.getItem(mute_storage_key) === 'true';
 }
 document.addEventListener('DOMContentLoaded', () => {
-const title = document.getElementById('title');
+const titles = document.getElementById('titles');
 const w = document.getElementById('w');
 const a = document.getElementById('a');
 const s = document.getElementById('s');
