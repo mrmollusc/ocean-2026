@@ -163,14 +163,14 @@ let player = {
 };
 
 // save mechanic
-let saved_room = 'sand_room';//localStorage.getItem("current_room")
-let x = room_data[saved_room]?.spawnpoint?.x ?? 100;//parseInt(localStorage.getItem("player_x"))
-let y = room_data[saved_room]?.spawnpoint?.y ?? 225;//parseInt(localStorage.getItem("player_y"))
-let player_data = player;//parseInt(localStorage.getItem("temp_player_data"))
-let save_data = room_data;//localStorage.getItem("room_data")
-let health_data = 100;//parseInt(localStorage.getItem("health"))
+let saved_room = 'room_1';//localStorage.getItem("current_room")
+let x = parseInt(localStorage.getItem("player_x")) ?? 100;
+let y = parseInt(localStorage.getItem("player_y")) ?? 200
+let player_data = parseInt(localStorage.getItem("temp_player_data")) ?? player;
+let save_data = localStorage.getItem("room_data") ?? room_data;
+let health_data = parseInt(localStorage.getItem("health")) ?? 100
 
-/*const unmodified_room_data = JSON.parse(JSON.stringify(room_data));
+const unmodified_room_data = JSON.parse(JSON.stringify(room_data));
 if (save_data && save_data !== "null" && save_data !== "[object Object]") {
     try {
         const parsedSave = JSON.parse(save_data);
@@ -189,7 +189,7 @@ if (save_data && save_data !== "null" && save_data !== "[object Object]") {
 if (player_data && player_data !== "null" && player_data !== "[object Object]") {
   Object.assign(player, JSON.parse(player_data));
 }
-*/
+
 let temp_room_data = room_data;
 let temp_player_data = player;
 temp_player_data.health = health_data;
