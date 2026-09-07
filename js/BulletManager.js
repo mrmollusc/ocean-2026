@@ -13,7 +13,7 @@ const snailStunnedFrames = createSpriteFrames(0, 40, 56, 38);
 const nematocystFrames = createSpriteFrames(96, 0, 15, 32);
 const bossFishFrames = createSpriteFrames(96, 96, 32, 32);
 const bossTurtleFrames = createSpriteFrames(96, 32, 32, 32);
-const anemoneFrames = createSpriteFrames(64, 10, 32, 22);
+export const anemoneFrames = createSpriteFrames(64, 10, 31.5, 22);
 
 // RGB fish - single static textures (not animated)
 const redFishTexture = new PIXI.Texture({
@@ -578,9 +578,27 @@ export class snailBullet {
 export class anemoneBullet {
     static speed = 1;
     static damage = 5;
-    static spawnSemicircle(manager, texture, x, y, count = 12, speed = 6) {
-        const startAngle = Math.PI;
-        const endAngle = 2 * Math.PI;
+    static spawnSemicircle(manager, texture, x, y, dir, count = 12, speed = 6) {
+        let startAngle = Math.PI;
+        let endAngle = 2 * Math.PI;
+        switch (dir) {
+            case 'left':   // facing left
+                startAngle = (3 * Math.PI) / 2;
+                endAngle = Math.PI / 2;
+                break;
+            case 'right':  // facing right
+                startAngle = Math.PI / 2;
+                endAngle = -Math.PI / 2;
+                break;
+            case 'up':     // facing up
+                startAngle = Math.PI;
+                endAngle = Math.PI * 2;
+                break;
+            case 'down':   // facing down
+                startAngle = 0;
+                endAngle = Math.PI;
+                break;
+        }
 
         for (let i = 0; i < count; i++) {
             const angle = startAngle + (i / (count - 1)) * (endAngle - startAngle);
@@ -607,9 +625,10 @@ export class anemoneBullet {
 }
 export class anemone {
     static lastspawnTime = 0;
+    static spawnTimers = new Map();
     static x = 0;
     static y = 0;
-    static initialize(x, y, stage) {
+    static initialize(x, y, stage, dir) {
         anemone.x = x;
         anemone.y = y;
         const graphic = new PIXI.AnimatedSprite(anemoneFrames);
@@ -618,13 +637,31 @@ export class anemone {
         graphic.play();
         graphic.visible = true;
         graphic.animationSpeed = 0.12;
-        graphic.scale.set(2, 2);
         graphic.anchor.set(0.5, 0.5);
+        switch (dir) {
+            case 'left':
+                graphic.scale.set(2, -2);
+                graphic.rotation = Math.PI / 2
+                break;
+            case 'right':
+                graphic.scale.set(2, 2);
+                graphic.rotation = Math.PI / 2
+                break;
+            case 'up':
+                graphic.scale.set(2, 2);
+                break;
+            case 'down':
+                graphic.scale.set(2, -2);
+                break;
+        }
+        return graphic; 
     }
-    static update(currentTime, manager, texture, x, y) {
-        if (currentTime - anemone.lastspawnTime >= 1000) {
-            anemoneBullet.spawnSemicircle(manager, texture, x, y);
-            anemone.lastspawnTime = currentTime;
+    static update(currentTime, manager, texture, x, y, dir, id) {
+        const lastSpawn = anemone.spawnTimers.get(id) || 0;
+
+        if (currentTime - lastSpawn >= 1000) {
+            anemoneBullet.spawnSemicircle(manager, texture, x, y, dir);
+            anemone.spawnTimers.set(id, currentTime);
         }
     }
 }

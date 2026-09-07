@@ -239,7 +239,7 @@ let room_data = {
     force_blocks: [    ],
     bullet_boxes: [],
     text_boxes: [
-      { id: "Chrysaory_Space", x: 205, y: 225, w: 10, h: 50 },
+      { id: "Chrysaory_Dash", x: 205, y: 225, w: 10, h: 50 },
     ],
     spawnpoint: { x: 100, y: 225 },
     labels: [{
@@ -299,7 +299,7 @@ let room_data = {
         target_room: "room_5",
         target_x: 600,
         target_y: 70,
-      },
+      }
     ],
     hearts: [],
     snails: [],
@@ -407,7 +407,9 @@ let room_data = {
     jellys: [],
     force_blocks: [
     ],
-    bullet_boxes: [],
+    bullets: [
+
+    ],
     text_boxes: [
 
     ],
@@ -538,7 +540,7 @@ let room_data = {
         y: 20,
         w: 120,
         h: 50,
-        target_room: "maze_room",
+        target_room: "room_5",
         target_x: 800,
         target_y: 720,
       },
@@ -547,7 +549,7 @@ let room_data = {
         y: 880,
         w: 120,
         h: 50,
-        target_room: "crash the game woohoo",
+        target_room: "CRASH BANG BOOM",
         target_x: 800,
         target_y: 180,
       }
@@ -558,7 +560,13 @@ let room_data = {
     force_blocks: [
 
     ],
-    bullet_boxes: [],
+    bullets: [
+      { id: 'b1', type: 'snail', x: 300, y: 800}, 
+      { id: 'b2', type: 'anemone', x: 1539, y: 765, dir: 'left'}, 
+      { id: 'b3', type: 'anemone', x: 231, y: 450, dir: 'right'}, 
+      { id: 'b4', type: 'anemone', x: 300, y: 839, dir: 'up'}, 
+      { id: 'b5', type: 'anemone', x: 400, y: 62, dir: 'down'}
+    ],
     text_boxes: [],
     spawnpoint: { x: 120, y: 800 },
     labels: [{
