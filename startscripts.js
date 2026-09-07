@@ -11,19 +11,34 @@ let mute_flag = localStorage.getItem(mute_storage_key) === 'true';
 // PIXI MUSIC
 const pixiSound = globalThis.PIXI?.sound;
 
+function set_music_muted(muted) {
+   const sound = globalThis.PIXI?.sound;
+   if (!sound) return;
+
+   sound.muted = muted;
+
+   if (!document.getElementById('game')) {
+      if (muted) {
+         sound.stop('menu-bgm');
+      } else if (!sound.isPlaying('menu-bgm')) {
+         sound.play('menu-bgm', { loop: true, volume: 1 });
+      }
+   }
+}
+
 if (pixiSound && !document.getElementById('game')) {
    pixiSound.add('menu-bgm', 'assets/future_fantasy.mp3');
-   pixiSound.muted = get_mute_flag();
+   set_music_muted(get_mute_flag());
 }
 
 window.addEventListener('load', () => {
    mute_flag = get_mute_flag();
-   if (pixiSound) pixiSound.muted = mute_flag;
+   set_music_muted(mute_flag);
 
    if (pixiSound && !document.getElementById('game') && !mute_flag && !pixiSound.isPlaying('menu-bgm')) {
       pixiSound.play('menu-bgm', {
          loop: true,
-         volume: 1
+         volume: .2
       });
       titles.innerHTML = 'Click to play music';
       setTimeout(() => {
@@ -174,7 +189,7 @@ function mute_function() {
       }
       mute_flag = false;
       localStorage.setItem(mute_storage_key, 'false');
-      if (pixiSound) pixiSound.muted = get_mute_flag();
+      set_music_muted(false);
       return;
    }
    if (mute_flag == false) {
@@ -184,7 +199,7 @@ function mute_function() {
       }
       mute_flag = true;
       localStorage.setItem(mute_storage_key, 'true');
-      if (pixiSound) pixiSound.muted = get_mute_flag();
+      set_music_muted(true);
       return;
    }
 }

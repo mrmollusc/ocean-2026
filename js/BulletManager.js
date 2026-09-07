@@ -100,6 +100,7 @@ export class BulletManager {
         const b = this.pool.find(b => b.dead);
         if (!b) return;
 
+        this.clearSnailHealthBar(b);
         b.dead = false;
         b.vx = vx;
         b.vy = vy;
@@ -189,6 +190,8 @@ export class BulletManager {
 
         if (bullet) {
             this.setSnailAnimation(bullet, snailChargingFrames);
+            bullet.bounce = true;
+            bullet.bounceLimit = Infinity;
         }
         return bullet;
     }
@@ -233,7 +236,7 @@ export class BulletManager {
             if (!b || !b.body) continue;
             if (b.dead) {
                 b.sprite.visible = false;
-                b.sprite.visible = false;
+                this.clearSnailHealthBar(b);
                 continue;
             }
 
@@ -288,6 +291,7 @@ export class BulletManager {
             if (x < -50 || x > 2000 || y < -50 || y > 1200) {
                 b.dead = true;
                 b.sprite.visible = false;
+                this.clearSnailHealthBar(b);
                 Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
             }
         }
@@ -391,7 +395,7 @@ export class BulletManager {
         bullet.hitboxScaleY = scaleY;
         for (const part of bullet.body.parts) {
             part.collisionFilter.category = 0x0002;
-            part.collisionFilter.mask = 0xFFFF;
+            part.collisionFilter.mask = 0x0001;
         }
     }
     damageSnail(bullet) {
@@ -400,9 +404,7 @@ export class BulletManager {
         bullet.snailHealth--;
         
         // Show health bar for debugging
-        if (bullet.healthBarGraphic) {
-            this.stage.removeChild(bullet.healthBarGraphic);
-        }
+        this.clearSnailHealthBar(bullet);
         
         const healthPercent = Math.max(0, bullet.snailHealth / 3);
         const barWidth = 30;
@@ -420,13 +422,18 @@ export class BulletManager {
         if (bullet.snailHealth <= 0) {
             bullet.dead = true;
             bullet.sprite.visible = false;
-            if (bullet.healthBarGraphic) {
-                this.stage.removeChild(bullet.healthBarGraphic);
-            }
+            this.clearSnailHealthBar(bullet);
             return true;
         }
         
         return false;
+    }
+    clearSnailHealthBar(bullet) {
+        if (!bullet.healthBarGraphic) return;
+
+        this.stage.removeChild(bullet.healthBarGraphic);
+        bullet.healthBarGraphic.destroy();
+        bullet.healthBarGraphic = null;
     }
     setSpriteAnimation(bullet) {
         bullet.sprite.textures = nematocystFrames;
@@ -480,7 +487,7 @@ export class BulletManager {
         for (let b of this.active) {
             b.dead = true;
             b.sprite.visible = false;
-            b.sprite.visible = false;
+            this.clearSnailHealthBar(b);
             Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
         }
         this.active = [];

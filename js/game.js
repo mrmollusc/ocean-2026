@@ -80,7 +80,7 @@ const DASH_COOLDOWN = 1500;
 
 //zap
 const ZAP_DURATION = 1500;
-const ZAP_COOLDOWN = 2000;
+const ZAP_COOLDOWN = 5000;
 const ZAP_RADIUS = 200;
 
 //regen
@@ -121,7 +121,7 @@ app.stage.addChild(dialogueBg);
 
 const dialogue_text = new PIXI.Text({
   text: "",
-  style: { fontSize: 28, fill: 0xffffff, wordWrap: true, wordWrapWidth: APP_WIDTH - 240 }
+  style: { fontFamily: 'Indie Flower', fontSize: 28, fill: 0xffffff, wordWrap: true, wordWrapWidth: APP_WIDTH - 240, padding: 10 }
 });
 dialogue_text.position.set(120, APP_HEIGHT - 180);
 dialogue_text.visible = false;
@@ -163,7 +163,7 @@ let player = {
 };
 
 // save mechanic
-let saved_room = 'room_1';//localStorage.getItem("current_room")
+let saved_room = 'sand_room';//localStorage.getItem("current_room")
 let x = room_data[saved_room]?.spawnpoint?.x ?? 100;//parseInt(localStorage.getItem("player_x"))
 let y = room_data[saved_room]?.spawnpoint?.y ?? 225;//parseInt(localStorage.getItem("player_y"))
 let player_data = player;//parseInt(localStorage.getItem("temp_player_data"))
@@ -259,11 +259,16 @@ else {
 
 //TEXTURES
 PIXI.TextureSource.defaultOptions.scaleMode = 'nearest';
+const door_texture = await PIXI.Assets.load("assets/door.png");
+const sign_texture = await PIXI.Assets.load("assets/sign.png");
+const wall_texture = await PIXI.Assets.load("assets/wall.png");
+const trash_texture = await PIXI.Assets.load("assets/trash.png");
 const kelp_texture = await PIXI.Assets.load("assets/kelp.png");
 const crimson_texture = await PIXI.Assets.load("assets/crimson.png");
 const heart_texture = await PIXI.Assets.load("assets/yums.png");
 const sand_texture = await PIXI.Assets.load("assets/sand.png")
 const chrysaory_texture = await PIXI.Assets.load("assets/sprites v0.2.png")
+chrysaory_texture.source.scaleMode = 'nearest';
 const up_arrow_texture = await PIXI.Assets.load("assets/up_dir_anim.png");
 const right_arrow_texture = await PIXI.Assets.load("assets/right_dir_anim.png");
 const left_arrow_texture = await PIXI.Assets.load("assets/left_dir_anim.png");
@@ -283,19 +288,23 @@ await PIXI.Assets.load({
 });
 
 PIXI.sound.add('game-bgm', 'assets/loop2.mp3');
-PIXI.sound.muted = get_mute_flag();
-
-window.addEventListener('load', () => {
+function start_game_music() {
   const isMuted = get_mute_flag();
   PIXI.sound.muted = isMuted;
 
-  if (!isMuted) {
+  if (!isMuted && !PIXI.sound.isPlaying('game-bgm')) {
     PIXI.sound.play('game-bgm', {
       loop: true,
       volume: 1
     });
   }
-});
+}
+
+if (document.readyState === 'complete') {
+  start_game_music();
+} else {
+  window.addEventListener('load', start_game_music, { once: true });
+}
 
 //PIXI ANIMATION FRAMES (CRIMSON)
 const playerFrameWidth = 32;
@@ -923,26 +932,29 @@ loadChrysaoryAnimation();
 
     const data = temp_room_data[roomKey];
 
-    data.walls.forEach((wall) => {
-      const wallBody = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, {
+    data.walls?.forEach((wall_obj) => {
+      const wall_body = Bodies.rectangle(wall_obj.x, wall_obj.y, wall_obj.w, wall_obj.h, {
         isStatic: true,
-        restitution: 1,
-        friction: 0,
-      });
+        collisionFilter: { category: 0x0001, mask: 0x0002 }
+      })
 
-      const wallGraphic = new PIXI.Graphics()
-        .rect(-wall.w / 2, -wall.h / 2, wall.w, wall.h)
-        .fill(0x333333);
+      const wall_graphic = new PIXI.TilingSprite({
+        texture: wall_texture,
+        width: wall_obj.w,
+        height: wall_obj.h
+      })
+      wall_graphic.tileScale.set(2, 2);
+      wall_graphic.anchor.set(0.5,0.5);
+      wall_graphic.position.set(wall_obj.x, wall_obj.y);
+      world.addChild(wall_graphic);
 
-      wallGraphic.position.set(wall.x, wall.y);
-      world.addChild(wallGraphic);
-      wallGraphic.zIndex = 6;
-      walls.push(wallBody);
-      wall_graphics.push(wallGraphic);
-      Composite.add(engine.world, wallBody);
+      walls.push(wall_body);
+      wall_graphics.push(wall_graphic);
+      Composite.add(engine.world, wall_body);
     });
 
-    data.doors.forEach((door) => {
+    data.doors?.forEach((door) => {
+      const doorGraphic = new PIXI.Sprite(door_texture);
       const doorBody = Bodies.rectangle(door.x, door.y, door.w, door.h, {
         isStatic: true,
         isSensor: true,
@@ -951,12 +963,11 @@ loadChrysaoryAnimation();
       doorBody.target_room = door.target_room;
       doorBody.target_x = door.target_x;
       doorBody.target_y = door.target_y;
-
-      const doorGraphic = new PIXI.Graphics()
-        .rect(-door.w / 2, -door.h / 2, door.w, door.h)
-        .fill({ color: 0xff0000, alpha: 0.2 });
-
-      doorGraphic.position.set(door.x, door.y);
+      doorGraphic.anchor.set(0.5,0.5);
+      doorGraphic.width = 40;
+      doorGraphic.height = 40;
+      doorGraphic.position.set(door.graphic_x ?? door.x, door.graphic_y ?? door.y);
+      doorGraphic.roundPixels = true;
       world.addChild(doorGraphic);
       doorGraphic.zIndex = 6;
       doors.push(doorBody);
@@ -964,8 +975,8 @@ loadChrysaoryAnimation();
       Composite.add(engine.world, doorBody);
     });
 
-    data.text_boxes.forEach((text_box) => {
-      const text_box_body = Bodies.rectangle(text_box.x, text_box.y, text_box.w, text_box.h, {
+    data.text_boxes?.forEach((text_box) => {
+      const text_box_body = Bodies.rectangle(text_box.x, text_box.y, text_box.w ?? 64,text_box.h ?? 64, {
         isStatic: true,
         isSensor: true,
       });
@@ -974,18 +985,17 @@ loadChrysaoryAnimation();
       text_boxes.push(text_box_body);
       Composite.add(engine.world, text_box_body);
 
-      const default_graphic = new PIXI.Graphics()
-        .rect(-text_box.w / 2, -text_box.h / 2, text_box.w, text_box.h)
-        .fill({ color: 0x00ff00, alpha: 0.2 });
+      const default_graphic = new PIXI.Sprite(sign_texture);
       const chrysaory_graphic = new PIXI.AnimatedSprite(ChrysaoryFrames)
-      if (text_box.id == "Chrysaory_Dash" || "Chrysaory_Shock") {
+      if (text_box.id.includes('chrysaory') || text_box.id.includes('Chrysaory')) {
       chrysaory_graphic.anchor.set(0.5);
       chrysaory_graphic.textures = ChrysaoryFrames;
       chrysaory_graphic.loop = true;
       chrysaory_graphic.animationSpeed = 0.12;
       chrysaory_graphic.gotoAndPlay(0);
       chrysaory_graphic.visible = true;
-      chrysaory_graphic.scale.set(1.6, 1.6);
+      chrysaory_graphic.scale.set(2, 2);
+      chrysaory_graphic.roundPixels = true;
       chrysaory_graphic.position.set(text_box.x, text_box.y);
       world.addChild(chrysaory_graphic);
       chrysaory_graphic.zIndex = 6;
@@ -993,6 +1003,9 @@ loadChrysaoryAnimation();
       text_box_graphics.push(chrysaory_graphic);
       }
       else {
+      default_graphic.anchor.set(0.5);
+      default_graphic.scale.set(2, 2);
+      default_graphic.roundPixels = true;
       default_graphic.position.set(text_box.x, text_box.y);
       world.addChild(default_graphic);
       default_graphic.zIndex = 6;
@@ -1000,28 +1013,25 @@ loadChrysaoryAnimation();
       }
     });
 
-    data.trashes.forEach((trash_obj) => {
-      const trash_body = Bodies.rectangle(
-        trash_obj.x,
-        trash_obj.y,
-        trash_obj.w,
-        trash_obj.h,
-        { isStatic: true },
-      );
+    data.trashes?.forEach((trash_obj) => {
+      const trash_body = Bodies.rectangle(trash_obj.x, trash_obj.y, trash_obj.w, trash_obj.h, { isStatic: true, collisionFilter: { group: -1, mask: 0 } });
 
-      const trash_graphic = new PIXI.Graphics()
-        .rect(-trash_obj.w / 2, -trash_obj.h / 2, trash_obj.w, trash_obj.h)
-        .fill(0xaaaa00);
-
+      const trash_graphic = new PIXI.TilingSprite({
+        texture: trash_texture,
+        width: trash_obj.w,
+        height: trash_obj.h
+      });
+      trash_graphic.tileScale.set(trash_obj.w / 32, trash_obj.h / 32);
+      trash_graphic.anchor.set(0.5);
       trash_graphic.position.set(trash_obj.x, trash_obj.y);
       world.addChild(trash_graphic);
-      trash_graphic.zIndex = 5;
+
       trashes.push(trash_body);
       trash_graphics.push(trash_graphic);
       Composite.add(engine.world, trash_body);
     });
 
-    data.hearts.forEach((heart_obj) => {
+    data.hearts?.forEach((heart_obj) => {
       const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 24, 24, {
         isStatic: true,
         collisionFilter: { group: -1, mask: 0 },
@@ -1045,7 +1055,7 @@ loadChrysaoryAnimation();
       Composite.add(engine.world, heart_body);
     });
 
-    data.force_blocks.forEach((force_obj) => {
+    data.force_blocks?.forEach((force_obj) => {
       const force_body = Bodies.rectangle(
         force_obj.x,
         force_obj.y,
@@ -1072,7 +1082,7 @@ loadChrysaoryAnimation();
       Composite.add(engine.world, force_body);
     });
 
-    data.sand_bars.forEach((bar) => {
+    data.sand_bars?.forEach((bar) => {
       const bar_body = Bodies.rectangle(bar.x, bar.y, bar.w, bar.h, { isStatic: true, collisionFilter: { group: -1, mask: 0 } })
 
       const bar_graphic = new PIXI.TilingSprite({
@@ -1080,10 +1090,11 @@ loadChrysaoryAnimation();
         width: bar.w,
         height: bar.h
       })
-      bar_graphic.tileScale.set(bar.w / 32*1, bar.w / 32*1)
+      bar_graphic.tileScale.set(2, 2)
       bar_graphic.anchor.set(0.5);
       bar_graphic.position.set(bar.x, bar.y);
       world.addChild(bar_graphic);
+      bar_graphic.zIndex = 4;
 
       sand_bars.push(bar_body);
       sand_bar_graphics.push(bar_graphic);
@@ -1190,7 +1201,7 @@ loadChrysaoryAnimation();
       }
     }
 
-    data.jellys.forEach((jelly_obj) => {
+    data.jellys?.forEach((jelly_obj) => {
       const jelly_body = Bodies.rectangle(jelly_obj.x, jelly_obj.y, 50, 50, {
         isStatic: false,
         restitution: 1,
@@ -1213,7 +1224,7 @@ loadChrysaoryAnimation();
       Composite.add(engine.world, jelly_body);
     });
 
-    data.snails.forEach((snail_obj) => {
+    data.snails?.forEach((snail_obj) => {
       const snail_bullet = bulletManager.spawnSnailBullet(snail_obj.x, snail_obj.y);
       if (snail_bullet) {
         snail_bullet.vx = snail_obj.x_vel || 0;
@@ -1222,7 +1233,7 @@ loadChrysaoryAnimation();
       }
     });
 
-    data.labels.forEach((label) => {
+    data.labels?.forEach((label) => {
       const label_graphic = new PIXI.Text({
         text: label.text,
         style: label.style,
@@ -1239,7 +1250,7 @@ loadChrysaoryAnimation();
     //end of loading objects
 
     room_label.text = "";
-    room_label.text = data.label;
+    room_label.text = data?.label ?? '';
 
     setTimeout(() => {
       canTransition = true;
@@ -1263,7 +1274,7 @@ loadChrysaoryAnimation();
 
     const data = temp_room_data[roomKey];
 
-    data.hearts.forEach((heart_obj) => {
+    data.hearts?.forEach((heart_obj) => {
       const heart_body = Bodies.rectangle(heart_obj.x, heart_obj.y, 1, 1, {
         isStatic: true,
         collisionFilter: { group: -1, mask: 0 },
@@ -1273,6 +1284,7 @@ loadChrysaoryAnimation();
       heart_graphic.width = 32;
       heart_graphic.height = 32;
       heart_graphic.anchor.set(0.5);
+      heart_graphic.zIndex = 10;
 
       heart_graphic.position.set(heart_obj.x, heart_obj.y);
       world.addChild(heart_graphic);
@@ -1306,7 +1318,7 @@ loadChrysaoryAnimation();
   function update_jelly(roomKey) {
     const data = temp_room_data[roomKey];
 
-    data.jellys.forEach((jelly_obj, index) => {
+    data.jellys?.forEach((jelly_obj, index) => {
       const jelly_body = jellys[index];
       const jelly_graphic = jelly_graphics[index];
 
@@ -1460,10 +1472,9 @@ loadChrysaoryAnimation();
 
   app.ticker.add((ticker) => {
     bulletManager.update(ticker);
-
-    if(current_room == "dash_room") temp_player_data.chapter = 1;
-    if(current_room == "zap_room") temp_player_data.chapter = 2;
-    if(current_room == "rejuv_room") temp_player_data.chapter = 3;
+    if(current_room == "room_3") temp_player_data.chapter = 1;
+    if(current_room == "snails_room") temp_player_data.chapter = 2;
+    if(current_room == "sand_room") temp_player_data.chapter = 3;
     
     let currentTime = performance.now();
 
@@ -1763,7 +1774,7 @@ loadChrysaoryAnimation();
         const heartIndex = hearts.findIndex((e) => check_collision(box, e));
 
         if (heartIndex !== -1) {
-          temp_player_data.health += 10;
+          temp_player_data.health += 50;
           hearts.splice(heartIndex, 1);
           temp_room_data[current_room].hearts.splice(heartIndex, 1);
           update_hearts(current_room);
@@ -1841,10 +1852,8 @@ loadChrysaoryAnimation();
     text_boxes.forEach((tb) => {
       const isColliding = check_collision(box, tb);
 
-      // Start dialogue only if colliding, no dialogue active, and not currently locked
       if (isColliding && !dialogueActive && last_touched_box !== tb) {
         
-        // Initialize the tracker if it's the first touch ever
         if (text_box_talk_counts[tb.text_id] === undefined) {
           text_box_talk_counts[tb.text_id] = 0;
         }
@@ -1852,8 +1861,8 @@ loadChrysaoryAnimation();
         const currentTimesTalked = text_box_talk_counts[tb.text_id];
 
         if (tb.text_id === "Welcome" && currentTimesTalked > 0) {
-          last_touched_box = tb; // Lock it so it doesn't try checking every frame while standing here
-          return; // if already touched the welcome box, then don't trigger again
+          last_touched_box = tb; 
+          return; 
         }
 
         // pass rules to safely turn on active states
@@ -1863,6 +1872,60 @@ loadChrysaoryAnimation();
         switch (tb.text_id) {
           case "Welcome":
             startDialogue("Welcome");
+            break;
+
+          case "Chrysaory_dash_kelp":
+            if(currentTimesTalked === 0) startDialogue("dash_kelp");
+            else return;
+            break;
+          
+          case "Chrysaory_end":
+            if(currentTimesTalked === 0) startDialogue("Chrysaory_end");
+            else if (currentTimesTalked ===1) startDialogue("Chrysaory_end_repeat_1");
+            else return;
+            break;
+            
+
+          case "Chrysaory_sand":
+            if(currentTimesTalked === 0) startDialogue("Chrysaory_sand");
+            else if(currentTimesTalked === 1) startDialogue("Chrysaory_sand_repeat_1");
+            else return;
+            break;
+
+          case "heal":
+            if(currentTimesTalked === 0) startDialogue("heal");
+            else return;
+            break;
+
+            case "zap_Chrysaory":
+            if(currentTimesTalked === 0) startDialogue("zap_Chrysaory");
+            else return;
+            break;
+
+          case "maze_room_2":
+            if(currentTimesTalked === 0) startDialogue("maze_room_2");
+            else return;
+            break;
+
+            case "room_6":
+            if(currentTimesTalked === 0) startDialogue("room_6");
+            else return;
+            break;
+
+          case "treasure":
+            if(currentTimesTalked === 0) {
+            startDialogue("treasure");
+            }
+            else return;
+            break;
+
+          case "Chrysaory_room_2":
+            if( currentTimesTalked === 0) {
+            startDialogue("Chrysaory_room_2");
+            }
+            else{
+              return;
+            }
             break;
 
           case "Chrysaory_Dash":
