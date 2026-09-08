@@ -4,4 +4,7 @@
 # How To Play
 
 
-Open start.html. If there are any problems, navigate to the options menu and press wipe save.
+- Unzip this folder and do not separate the files.
+- To play the game, open start.html
+- Controls, options and credits are in the game
+- Github repo at: github.com/mrmollusc/ocean-2026 
