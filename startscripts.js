@@ -261,6 +261,7 @@ function wipe_function() {
       localStorage.removeItem('player_x');
       localStorage.removeItem('player_y');
       localStorage.removeItem('room_data');
+      localStorage.removeItem('chapter');
       alert('Data has been wiped! Enjoy your new game')
    }
    return;

@@ -5,7 +5,10 @@
 const { Engine, Bodies, Composite, Body } = Matter;
 const app = new PIXI.Application();
 
-const engine = Engine.create();
+const engine = Engine.create({
+    positionIterations: 60, 
+    velocityIterations: 60
+});
 engine.gravity.y = 0;
 const physicsWorld = engine.world;
 
