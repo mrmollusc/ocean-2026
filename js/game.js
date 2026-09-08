@@ -5,7 +5,10 @@
 const { Engine, Bodies, Composite, Body } = Matter;
 const app = new PIXI.Application();
 
-const engine = Engine.create();
+const engine = Engine.create({
+    positionIterations: 60, 
+    velocityIterations: 60
+});
 engine.gravity.y = 0;
 const physicsWorld = engine.world;
 
@@ -1470,7 +1473,6 @@ loadChrysaoryAnimation();
 
 //movement
   let keys = {};
-  let debugKeyWasDown = false;
   let e;
   window.addEventListener("keydown", (event) => {
     keys[event.code] = true;
@@ -1484,10 +1486,9 @@ loadChrysaoryAnimation();
 
   app.ticker.add((ticker) => {
     bulletManager.update(ticker);
-    if(current_room == "room_3") temp_player_data.chapter++;
-    if(current_room == "snails_room") temp_player_data.chapter++;
-    if(current_room == "sand_room") temp_player_data.chapter++;
-    if(temp_player_data.chapter>2) temp_player_data.chapter=2
+    if(current_room == "room_3" && temp_player_data.chapter==0) temp_player_data.chapter++;
+    if(current_room == "snails_room" && temp_player_data.chapter==1) temp_player_data.chapter++;
+    if(current_room == "sand_room" && temp_player_data.chapter==2) temp_player_data.chapter++;
     
     let currentTime = performance.now();
 
@@ -1671,18 +1672,7 @@ loadChrysaoryAnimation();
         }, HEAL_COOLDOWN);
     }
 
-    if (keys["KeyB"] && !debugKeyWasDown) {
-      bulletManager.spawnSnailBullet(
-        box.position.x,
-        box.position.y
-      );
-      bossFishPattern(bulletManager, fishTexture, world); // blue fish
-      bossRGBFishPattern(bulletManager, world); // RGB fish pattern
-      setTimeout(() => {
-        bossTurtlePattern(bulletManager, turtleTexture, world); // green turtle
-      }, 3000);
-    }
-    debugKeyWasDown = keys["KeyB"];
+  
     //healthbar update
     update_healthbar();
     //bullet stuff

@@ -199,7 +199,7 @@ let room_data = {
         h: 20,
         target_room: "room_5",
         target_x: 600,
-        target_y: 70,
+        target_y: 60,
       }
     ],
     hearts: [],
@@ -270,7 +270,7 @@ let room_data = {
       {
         x: 800,
         y: 880,
-        w: 120,
+        w: 60,
         h: 50,
         target_room: "maze_room_2",
         target_x: 800,
@@ -371,7 +371,7 @@ let room_data = {
         h: 50,
         target_room: "room_5",
         target_x: 800,
-        target_y: 720,
+        target_y: 740,
       },
       {
         x: 800,
@@ -653,7 +653,16 @@ let room_data = {
         target_y: 200
       }
     ],
-    hearts: [{ x: 500, y: 500 }],
+    hearts: [{ x: Math.random() * 800 + 50, y: Math.random() * 800 + 50 },
+      { x: Math.random() * 800 + 50, y: Math.random() * 800 + 50 },
+      { x: Math.random() * 800 + 50, y: Math.random() * 800 + 50 },
+      { x: Math.random() * 800 + 50, y: Math.random() * 800 + 50 },
+      { x: Math.random() * 800 + 50, y: Math.random() * 800 + 50 },
+      { x: Math.random() * 800 + 50, y: Math.random() * 800 + 50 },
+      { x: Math.random() * 800 + 50, y: Math.random() * 800 + 50 },
+      { x: Math.random() * 800 + 50, y: Math.random() * 800 + 50 },
+      
+    ],
     snails: [],
     jellys: [],
     force_blocks: [],
