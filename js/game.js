@@ -295,7 +295,7 @@ else {
     zap: 'KeyK',
     rejuv: 'KeyO',
     dialogue: 'Enter', 
-    pause: 'KeyP'
+    pause: 'Escape'
   }
 }
 
