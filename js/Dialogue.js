@@ -33,7 +33,7 @@ export const dialogues = {
     ],
     zap_Chrysaory: [
         { speaker: "??? ", text: "The next room has so many snails!" },
-        { speaker: "??? ", text: "You can press key [K] or [F] to shock them!" },
+        { speaker: "??? ", text: "You can press key [K] or [E] to shock them!" },
     ],
     heal: [
         { speaker: "Crimson", text: "Mmm, yummy roe" }
@@ -43,7 +43,7 @@ export const dialogues = {
     ],
     Chrysaory_sand:[
         { speaker: "??? ", text: "This is a very sandy area!" },
-        {speaker: "??? ", text: "See that health? You can now heal it with [O] or [E]" },
+        {speaker: "??? ", text: "See that health? You can now heal it with [O] or [F]" },
         {speaker: "??? ", text: "Anyways, good luck with the next area, it will finally put you to the test!" }
     ],
     Chrysaory_end:[
