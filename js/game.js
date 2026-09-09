@@ -137,6 +137,35 @@ pauseMenu.visible = false;
 pauseMenu.zIndex = 22;
 app.stage.addChild(pauseMenu);
 
+const pauseMenuTimerWidth = 100;
+const pauseMenuTimerHeight = 5;
+const pauseMenuTimerOffsetX = 60;// from centre
+const pauseMenuTimerOffsetY = 100;// from top
+
+const pauseMenuLeftTimer = new PIXI.Graphics()
+  .rect(0, 0, pauseMenuTimerWidth, pauseMenuTimerHeight)
+  .fill(0xffffff);
+
+pauseMenuLeftTimer.pivot.set(pauseMenuTimerWidth, pauseMenuTimerHeight / 2);
+pauseMenuLeftTimer.position.set(APP_WIDTH / 2 - pauseMenuTimerOffsetX, pauseMenuTimerOffsetY);
+
+pauseMenuLeftTimer.alpha = 1;
+pauseMenuLeftTimer.visible = false;
+pauseMenuLeftTimer.zIndex = 23;
+app.stage.addChild(pauseMenuLeftTimer);
+
+const pauseMenuRightTimer = new PIXI.Graphics()
+  .rect(0, 0, pauseMenuTimerWidth, pauseMenuTimerHeight)
+  .fill(0xffffff);
+
+pauseMenuRightTimer.pivot.set(0, pauseMenuTimerHeight / 2);
+pauseMenuRightTimer.position.set(APP_WIDTH / 2 + pauseMenuTimerOffsetX, pauseMenuTimerOffsetY);
+
+pauseMenuRightTimer.alpha = 1;
+pauseMenuRightTimer.visible = false;
+pauseMenuRightTimer.zIndex = 23;
+app.stage.addChild(pauseMenuRightTimer);
+
 const pauseMenu_text = new PIXI.Text({ 
     text: "PAUSED", 
     style: { 
@@ -153,8 +182,8 @@ pauseMenu_text.anchor.set(0.5);
 
 pauseMenu_text.position.set(APP_WIDTH / 2, 100); 
 
-pauseMenu_text.visible = false;
-pauseMenu_text.zIndex = 23;
+pauseMenu_text.zIndex = 24;
+pauseMenu_text.alpha = 0;
 app.stage.addChild(pauseMenu_text);
 
 //////////////////////////////////////////
@@ -1520,555 +1549,589 @@ loadSpriteAnimation(ChrysaoryFrames, sprites_textures, 128, 64, 32.6, 22, 32);
   //important start or main game loop
 
   let paused = false;
+  let gamePaused = false;
+  
   app.ticker.add((ticker) => {
+    // this is what happens when its paused
+    if (keys[keybinds.pause] && !pauseKeyWasDown && paused == gamePaused) { // if you want to be able to pause during coundown then delete paused == gamePaused
+      paused = !paused;
+      pauseMenuLeftTimer.visible = true;
+      pauseMenuRightTimer.visible = true;
+      pauseMenuLeftTimer.scale.x = 1;
+      pauseMenuRightTimer.scale.x = 1;
+      pauseMenu_text.text = "PAUSED";
+      pauseMenu_text.alpha = 1;
+      gamePaused = true;
+    }
+
+    // this makes the pauseMenu still show when timer counts down
+    pauseKeyWasDown = keys[keybinds.pause];
+    pauseMenu.visible = gamePaused;
+
+    // this is where the timer counts down
     if (!paused) {
-      bulletManager.update(ticker);
-      if(current_room == "room_3") temp_player_data.chapter = 1;
-      if(current_room == "snails_room") temp_player_data.chapter = 2;
-      if(current_room == "sand_room") temp_player_data.chapter = 3;
-      
-      let currentTime = performance.now();
-
-      const activeRoomData = temp_room_data[current_room];
-      if (activeRoomData && activeRoomData.bullets) {
-          const activeAnemones = activeRoomData.bullets.filter(b => b.type === 'anemone');
-          
-          activeAnemones.forEach((bulletData) => {
-              anemone.update(
-                  currentTime, 
-                  bulletManager, 
-                  anemoneFrames[0],
-                  bulletData.x, 
-                  bulletData.y, 
-                  bulletData.dir, 
-                  bulletData.id
-              );
-          });
+      if ((pauseMenuLeftTimer.scale.x || pauseMenuRightTimer.scale.x) > 0) {
+        pauseMenuLeftTimer.scale.x -= 0.01;
+        pauseMenuRightTimer.scale.x -= 0.01;
+      } else {
+        gamePaused = false;
       }
 
-      if (!boxGraphic) return;
+      const scale = pauseMenuLeftTimer.scale.x;
+      if (scale > 2 / 3)      pauseMenu_text.text = "3";
+      else if (scale > 1 / 3)  pauseMenu_text.text = "2";
+      else if (scale > 0) pauseMenu_text.text = "1";
+      else pauseMenu_text.text = "Resumed";
 
-      let v1x = box.velocity.x;
-      let v1y = box.velocity.y;
+      // this is the whole game
+      if (!gamePaused) {
+        if (pauseMenu_text.alpha > 0) {
+          pauseMenu_text.alpha -= 0.03;
+        }
+        bulletManager.update(ticker);
+        if(current_room == "room_3") temp_player_data.chapter = 1;
+        if(current_room == "snails_room") temp_player_data.chapter = 2;
+        if(current_room == "sand_room") temp_player_data.chapter = 3;
+        
+        let currentTime = performance.now();
 
-      //WASD
-      let is_moving_x;
-      let is_moving_y;
-      let is_moving;
-
-      if (keys[keybinds.right] && temp_player_data.can_move == true) {
-        v1x = Math.min(v1x + temp_player_data.acceleration, temp_player_data.max_speed);
-        is_moving_x = true;
-      }
-      else if (keys[keybinds.left] && temp_player_data.can_move == true) {
-        v1x = Math.max(v1x - temp_player_data.acceleration, -temp_player_data.max_speed);
-        is_moving_x = true;
-      }
-
-      if (keys[keybinds.down] && temp_player_data.can_move == true) {
-        v1y = Math.min(v1y + temp_player_data.acceleration, temp_player_data.max_speed);
-        is_moving_y = true;
-      }
-
-      else if (keys[keybinds.up] && temp_player_data.can_move == true) {
-        v1y = Math.max(v1y - temp_player_data.acceleration, -temp_player_data.max_speed);
-        is_moving_y = true;
-      }
-
-      if (is_moving_x || is_moving_y) {
-        is_moving = true;
-      }
-      temp_player_data.state = is_moving ? "moving" : "idle";
-      if (!is_moving_x) {
-        v1x *= 0.9;
-      }
-      if (!is_moving_y) {
-        v1y *= 0.9;
-      }
-
-      const rotationVelocityX = v1x;
-      const rotationVelocityY = v1y;
-
-      const nextX = box.position.x + v1x;
-      const nextY = box.position.y + v1y;
-
-      if (!temp_player_data.is_dashing && would_collide_with_kelp(nextX, box.position.y)) {
-        v1x = 0;
-      }
-
-      if (!temp_player_data.is_dashing && would_collide_with_kelp(box.position.x, nextY)) {
-        v1y = 0;
-      }
-
-      if (would_collide_with_wall(nextX, box.position.y) || would_collide_with_trash(nextX, box.position.y)) {
-        v1x = 0;
-      }
-
-      if (would_collide_with_wall(box.position.x, nextY) || would_collide_with_trash(box.position.x, nextY)) {
-        v1y = 0;
-      }
-
-      Matter.Body.setVelocity(box, { x: v1x, y: v1y });
-      Matter.Engine.update(engine, 1000 / 60);
-      bulletManager.syncSprites();
-
-      //dash mechanic
-      if (keys[keybinds.dash] &&
-        temp_player_data.can_dash &&
-        !temp_player_data.is_healing &&
-        !temp_player_data.is_dashing &&
-        !temp_player_data.is_zapping &&
-        temp_player_data.chapter >= 1
-      ) {
-          temp_player_data.can_heal = false;
-          temp_player_data.state = "dashing";
-          temp_player_data.max_speed = DASH_SPEED;
-          temp_player_data.acceleration = DASH_ACCEL;
-          temp_player_data.can_dash = false;
-          temp_player_data.is_dashing = true;
-
-          setTimeout(() => {
-            temp_player_data.max_speed = PLAYER_MAX_SPEED;
-            temp_player_data.acceleration = PLAYER_ACCEL;
-            temp_player_data.is_dashing = false;
-            temp_player_data.can_heal = true;
-          }, DASH_DURATION);
-
-          setTimeout(() => {
-            temp_player_data.state = "idle";
-            temp_player_data.can_dash = true;
-          }, DASH_COOLDOWN);
-      }
-
-      //bullet freeze
-      else if (keys[keybinds.zap] &&
-        temp_player_data.can_zap &&
-        !temp_player_data.is_healing &&
-        !temp_player_data.is_dashing &&
-        !temp_player_data.is_zapping &&
-        temp_player_data.chapter >= 2) {
-          temp_player_data.can_zap = false;
-          temp_player_data.is_zapping = true;
-
-          bulletManager.setFrozen(true, box.position, ZAP_RADIUS);
-          bulletManager.shockSnails(box.position, ZAP_RADIUS, ZAP_DURATION);
-          showSkillAnimation(1); // skill 1 = shock/zap
-          
-          setTimeout(() => {
-            temp_player_data.is_zapping = false;
-            bulletManager.setFrozen(false);
-          }, ZAP_DURATION);
-
-          setTimeout(() => {
-            temp_player_data.can_zap = true;
+        const activeRoomData = temp_room_data[current_room];
+        if (activeRoomData && activeRoomData.bullets) {
+            const activeAnemones = activeRoomData.bullets.filter(b => b.type === 'anemone');
             
-            temp_player_data.is_skill_restored = true;
-            updatePlayerAnimation(); 
+            activeAnemones.forEach((bulletData) => {
+                anemone.update(
+                    currentTime, 
+                    bulletManager, 
+                    anemoneFrames[0],
+                    bulletData.x, 
+                    bulletData.y, 
+                    bulletData.dir, 
+                    bulletData.id
+                );
+            });
+        }
+
+        if (!boxGraphic) return;
+
+        let v1x = box.velocity.x;
+        let v1y = box.velocity.y;
+
+        //WASD
+        let is_moving_x;
+        let is_moving_y;
+        let is_moving;
+
+        if (keys[keybinds.right] && temp_player_data.can_move == true) {
+          v1x = Math.min(v1x + temp_player_data.acceleration, temp_player_data.max_speed);
+          is_moving_x = true;
+        }
+        else if (keys[keybinds.left] && temp_player_data.can_move == true) {
+          v1x = Math.max(v1x - temp_player_data.acceleration, -temp_player_data.max_speed);
+          is_moving_x = true;
+        }
+
+        if (keys[keybinds.down] && temp_player_data.can_move == true) {
+          v1y = Math.min(v1y + temp_player_data.acceleration, temp_player_data.max_speed);
+          is_moving_y = true;
+        }
+
+        else if (keys[keybinds.up] && temp_player_data.can_move == true) {
+          v1y = Math.max(v1y - temp_player_data.acceleration, -temp_player_data.max_speed);
+          is_moving_y = true;
+        }
+
+        if (is_moving_x || is_moving_y) {
+          is_moving = true;
+        }
+        temp_player_data.state = is_moving ? "moving" : "idle";
+        if (!is_moving_x) {
+          v1x *= 0.9;
+        }
+        if (!is_moving_y) {
+          v1y *= 0.9;
+        }
+
+        const rotationVelocityX = v1x;
+        const rotationVelocityY = v1y;
+
+        const nextX = box.position.x + v1x;
+        const nextY = box.position.y + v1y;
+
+        if (!temp_player_data.is_dashing && would_collide_with_kelp(nextX, box.position.y)) {
+          v1x = 0;
+        }
+
+        if (!temp_player_data.is_dashing && would_collide_with_kelp(box.position.x, nextY)) {
+          v1y = 0;
+        }
+
+        if (would_collide_with_wall(nextX, box.position.y) || would_collide_with_trash(nextX, box.position.y)) {
+          v1x = 0;
+        }
+
+        if (would_collide_with_wall(box.position.x, nextY) || would_collide_with_trash(box.position.x, nextY)) {
+          v1y = 0;
+        }
+
+        Matter.Body.setVelocity(box, { x: v1x, y: v1y });
+        Matter.Engine.update(engine, 1000 / 60);
+        bulletManager.syncSprites();
+
+        //dash mechanic
+        if (keys[keybinds.dash] &&
+          temp_player_data.can_dash &&
+          !temp_player_data.is_healing &&
+          !temp_player_data.is_dashing &&
+          !temp_player_data.is_zapping &&
+          temp_player_data.chapter >= 1
+        ) {
+            temp_player_data.can_heal = false;
+            temp_player_data.state = "dashing";
+            temp_player_data.max_speed = DASH_SPEED;
+            temp_player_data.acceleration = DASH_ACCEL;
+            temp_player_data.can_dash = false;
+            temp_player_data.is_dashing = true;
+
+            setTimeout(() => {
+              temp_player_data.max_speed = PLAYER_MAX_SPEED;
+              temp_player_data.acceleration = PLAYER_ACCEL;
+              temp_player_data.is_dashing = false;
+              temp_player_data.can_heal = true;
+            }, DASH_DURATION);
+
+            setTimeout(() => {
+              temp_player_data.state = "idle";
+              temp_player_data.can_dash = true;
+            }, DASH_COOLDOWN);
+        }
+
+        //bullet freeze
+        else if (keys[keybinds.zap] &&
+          temp_player_data.can_zap &&
+          !temp_player_data.is_healing &&
+          !temp_player_data.is_dashing &&
+          !temp_player_data.is_zapping &&
+          temp_player_data.chapter >= 2) {
+            temp_player_data.can_zap = false;
+            temp_player_data.is_zapping = true;
+
+            bulletManager.setFrozen(true, box.position, ZAP_RADIUS);
+            bulletManager.shockSnails(box.position, ZAP_RADIUS, ZAP_DURATION);
+            showSkillAnimation(1); // skill 1 = shock/zap
             
-            skillGraphic.loop = false;
-            skillGraphic.onComplete = () => {
-                temp_player_data.is_skill_restored = false;
-                skillGraphic.onComplete = null; 
-                requestAnimationFrame(() => {
-                    updatePlayerAnimation();
-                });
-            };
-          }, ZAP_COOLDOWN);
-      }
+            setTimeout(() => {
+              temp_player_data.is_zapping = false;
+              bulletManager.setFrozen(false);
+            }, ZAP_DURATION);
 
-      //regenerate health
-      else if (keys[keybinds.rejuv] &&
-        temp_player_data.can_heal &&
-        !temp_player_data.is_healing &&
-        !temp_player_data.is_dashing &&
-        !temp_player_data.is_zapping &&
-        temp_player_data.chapter >= 3) {
-          temp_player_data.can_dash = false;
-          temp_player_data.can_heal = false;
-          temp_player_data.is_healing = true;
-          temp_player_data.max_speed = PLAYER_HEAL_SPEED;
+            setTimeout(() => {
+              temp_player_data.can_zap = true;
+              
+              temp_player_data.is_skill_restored = true;
+              updatePlayerAnimation(); 
+              
+              skillGraphic.loop = false;
+              skillGraphic.onComplete = () => {
+                  temp_player_data.is_skill_restored = false;
+                  skillGraphic.onComplete = null; 
+                  requestAnimationFrame(() => {
+                      updatePlayerAnimation();
+                  });
+              };
+            }, ZAP_COOLDOWN);
+        }
 
-          const heal_interval = setInterval(() => {
-            if (temp_player_data.is_healing) {
-              temp_player_data.health += Math.min(15 / temp_player_data.health, 1.5);
+        //regenerate health
+        else if (keys[keybinds.rejuv] &&
+          temp_player_data.can_heal &&
+          !temp_player_data.is_healing &&
+          !temp_player_data.is_dashing &&
+          !temp_player_data.is_zapping &&
+          temp_player_data.chapter >= 3) {
+            temp_player_data.can_dash = false;
+            temp_player_data.can_heal = false;
+            temp_player_data.is_healing = true;
+            temp_player_data.max_speed = PLAYER_HEAL_SPEED;
+
+            const heal_interval = setInterval(() => {
+              if (temp_player_data.is_healing) {
+                temp_player_data.health += Math.min(15 / temp_player_data.health, 1.5);
+              }
+              else {
+                clearInterval(heal_interval)
+              }
+            }, 10);
+
+            setTimeout(() => {
+              clearInterval(heal_interval);
+              temp_player_data.can_dash = true;
+              temp_player_data.max_speed = PLAYER_MAX_SPEED;
+              temp_player_data.is_healing = false;
+            }, HEAL_DURATION);
+
+            setTimeout(() => {
+              temp_player_data.can_heal = true;
+            }, HEAL_COOLDOWN);
+        }
+
+        //healthbar update
+        update_healthbar();
+        //bullet stuff
+        for (let b of bulletManager.active) {
+          if (b.dead) continue;
+
+          // collision check
+          if (bulletManager.collidesWith(b.body, box)) {
+            //harmless bullets never deal damage
+            if (b.harmless) {
+              if (!b.persistent) {
+                b.dead = true;
+                b.sprite.visible = false;
+                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+              }
+              continue;
             }
-            else {
-              clearInterval(heal_interval)
+            //bullets that ignore i‑frames always deal damage
+            if (b.ignoreIframes) {
+              temp_player_data.health -= b.damage;
+
+              if (!b.pierce && !b.persistent) {
+                b.dead = true;
+                b.sprite.visible = false;
+                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+              }
+              continue;
             }
-          }, 10);
 
-          setTimeout(() => {
-            clearInterval(heal_interval);
-            temp_player_data.can_dash = true;
-            temp_player_data.max_speed = PLAYER_MAX_SPEED;
-            temp_player_data.is_healing = false;
-          }, HEAL_DURATION);
+            //normal bullets respect i‑frames
+            if (!temp_player_data.iframe && b.damage > 0) {
+              temp_player_data.health -= b.damage;
 
-          setTimeout(() => {
-            temp_player_data.can_heal = true;
-          }, HEAL_COOLDOWN);
-      }
+              temp_player_data.iframe = true;
+              setTimeout(() => {
+                temp_player_data.iframe = false;
+              }, PLAYER_IFRAME_DURATION);
 
-      //healthbar update
-      update_healthbar();
-      //bullet stuff
-      for (let b of bulletManager.active) {
-        if (b.dead) continue;
+              if (!b.pierce && !b.persistent) {
+                b.dead = true;
+                b.sprite.visible = false;
+                Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
+              }
+            }
 
-        // collision check
-        if (bulletManager.collidesWith(b.body, box)) {
-          //harmless bullets never deal damage
-          if (b.harmless) {
             if (!b.persistent) {
               b.dead = true;
               b.sprite.visible = false;
               Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
             }
-            continue;
           }
-          //bullets that ignore i‑frames always deal damage
-          if (b.ignoreIframes) {
-            temp_player_data.health -= b.damage;
+        }
 
-            if (!b.pierce && !b.persistent) {
-              b.dead = true;
-              b.sprite.visible = false;
-              Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
-            }
-            continue;
-          }
+        //jelly moves
+        update_jelly(current_room)
 
-          //normal bullets respect i‑frames
-          if (!temp_player_data.iframe && b.damage > 0) {
-            temp_player_data.health -= b.damage;
-
+        //register damage and activate iframes
+        trashes.forEach((trash_body) => {
+          if (temp_player_data.iframe == false && check_collision(box, trash_body)) {
+            temp_player_data.health -= TRASH_DAMAGE;
             temp_player_data.iframe = true;
             setTimeout(() => {
               temp_player_data.iframe = false;
             }, PLAYER_IFRAME_DURATION);
-
-            if (!b.pierce && !b.persistent) {
-              b.dead = true;
-              b.sprite.visible = false;
-              Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
-            }
           }
-
-          if (!b.persistent) {
-            b.dead = true;
-            b.sprite.visible = false;
-            Matter.Body.setPosition(b.body, { x: -9999, y: -9999 });
-          }
-        }
-      }
-
-      //jelly moves
-      update_jelly(current_room)
-
-      //register damage and activate iframes
-      trashes.forEach((trash_body) => {
-        if (temp_player_data.iframe == false && check_collision(box, trash_body)) {
-          temp_player_data.health -= TRASH_DAMAGE;
+        });
+      sand_bars.forEach((sand_body) => {
+        if (temp_player_data.iframe == false && check_collision(box, sand_body)) {
+          temp_player_data.health -= 0.1;
           temp_player_data.iframe = true;
           setTimeout(() => {
             temp_player_data.iframe = false;
           }, PLAYER_IFRAME_DURATION);
         }
       });
-    sand_bars.forEach((sand_body) => {
-      if (temp_player_data.iframe == false && check_collision(box, sand_body)) {
-        temp_player_data.health -= 0.1;
-        temp_player_data.iframe = true;
-        setTimeout(() => {
-          temp_player_data.iframe = false;
-        }, PLAYER_IFRAME_DURATION);
+      
+      const is_on_sand = sand_bars.some((bar) => check_collision(box, bar));
+
+      if (is_on_sand) {
+        temp_player_data.max_speed = 1;
+        temp_player_data.was_on_sand = true;
+
+      } else if (temp_player_data.was_on_sand) {
+        temp_player_data.max_speed = PLAYER_MAX_SPEED;
+        temp_player_data.was_on_sand = false;
       }
-    });
-    
-    const is_on_sand = sand_bars.some((bar) => check_collision(box, bar));
 
-    if (is_on_sand) {
-      temp_player_data.max_speed = 1;
-      temp_player_data.was_on_sand = true;
+      forces.forEach((e, index) => {
+        if (check_collision(box, e)) {
+          let applied_x = temp_room_data[current_room].force_blocks[index].velocity.x;
+          let applied_y = temp_room_data[current_room].force_blocks[index].velocity.y;
 
-    } else if (temp_player_data.was_on_sand) {
-      temp_player_data.max_speed = PLAYER_MAX_SPEED;
-      temp_player_data.was_on_sand = false;
-    }
+          v1x += applied_x;
+          v1y += applied_y;
+        }
+      });
 
-    forces.forEach((e, index) => {
-      if (check_collision(box, e)) {
-        let applied_x = temp_room_data[current_room].force_blocks[index].velocity.x;
-        let applied_y = temp_room_data[current_room].force_blocks[index].velocity.y;
+      //heal code of heart collectibles
+      for (let e of hearts) {
+        if (check_collision(box, e)) {
+          const heartIndex = hearts.findIndex((e) => check_collision(box, e));
 
-        v1x += applied_x;
-        v1y += applied_y;
-      }
-    });
-
-    //heal code of heart collectibles
-    for (let e of hearts) {
-      if (check_collision(box, e)) {
-        const heartIndex = hearts.findIndex((e) => check_collision(box, e));
-
-        if (heartIndex !== -1) {
-          temp_player_data.health += 50;
-          hearts.splice(heartIndex, 1);
-          temp_room_data[current_room].hearts.splice(heartIndex, 1);
-          update_hearts(current_room);
+          if (heartIndex !== -1) {
+            temp_player_data.health += 50;
+            hearts.splice(heartIndex, 1);
+            temp_room_data[current_room].hearts.splice(heartIndex, 1);
+            update_hearts(current_room);
+          }
         }
       }
-    }
 
-    Matter.Body.setVelocity(box, { x: v1x, y: v1y });
-    boxGraphic.position.set(box.position.x, box.position.y);
-    boxGraphic.angle = box.angle;
+      Matter.Body.setVelocity(box, { x: v1x, y: v1y });
+      boxGraphic.position.set(box.position.x, box.position.y);
+      boxGraphic.angle = box.angle;
 
-    const speed = Math.sqrt(rotationVelocityX * rotationVelocityX + rotationVelocityY * rotationVelocityY);
-    if (speed > 0.1) {
-      const targetAngle = Math.atan2(rotationVelocityY, rotationVelocityX);
-      let angleDiff = targetAngle - box.angle;
-      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-      Matter.Body.setAngle(box, box.angle + angleDiff * rotationSpeed);
-    }
-    boxGraphic.position.set(box.position.x, box.position.y);
-    boxGraphic.rotation = box.angle + Math.PI / 2;
-    skillGraphic.position.set(box.position.x, box.position.y);
-    skillGraphicBack.position.set(box.position.x, box.position.y + 1);
-    if (temp_player_data.is_healing) {
-      skillGraphic.rotation = 0;
-      skillGraphicBack.rotation = 0;
-    }
-    playerEffectGraphic.position.set(box.position.x, box.position.y);
-    playerEffectGraphic.rotation = box.angle + Math.PI / 2;
-    const now = performance.now();
-    if (temp_player_data.iframe && !shieldWasActive) {
-      playerEffectGraphic.gotoAndPlay(0);
-      shieldVisibleUntil = now + 500;
-    }
-    if (now >= shieldVisibleUntil) playerEffectGraphic.stop();
-    playerEffectGraphic.visible = now < shieldVisibleUntil;
-    shieldWasActive = temp_player_data.iframe;
-    //PLAYERSTATE
+      const speed = Math.sqrt(rotationVelocityX * rotationVelocityX + rotationVelocityY * rotationVelocityY);
+      if (speed > 0.1) {
+        const targetAngle = Math.atan2(rotationVelocityY, rotationVelocityX);
+        let angleDiff = targetAngle - box.angle;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        Matter.Body.setAngle(box, box.angle + angleDiff * rotationSpeed);
+      }
+      boxGraphic.position.set(box.position.x, box.position.y);
+      boxGraphic.rotation = box.angle + Math.PI / 2;
+      skillGraphic.position.set(box.position.x, box.position.y);
+      skillGraphicBack.position.set(box.position.x, box.position.y + 1);
+      if (temp_player_data.is_healing) {
+        skillGraphic.rotation = 0;
+        skillGraphicBack.rotation = 0;
+      }
+      playerEffectGraphic.position.set(box.position.x, box.position.y);
+      playerEffectGraphic.rotation = box.angle + Math.PI / 2;
+      const now = performance.now();
+      if (temp_player_data.iframe && !shieldWasActive) {
+        playerEffectGraphic.gotoAndPlay(0);
+        shieldVisibleUntil = now + 500;
+      }
+      if (now >= shieldVisibleUntil) playerEffectGraphic.stop();
+      playerEffectGraphic.visible = now < shieldVisibleUntil;
+      shieldWasActive = temp_player_data.iframe;
+      //PLAYERSTATE
 
-    //PLAYERSTATE LOGIC
-    if (!is_animation_locked) {
-      if (temp_player_data.state > 0.1) {
-        playerState = "moving";
-      } else {
-        playerState = "idle";
+      //PLAYERSTATE LOGIC
+      if (!is_animation_locked) {
+        if (temp_player_data.state > 0.1) {
+          playerState = "moving";
+        } else {
+          playerState = "idle";
+        }
+
+        updatePlayerAnimation();
       }
 
-      updatePlayerAnimation();
-    }
 
+      /////////////////////////////////////////
+      //CAMERA FOLLOW SYSTEM
+      /////////////////////////////////////////
+      const halfW = app.screen.width / 2;
+      const halfH = app.screen.height / 2;
 
-    /////////////////////////////////////////
-    //CAMERA FOLLOW SYSTEM
-    /////////////////////////////////////////
-    const halfW = app.screen.width / 2;
-    const halfH = app.screen.height / 2;
+      const targetX = Math.max(
+        MAP_WIDTH_MIN,
+        Math.min(MAP_WIDTH_MAX - halfW, box.position.x),
+      );
+      const targetY = Math.max(
+        MAP_HEIGHT_MIN,
+        Math.min(MAP_HEIGHT_MAX - halfH, box.position.y),
+      );
 
-    const targetX = Math.max(
-      MAP_WIDTH_MIN,
-      Math.min(MAP_WIDTH_MAX - halfW, box.position.x),
-    );
-    const targetY = Math.max(
-      MAP_HEIGHT_MIN,
-      Math.min(MAP_HEIGHT_MAX - halfH, box.position.y),
-    );
+      world.pivot.x += (targetX - world.pivot.x) * LERP_FACTOR;
+      world.pivot.y += (targetY - world.pivot.y) * LERP_FACTOR;
 
-    world.pivot.x += (targetX - world.pivot.x) * LERP_FACTOR;
-    world.pivot.y += (targetY - world.pivot.y) * LERP_FACTOR;
+      world.x = halfW;
+      world.y = halfH;
+      /////////////////////////////////////////////////////////////////////////////
+      //collide into test text box maker
+      ///////////////////////////////////////////////////////////////
+      let touchingAnyBox = false;
 
-    world.x = halfW;
-    world.y = halfH;
-    /////////////////////////////////////////////////////////////////////////////
-    //collide into test text box maker
-    ///////////////////////////////////////////////////////////////
-     let touchingAnyBox = false;
+      text_boxes.forEach((tb) => {
+        const isColliding = Matter.Query.collides(box, [tb]).length > 0;
 
-    text_boxes.forEach((tb) => {
-      const isColliding = Matter.Query.collides(box, [tb]).length > 0;
+        if (isColliding) {
+          touchingAnyBox = true;
 
-      if (isColliding) {
-        touchingAnyBox = true;
-
-        if (!dialogueActive && last_touched_box !== tb && temp_player_data.can_move) {
-          
-          if (text_box_talk_counts[tb.text_id] === undefined) {
-            text_box_talk_counts[tb.text_id] = 0;
-          }
-
-          const currentTimesTalked = text_box_talk_counts[tb.text_id];
-
-          last_touched_box = tb; 
-          let shouldPlayDialogue = false;
-          
-          if (tb.text_id === "Welcome" && currentTimesTalked === 0) shouldPlayDialogue = true;
-          else if (tb.text_id === "Chrysaory_dash_kelp" && currentTimesTalked === 0) shouldPlayDialogue = true;
-          else if (tb.text_id === "Chrysaory_end" && currentTimesTalked < 2) shouldPlayDialogue = true;
-          else if (tb.text_id === "Chrysaory_sand" && currentTimesTalked < 2) shouldPlayDialogue = true;
-          else if (tb.text_id === "heal" && currentTimesTalked === 0) shouldPlayDialogue = true;
-          else if (tb.text_id === "zap_Chrysaory" && currentTimesTalked === 0) shouldPlayDialogue = true;
-          else if (tb.text_id === "maze_room_2" && currentTimesTalked === 0) shouldPlayDialogue = true;
-          else if (tb.text_id === "room_6" && currentTimesTalked === 0) shouldPlayDialogue = true;
-          else if (tb.text_id === "treasure" && currentTimesTalked === 0) shouldPlayDialogue = true;
-          else if (tb.text_id === "Chrysaory_room_2" && currentTimesTalked === 0) shouldPlayDialogue = true;
-          else if (tb.text_id === "Chrysaory_Dash") shouldPlayDialogue = true; 
-          else if (tb.text_id === "Chrysaory_Shock") shouldPlayDialogue = true; 
-
-          if (shouldPlayDialogue) {
-            dialogueActive = true;
-
-            switch (tb.text_id) {
-              case "Welcome":
-                startDialogue("Welcome");
-                break;
-
-              case "Chrysaory_dash_kelp":
-                startDialogue("dash_kelp");
-                break;
-              
-              case "Chrysaory_end":
-                if (currentTimesTalked === 0) startDialogue("Chrysaory_end");
-                else if (currentTimesTalked === 1) startDialogue("Chrysaory_end_repeat_1");
-                break;
-
-              case "Chrysaory_sand":
-                if (currentTimesTalked === 0) startDialogue("Chrysaory_sand");
-                else if (currentTimesTalked === 1) startDialogue("Chrysaory_sand_repeat_1");
-                break;
-
-              case "heal":
-                startDialogue("heal");
-                break;
-
-              case "zap_Chrysaory":
-                startDialogue("zap_Chrysaory");
-                break;
-
-              case "maze_room_2":
-                startDialogue("maze_room_2");
-                break;
-
-              case "room_6":
-                startDialogue("room_6");
-                break;
-
-              case "treasure":
-                startDialogue("treasure");
-                break;
-
-              case "Chrysaory_room_2":
-                startDialogue("Chrysaory_room_2");
-                break;
-
-              case "Chrysaory_Dash":
-                if (currentTimesTalked === 0) startDialogue("Chrysaory_Dash"); 
-                else if (currentTimesTalked === 1) startDialogue("Chrysaory_Dash_repeat_1");
-                else if (currentTimesTalked === 2) startDialogue("Chrysaory_Dash_repeat_2");
-                else startDialogue("Chrysaory_Dash_repeat");
-                break;
-
-              case "Chrysaory_Shock":
-                if (currentTimesTalked === 0) startDialogue("Chrysaory_Shock"); 
-                else if (currentTimesTalked === 1) startDialogue("Chrysaory_Shock_repeat_1");
-                else startDialogue("Chrysaory_Shock_repeat");
-                break;
-
-              default:
-                startDialogue("dialogueMissing");
-                break;
+          if (!dialogueActive && last_touched_box !== tb && temp_player_data.can_move) {
+            
+            if (text_box_talk_counts[tb.text_id] === undefined) {
+              text_box_talk_counts[tb.text_id] = 0;
             }
 
+            const currentTimesTalked = text_box_talk_counts[tb.text_id];
 
-            text_box_talk_counts[tb.text_id]++;
+            last_touched_box = tb; 
+            let shouldPlayDialogue = false;
+            
+            if (tb.text_id === "Welcome" && currentTimesTalked === 0) shouldPlayDialogue = true;
+            else if (tb.text_id === "Chrysaory_dash_kelp" && currentTimesTalked === 0) shouldPlayDialogue = true;
+            else if (tb.text_id === "Chrysaory_end" && currentTimesTalked < 2) shouldPlayDialogue = true;
+            else if (tb.text_id === "Chrysaory_sand" && currentTimesTalked < 2) shouldPlayDialogue = true;
+            else if (tb.text_id === "heal" && currentTimesTalked === 0) shouldPlayDialogue = true;
+            else if (tb.text_id === "zap_Chrysaory" && currentTimesTalked === 0) shouldPlayDialogue = true;
+            else if (tb.text_id === "maze_room_2" && currentTimesTalked === 0) shouldPlayDialogue = true;
+            else if (tb.text_id === "room_6" && currentTimesTalked === 0) shouldPlayDialogue = true;
+            else if (tb.text_id === "treasure" && currentTimesTalked === 0) shouldPlayDialogue = true;
+            else if (tb.text_id === "Chrysaory_room_2" && currentTimesTalked === 0) shouldPlayDialogue = true;
+            else if (tb.text_id === "Chrysaory_Dash") shouldPlayDialogue = true; 
+            else if (tb.text_id === "Chrysaory_Shock") shouldPlayDialogue = true; 
+
+            if (shouldPlayDialogue) {
+              dialogueActive = true;
+
+              switch (tb.text_id) {
+                case "Welcome":
+                  startDialogue("Welcome");
+                  break;
+
+                case "Chrysaory_dash_kelp":
+                  startDialogue("dash_kelp");
+                  break;
+                
+                case "Chrysaory_end":
+                  if (currentTimesTalked === 0) startDialogue("Chrysaory_end");
+                  else if (currentTimesTalked === 1) startDialogue("Chrysaory_end_repeat_1");
+                  break;
+
+                case "Chrysaory_sand":
+                  if (currentTimesTalked === 0) startDialogue("Chrysaory_sand");
+                  else if (currentTimesTalked === 1) startDialogue("Chrysaory_sand_repeat_1");
+                  break;
+
+                case "heal":
+                  startDialogue("heal");
+                  break;
+
+                case "zap_Chrysaory":
+                  startDialogue("zap_Chrysaory");
+                  break;
+
+                case "maze_room_2":
+                  startDialogue("maze_room_2");
+                  break;
+
+                case "room_6":
+                  startDialogue("room_6");
+                  break;
+
+                case "treasure":
+                  startDialogue("treasure");
+                  break;
+
+                case "Chrysaory_room_2":
+                  startDialogue("Chrysaory_room_2");
+                  break;
+
+                case "Chrysaory_Dash":
+                  if (currentTimesTalked === 0) startDialogue("Chrysaory_Dash"); 
+                  else if (currentTimesTalked === 1) startDialogue("Chrysaory_Dash_repeat_1");
+                  else if (currentTimesTalked === 2) startDialogue("Chrysaory_Dash_repeat_2");
+                  else startDialogue("Chrysaory_Dash_repeat");
+                  break;
+
+                case "Chrysaory_Shock":
+                  if (currentTimesTalked === 0) startDialogue("Chrysaory_Shock"); 
+                  else if (currentTimesTalked === 1) startDialogue("Chrysaory_Shock_repeat_1");
+                  else startDialogue("Chrysaory_Shock_repeat");
+                  break;
+
+                default:
+                  startDialogue("dialogueMissing");
+                  break;
+              }
+
+
+              text_box_talk_counts[tb.text_id]++;
+            }
           }
         }
+      });
+      if (!touchingAnyBox) {
+        last_touched_box = null;
       }
-    });
-    if (!touchingAnyBox) {
-      last_touched_box = null;
-    }
-    
-    /////////////////////////////////////////////////////////////////////////////
-    //for dialogue checker (skip)
-    /////////////////////////////////////////////////////////////////////////////////
-    if (keys[keybinds.dialogue]) {
+      
+      /////////////////////////////////////////////////////////////////////////////
+      //for dialogue checker (skip)
+      /////////////////////////////////////////////////////////////////////////////////
+      if (keys[keybinds.dialogue]) {
 
-      if (!enter_pressed) {
-        enter_pressed = true;
+        if (!enter_pressed) {
+          enter_pressed = true;
 
-        if (dialogue_text._typingInterval) {
-          clearInterval(dialogue_text._typingInterval);
-          dialogue_text._typingInterval = null;
+          if (dialogue_text._typingInterval) {
+            clearInterval(dialogue_text._typingInterval);
+            dialogue_text._typingInterval = null;
 
-          const line = current_dialogue[dialogue_index];
-          dialogue_text.text = `${line.speaker}: ${line.text}`;
-        } else {
-          dialogue_index++;
-          show_next_dialogue_line();
+            const line = current_dialogue[dialogue_index];
+            dialogue_text.text = `${line.speaker}: ${line.text}`;
+          } else {
+            dialogue_index++;
+            show_next_dialogue_line();
+          }
         }
+
+      } else {
+        // reset when key is released
+        enter_pressed = false;
       }
 
-    } else {
-      // reset when key is released
-      enter_pressed = false;
-    }
+      world.children.forEach((child) => {
+        if (child.label && child.label.startsWith("parallax_")) {
+          const parallax_amt = parseFloat(child.label.split("_")[1]);
 
-    world.children.forEach((child) => {
-      if (child.label && child.label.startsWith("parallax_")) {
-        const parallax_amt = parseFloat(child.label.split("_")[1]);
+          child.x = world.pivot.x * (1 - 1 / parallax_amt);
+          child.y = world.pivot.y * (1 - 1 / parallax_amt);
+        }
+      });
 
-        child.x = world.pivot.x * (1 - 1 / parallax_amt);
-        child.y = world.pivot.y * (1 - 1 / parallax_amt);
+      for (let i = 0; i < walls.length; i++) {
+        wall_graphics[i].position.set(walls[i].position.x, walls[i].position.y);
       }
-    });
+        if (canTransition) {
+          for (let doorBody of doors) {
+            if (check_collision(box, doorBody)) {
+              // SAVE bullets from current room
+              temp_room_data[current_room].savedBullets =
+                bulletManager.active.map(b => bulletManager.serializeBullet(b));
 
-    for (let i = 0; i < walls.length; i++) {
-      wall_graphics[i].position.set(walls[i].position.x, walls[i].position.y);
-    }
-      if (canTransition) {
-        for (let doorBody of doors) {
-          if (check_collision(box, doorBody)) {
-            // SAVE bullets from current room
-            temp_room_data[current_room].savedBullets =
-              bulletManager.active.map(b => bulletManager.serializeBullet(b));
+              // CLEAR bullets from screen
+              bulletManager.clearAll();
 
-            // CLEAR bullets from screen
-            bulletManager.clearAll();
+              // LOAD new room
+              doors = [];
+              load_rooms(
+                doorBody.target_room,
+                doorBody.target_x,
+                doorBody.target_y,
+              );
 
-            // LOAD new room
-            doors = [];
-            load_rooms(
-              doorBody.target_room,
-              doorBody.target_x,
-              doorBody.target_y,
-            );
+              // RESTORE bullets for new room
+              bulletManager.restoreBullets(
+                temp_room_data[doorBody.target_room].savedBullets,
+                PIXI.Texture.WHITE // or bullet-specific texture
+              );
 
-            // RESTORE bullets for new room
-            bulletManager.restoreBullets(
-              temp_room_data[doorBody.target_room].savedBullets,
-              PIXI.Texture.WHITE // or bullet-specific texture
-            );
+              // Update current room
+              current_room = doorBody.target_room;
 
-            // Update current room
-            current_room = doorBody.target_room;
-
-            break;
-          }
-          }
+              break;
+            }
+            }
+          
+        }
+      } else {
         
       }
     }
-  if (keys[keybinds.pause] && !pauseKeyWasDown) {
-    paused = !paused;
-    pauseMenu.visible = paused
-    pauseMenu_text.visible = paused
-  }
-  pauseKeyWasDown = keys[keybinds.pause];
   });
   setInterval(() => {
     localStorage.setItem("current_room", current_room); //room
